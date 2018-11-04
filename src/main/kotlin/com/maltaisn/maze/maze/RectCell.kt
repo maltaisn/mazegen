@@ -23,16 +23,10 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.maltaisn.maze
-
-import com.maltaisn.maze.generator.HuntKillGenerator
-import com.maltaisn.maze.maze.FlatRectMaze
+package com.maltaisn.maze.maze
 
 
-fun main(args: Array<String>) {
-    val maze = FlatRectMaze(50, 50)
-    val generator = HuntKillGenerator(maze)
-
-    generator.generate()
-    println(maze.format())
-}
+/**
+ * Interface for the cell of a rectangular maze.
+ */
+interface RectCell : Cell

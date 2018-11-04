@@ -27,34 +27,30 @@ package com.maltaisn.maze.maze
 
 
 /**
- * Base class for a maze of width [width] and height [height].
- * A maze is a simple wrapper around a 2D cell array.
- * @param[T] type of the cells in the maze
+ * Interface for a maze.
  */
-abstract class Maze<T : Cell>(val width: Int, val height: Int) {
-
-    lateinit var grid: Array<Array<T>>
-        protected set
+interface Maze {
 
     /**
-     * Returns the cell at coordinates ([x]; [y]).
+     * Returns a random cell in the maze.
      */
-    fun cellAt(x: Int, y: Int): T = grid[x][y]
+    fun getRandomCell(): Cell
 
     /**
-     * Returns the cell at coordinates ([x]; [y]) if valid.
-     * Otherwise returns null.
+     * Do [action] on every cell of the maze.
+     * Return true from action to break out of the forEach.
      */
-    fun optionalCellAt(x: Int, y: Int): T? {
-        if (x < 0 || x >= width || y < 0 || y >= height) return null
-        return grid[x][y]
-    }
+    fun <T : Cell> forEachCell(action: (T) -> Boolean)
 
     /**
      * Returns a string representation of the maze
      */
-    abstract fun format(): String
+    fun format(): String
 
-    override fun toString(): String = "[width: $width, height: $height]"
+    /**
+     * Clears all the sides of all cells in the maze if [empty] is true,
+     * otherwise sets all sides on all the cells.
+     */
+    fun reset(empty: Boolean)
 
 }

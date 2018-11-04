@@ -25,42 +25,67 @@
 
 package com.maltaisn.maze.maze
 
-import com.maltaisn.maze.maze.FlatCell
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 
-class FlatMazeTest {
+class FlatRectMazeTest {
 
     @Test
     fun defaultValue_coordinates() {
-        val maze1 = FlatMaze(3, 3)
+        val maze1 = FlatRectMaze(3, 3)
         for (x in 0 until maze1.width) {
             for (y in 0 until maze1.height) {
                 val cell = maze1.cellAt(x, y)
                 assertEquals(x, cell.x)
                 assertEquals(y, cell.y)
-                assertEquals(FlatCell.Side.NONE.value, cell.value)
+                assertEquals(FlatRectCell.Side.NONE.value, cell.value)
             }
         }
 
-        val maze2 = FlatMaze(3, 3, FlatCell.Side.ALL.value)
+        val maze2 = FlatRectMaze(3, 3, FlatRectCell.Side.ALL.value)
         for (x in 0 until maze2.width) {
             for (y in 0 until maze2.height) {
                 val cell = maze2.cellAt(x, y)
                 assertEquals(x, cell.x)
                 assertEquals(y, cell.y)
-                assertEquals(FlatCell.Side.ALL.value, cell.value)
+                assertEquals(FlatRectCell.Side.ALL.value, cell.value)
             }
         }
     }
 
     @Test
+    fun cellAt() {
+        val maze = FlatRectMaze(10, 10)
+
+        val cell1 = maze.cellAt(5, 5)
+        assertEquals(cell1.x, 5)
+        assertEquals(cell1.y, 5)
+
+        val cell2 = maze.cellAt(9, 0)
+        assertEquals(cell2.x, 9)
+        assertEquals(cell2.y, 0)
+    }
+
+    @Test
+    fun optionalCellAt() {
+        val maze = FlatRectMaze(10, 10)
+
+        val cell1 = maze.optionalCellAt(5, 5)!!
+        assertEquals(cell1.x, 5)
+        assertEquals(cell1.y, 5)
+
+        assertNull(maze.optionalCellAt(-1, 5))
+        assertNull(maze.optionalCellAt(10, 10))
+    }
+
+    @Test
     fun format() {
-        val maze1 = FlatMaze(1, 1, FlatCell.Side.ALL.value)
+        val maze1 = FlatRectMaze(1, 1, FlatRectCell.Side.ALL.value)
         assertEquals("┌┐\n└┘", maze1.format())
 
-        val maze2 = FlatMaze(3, 3, FlatCell.Side.ALL.value)
+        val maze2 = FlatRectMaze(3, 3, FlatRectCell.Side.ALL.value)
         maze2.cellAt(0, 0).connectWith(maze2.cellAt(1, 0))
         maze2.cellAt(1, 0).connectWith(maze2.cellAt(1, 1))
         maze2.cellAt(1, 1).connectWith(maze2.cellAt(2, 1))

@@ -43,15 +43,13 @@ import com.maltaisn.maze.maze.FlatMaze
  *      mark it as visited and make it the current cell.
  *    - If not, the maze is done.
  */
-class HuntAndKillGenerator : Generator<FlatMaze>() {
+class HuntKillGenerator(maze: FlatMaze) : Generator<FlatMaze>(maze) {
 
-    override fun generate(width: Int, height: Int): FlatMaze {
-        val maze = FlatMaze(width, height, FlatCell.Side.ALL.value)
+    override fun generate() {
+        maze.reset(false)
 
         // Get cell on a random starting location
-        var currentCell = maze.cellAt(
-                random.nextInt(0, width),
-                random.nextInt(0, height))
+        var currentCell = maze.getRandomCell()
         currentCell.visited = true
 
         while (true) {
@@ -63,8 +61,6 @@ class HuntAndKillGenerator : Generator<FlatMaze>() {
                 break
             }
         }
-
-        return maze
     }
 
     /**
@@ -111,27 +107,24 @@ class HuntAndKillGenerator : Generator<FlatMaze>() {
         var unvisitedCell: FlatCell? = null
         var visitedNeighbor: FlatCell? = null
 
-        outer@
-        for (x in 0 until maze.width) {
-            for (y in 0 until maze.height) {
-                val cell = maze.cellAt(x, y)
-                if (cell.hasSide(FlatCell.Side.ALL)) {
-                    val neighbors = cell.getNeighbors().toMutableList()
-                    for (neighbor in neighbors) {
-                        if (neighbor.visited) {
-                            // Neighbor was visited
-                            unvisitedCell = cell
-                            visitedNeighbor = neighbor
-                            break@outer
-                        }
+        maze.forEachCell<FlatCell> { cell ->
+            if (!cell.visited) {
+                val neighbors = cell.getNeighbors().toMutableList()
+                for (neighbor in neighbors) {
+                    if (neighbor.visited) {
+                        // Neighbor was visited
+                        unvisitedCell = cell
+                        visitedNeighbor = neighbor
+                        return@forEachCell true
                     }
                 }
             }
+            return@forEachCell false
         }
-        if (unvisitedCell != null) {
-            unvisitedCell.connectWith(visitedNeighbor!!)
-            unvisitedCell.visited = true
-        }
+
+        unvisitedCell?.connectWith(visitedNeighbor!!)
+        unvisitedCell?.visited = true
+
         return unvisitedCell
     }
 

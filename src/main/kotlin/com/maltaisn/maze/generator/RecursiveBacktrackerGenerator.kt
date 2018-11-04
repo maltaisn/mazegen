@@ -40,15 +40,13 @@ import com.maltaisn.maze.maze.FlatMaze
  *    - If not, pop the last cell on the stack and make it the current cell.
  * 3. Repeat step 2 until stack is empty.
  */
-class RecursiveBacktrackerGenerator : Generator<FlatMaze>() {
+class RecursiveBacktrackerGenerator(maze: FlatMaze) : Generator<FlatMaze>(maze) {
 
-    override fun generate(width: Int, height: Int): FlatMaze {
-        val maze = FlatMaze(width, height, FlatCell.Side.ALL.value)
+    override fun generate() {
+        maze.reset(false)
 
         // Get cell on a random starting location
-        var currentCell = maze.cellAt(
-                random.nextInt(0, width),
-                random.nextInt(0, height))
+        var currentCell = maze.getRandomCell()
         currentCell.visited = true
 
         val stack = mutableListOf<FlatCell>()
@@ -89,8 +87,6 @@ class RecursiveBacktrackerGenerator : Generator<FlatMaze>() {
                 }
             }
         }
-
-        return maze
     }
 
 }

@@ -27,19 +27,13 @@ package com.maltaisn.maze.maze
 
 
 /**
- * Base class for a cell in a maze grid.
- * @param[maze] maze in which the cell is
- * @param[x] x position of the cell in the maze
- * @param[y] y position of the cell in the maze
+ * Interface for a maze cell.
  */
-abstract class Cell(protected val maze: Maze<out Cell>, val x: Int, val y: Int) {
+interface Cell {
 
     /**
-     * Used by maze generators to tell whether a cell was visited or not.
+     * Cell can be marked as visited by the generator
      */
-    var visited = false
-
-    override fun toString(): String = "[x: $x, y: $y, " +
-            "${if (visited) "visited" else "unvisited"}}]"
+    var visited: Boolean
 
 }

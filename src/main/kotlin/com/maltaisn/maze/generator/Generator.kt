@@ -25,15 +25,21 @@
 
 package com.maltaisn.maze.generator
 
-import com.maltaisn.maze.maze.Cell
 import com.maltaisn.maze.maze.Maze
 import java.util.concurrent.ThreadLocalRandom
 
 
-abstract class Generator<T : Maze<out Cell>> {
+/**
+ * Base class for a maze generator
+ * Generates a maze into [maze], reseting its previous state.
+ */
+abstract class Generator<T : Maze>(val maze: T) {
 
     protected val random = ThreadLocalRandom.current()!!
 
-    abstract fun generate(width: Int, height: Int): T
+    /**
+     * Generate a maze into [maze], which is reset before.
+     */
+    abstract fun generate()
 
 }
