@@ -26,8 +26,8 @@
 package com.maltaisn.maze.maze
 
 
-class FlatRectCell(override val maze: FlatRectMaze, override val position: PositionXY) :
-        RectCell, FlatCell {
+class FlatHexCell(override val maze: FlatHexMaze,
+                  override val position: PositionXY) : HexCell, FlatCell {
 
     override var visited = false
 
@@ -41,32 +41,34 @@ class FlatRectCell(override val maze: FlatRectMaze, override val position: Posit
     /**
      * Create new cell with initial value of [value].
      */
-    constructor(maze: FlatRectMaze, position: PositionXY, value: Int) : this(maze, position) {
+    constructor(maze: FlatHexMaze, position: PositionXY, value: Int) : this(maze, position) {
         this.value = value
     }
 
     override fun getAllSides(): List<Side> = ALL_SIDES
 
-    override fun getCellOnSide(side: FlatCell.Side): FlatRectCell? {
-        return super.getCellOnSide(side) as FlatRectCell?
+    override fun getCellOnSide(side: FlatCell.Side): FlatHexCell? {
+        return super.getCellOnSide(side) as FlatHexCell?
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun getNeighbors(): List<FlatRectCell> {
-        return super.getNeighbors() as List<FlatRectCell>
+    override fun getNeighbors(): List<FlatHexCell> {
+        return super.getNeighbors() as List<FlatHexCell>
     }
 
     override fun toString(): String {
         val sb = StringBuilder()
-        sb.append("[pos: $position, sides: ")
+        sb.append("[pos: $position, sides, ")
         when (value) {
             Side.NONE.value -> sb.append("NONE")
             Side.ALL.value -> sb.append("ALL")
             else -> {
                 if (hasSide(Side.NORTH)) sb.append("N,")
-                if (hasSide(Side.EAST)) sb.append("E,")
+                if (hasSide(Side.NORTHEAST)) sb.append("NE,")
+                if (hasSide(Side.SOUTHEAST)) sb.append("SE,")
                 if (hasSide(Side.SOUTH)) sb.append("S,")
-                if (hasSide(Side.WEST)) sb.append("W,")
+                if (hasSide(Side.SOUTHWEST)) sb.append("SW,")
+                if (hasSide(Side.NORTHWEST)) sb.append("NW,")
                 sb.deleteCharAt(sb.length - 1)
             }
         }
@@ -77,16 +79,23 @@ class FlatRectCell(override val maze: FlatRectMaze, override val position: Posit
     }
 
     /**
-     * Enum class for the side a rectangular cell
+     * Enum class for the side a hexagonal cell
+     * ```
+     *     N -> __
+     *   NW -> /  \  <- NE
+     *   SW -> \__/  <- SE
+     *      S ->
+     * ```
      */
-    enum class Side(override val value: Int,
-                    override val relativePos: PositionXY?) : FlatCell.Side {
+    enum class Side(override val value: Int, override val relativePos: Position?) : FlatCell.Side {
         NONE(0, null),
         NORTH(1, PositionXY(0, -1)),
-        EAST(2, PositionXY(1, 0)),
-        SOUTH(4, PositionXY(0, 1)),
-        WEST(8, PositionXY(-1, 0)),
-        ALL(15, null);
+        NORTHEAST(2, PositionXY(1, 0)),
+        SOUTHEAST(4, PositionXY(1, 1)),
+        SOUTH(8, PositionXY(0, 1)),
+        SOUTHWEST(16, PositionXY(-1, 1)),
+        NORTHWEST(32, PositionXY(-1, -1)),
+        ALL(63, null);
 
         /**
          * Returns the opposite side of this side
@@ -94,9 +103,11 @@ class FlatRectCell(override val maze: FlatRectMaze, override val position: Posit
         override fun opposite(): Side = when (this) {
             NONE -> NONE
             NORTH -> SOUTH
+            NORTHEAST -> SOUTHWEST
+            SOUTHEAST -> NORTHWEST
             SOUTH -> NORTH
-            EAST -> WEST
-            WEST -> EAST
+            SOUTHWEST -> NORTHEAST
+            NORTHWEST -> SOUTHEAST
             ALL -> ALL
         }
 
@@ -104,7 +115,8 @@ class FlatRectCell(override val maze: FlatRectMaze, override val position: Posit
     }
 
     companion object {
-        private val ALL_SIDES = listOf(Side.NORTH, Side.EAST, Side.SOUTH, Side.WEST)
+        private val ALL_SIDES = listOf(Side.NORTH, Side.NORTHEAST, Side.SOUTHEAST,
+                Side.SOUTH, Side.SOUTHWEST, Side.NORTHWEST)
     }
 
 }

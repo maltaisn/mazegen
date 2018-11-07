@@ -31,6 +31,10 @@ package com.maltaisn.maze.maze
  */
 interface FlatMaze : Maze {
 
+    override fun cellAt(pos: Position): FlatCell
+
+    override fun optionalCellAt(pos: Position): FlatCell?
+
     override fun getRandomCell(): FlatCell
 
 }

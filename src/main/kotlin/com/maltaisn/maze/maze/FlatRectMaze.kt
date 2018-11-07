@@ -30,37 +30,55 @@ import java.util.concurrent.ThreadLocalRandom
 
 /**
  * Class for a flat rectangular maze represented by 2D grid of [FlatRectCell].
+ * @param[width] the number of columns
+ * @param[height] the number of rows
  * @param[defaultCellValue] default value to assign to cells on construction, no sides by default.
  */
 class FlatRectMaze(val width: Int, val height: Int,
                    defaultCellValue: Int = FlatRectCell.Side.NONE.value) : RectMaze, FlatMaze {
 
-    val grid: Array<Array<FlatRectCell>>
+    private val grid: Array<Array<FlatRectCell>>
 
     init {
         grid = Array(width) { x ->
-            Array(height) { y -> FlatRectCell(this, x, y, defaultCellValue) }
+            Array(height) { y -> FlatRectCell(this, PositionXY(x, y), defaultCellValue) }
         }
     }
 
-    override fun cellAt(x: Int, y: Int): FlatRectCell = grid[x][y]
+    override fun cellAt(pos: Position): FlatRectCell = if (pos is PositionXY) {
+        grid[pos.x][pos.y]
+    } else {
+        throw IllegalArgumentException("Position has wrong type.")
+    }
 
-    override fun optionalCellAt(x: Int, y: Int): FlatRectCell? {
-        if (x < 0 || x >= width || y < 0 || y >= height) return null
-        return grid[x][y]
+    override fun optionalCellAt(pos: Position): FlatRectCell? {
+        if (pos is PositionXY) {
+            if (pos.x < 0 || pos.x >= width || pos.y < 0 || pos.y >= height) return null
+            return grid[pos.x][pos.y]
+        }
+        return null
     }
 
     override fun getRandomCell(): FlatRectCell {
         val random = ThreadLocalRandom.current()
-        return cellAt(random.nextInt(width), random.nextInt(height))
+        return cellAt(PositionXY(random.nextInt(width), random.nextInt(height)))
     }
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : Cell> forEachCell(action: (T) -> Boolean) {
         for (x in 0 until width) {
             for (y in 0 until height) {
-                val stop = action.invoke(cellAt(x, y) as T)
+                val stop = action(cellAt(PositionXY(x, y)) as T)
                 if (stop) return
+            }
+        }
+    }
+
+    override fun reset(empty: Boolean) {
+        val value = if (empty) FlatRectCell.Side.NONE.value else FlatRectCell.Side.ALL.value
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                grid[x][y].value = value
             }
         }
     }
@@ -71,10 +89,10 @@ class FlatRectMaze(val width: Int, val height: Int,
         val sb = StringBuilder((w + 1) * h)
         for (y in 0 until h) {
             for (x in 0 until w) {
-                val nw = optionalCellAt(x - 1, y - 1)
-                val ne = optionalCellAt(x, y - 1)
-                val sw = optionalCellAt(x - 1, y)
-                val se = optionalCellAt(x, y)
+                val nw = optionalCellAt(PositionXY(x - 1, y - 1))
+                val ne = optionalCellAt(PositionXY(x, y - 1))
+                val sw = optionalCellAt(PositionXY(x - 1, y))
+                val se = optionalCellAt(PositionXY(x, y))
 
                 var value = FlatRectCell.Side.NONE.value
                 if (nw != null && nw.hasSide(FlatRectCell.Side.EAST)
@@ -101,13 +119,8 @@ class FlatRectMaze(val width: Int, val height: Int,
         return sb.toString()
     }
 
-    override fun reset(empty: Boolean) {
-        val value = if (empty) FlatRectCell.Side.NONE.value else FlatRectCell.Side.ALL.value
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                grid[x][y].value = value
-            }
-        }
+    override fun toString(): String {
+        return "[width: $width, height: $height]"
     }
 
     companion object {

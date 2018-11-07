@@ -32,6 +32,16 @@ package com.maltaisn.maze.maze
 interface Maze {
 
     /**
+     * Returns the cell at [pos].
+     */
+    fun cellAt(pos: Position): Cell
+
+    /**
+     * Returns the cell at [pos] if it exists, otherwise returns null.
+     */
+    fun optionalCellAt(pos: Position): Cell?
+
+    /**
      * Returns a random cell in the maze.
      */
     fun getRandomCell(): Cell
@@ -43,14 +53,14 @@ interface Maze {
     fun <T : Cell> forEachCell(action: (T) -> Boolean)
 
     /**
-     * Returns a string representation of the maze
-     */
-    fun format(): String
-
-    /**
      * Clears all the sides of all cells in the maze if [empty] is true,
      * otherwise sets all sides on all the cells.
      */
     fun reset(empty: Boolean)
+
+    /**
+     * Returns a string representation of the maze
+     */
+    fun format(): String
 
 }

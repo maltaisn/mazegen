@@ -31,46 +31,129 @@ package com.maltaisn.maze.maze
  */
 interface FlatCell : Cell {
 
+    override val maze: FlatMaze
+
+    var value: Int
+
+    var neighborList: List<FlatCell>?
+
     /**
      * Returns the neighbor cell on the [side] of the cell.
      * If the neighbor doesn't exist, returns null.
      */
-    fun getCellOnSide(side: Side): FlatCell?
+    fun getCellOnSide(side: Side): FlatCell? {
+        if (side.relativePos == null) return null
+        return maze.optionalCellAt(position.add(side.relativePos!!))
+    }
 
     /**
      * Get the list of all non-null neighbor cells of this cell.
      */
-    fun getNeighbors(): List<FlatCell>
+    fun getNeighbors(): List<FlatCell> {
+        if (neighborList == null) {
+            val list = mutableListOf<FlatCell>()
+            for (side in getAllSides()) {
+                val cell = getCellOnSide(side)
+                if (cell != null) {
+                    list.add(cell)
+                }
+            }
+            neighborList = list.toList()
+        }
+        return neighborList!!.toList()
+    }
 
     /**
      * Returns true if [side] is set.
      */
-    fun hasSide(side: Side): Boolean
+    fun hasSide(side: Side): Boolean {
+        if (side.value == 0) return value == 0
+        return (value and side.value) == side.value
+    }
 
     /**
      * Opens (removes) [side] of the cell.
      */
-    fun openSide(side: Side)
+    fun openSide(side: Side) {
+        changeSide(side) { v, s -> v and s.inv() }
+    }
 
     /**
      * Closes (adds) [side] of the cell.
      */
-    fun closeSide(side: Side)
+    fun closeSide(side: Side) {
+        changeSide(side, Int::or)
+    }
 
     /**
      * Toggles [side] of the cell.
      */
-    fun toggleSide(side: Side)
+    fun toggleSide(side: Side) {
+        changeSide(side, Int::xor)
+    }
+
+    /**
+     * Returns a list of all possible side values.
+     */
+    fun getAllSides(): List<Side>
+
+    /**
+     * Do [operation] on the cell on [side]'s value
+     */
+    private fun changeSide(side: Side, operation: (v: Int, s: Int) -> Int) {
+        if (side.value == 0) {
+            return
+        } else if (side.isAll()) {
+            for (s in getAllSides()) {
+                val cell = getCellOnSide(s)
+                if (cell != null) {
+                    cell.value = operation(cell.value, s.opposite().value)
+                }
+            }
+        } else {
+            val cell = getCellOnSide(side)
+            if (cell != null) {
+                cell.value = operation(cell.value, side.opposite().value)
+            }
+        }
+        value = operation(value, side.value)
+    }
 
     /**
      * Connect this cell with another cell [cell] if they are neighbors of the same maze.
      * Does nothing otherwise. The common side of both cells is opened (removed).
      */
-    fun connectWith(cell: FlatCell)
+    fun connectWith(cell: FlatCell) {
+        if (cell.maze !== maze) return
+
+        for (side in getAllSides()) {
+            if (position.add(side.relativePos!!) == cell.position) {
+                // The cell to connect is on this side
+                cell.value = cell.value and side.opposite().value.inv()
+                value = value and side.value.inv()
+                break
+            }
+        }
+    }
 
     /**
-     * Marker interface for a flat cell side.
+     * Marker interface for a cell side enum.
      */
-    interface Side
+    interface Side {
+
+        val value: Int
+
+        val relativePos: Position?
+
+        /**
+         * Get the side opposite to this side.
+         */
+        fun opposite(): Side
+
+        /**
+         * Returns true if this side describes an all sides value.
+         */
+        fun isAll(): Boolean
+    }
 
 }

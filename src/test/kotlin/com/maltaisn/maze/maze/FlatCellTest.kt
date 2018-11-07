@@ -29,12 +29,13 @@ import org.junit.jupiter.api.Test
 import kotlin.test.*
 
 
-class FlatRectCellTest {
+class FlatCellTest {
 
     @Test
     fun hasSide() {
-        val maze = FlatRectMaze(1, 1, FlatRectCell.Side.NORTH.value or FlatRectCell.Side.SOUTH.value)
-        val cell = maze.cellAt(0, 0)
+        val maze = FlatRectMaze(1, 1,
+                FlatRectCell.Side.NORTH.value or FlatRectCell.Side.SOUTH.value)
+        val cell = maze.cellAt(PositionXY(0, 0))
         assertTrue(cell.hasSide(FlatRectCell.Side.NORTH))
         assertFalse(cell.hasSide(FlatRectCell.Side.EAST))
         assertTrue(cell.hasSide(FlatRectCell.Side.SOUTH))
@@ -57,23 +58,19 @@ class FlatRectCellTest {
     fun getCellOnSide() {
         val maze = FlatRectMaze(3, 3)
 
-        val middleCell = maze.cellAt(1, 1)
+        val middleCell = maze.cellAt(PositionXY(1, 1))
 
         val northCell = middleCell.getCellOnSide(FlatRectCell.Side.NORTH)!!
-        assertEquals(1, northCell.x)
-        assertEquals(0, northCell.y)
+        assertEquals(PositionXY(1, 0), northCell.position)
 
         val southCell = middleCell.getCellOnSide(FlatRectCell.Side.SOUTH)!!
-        assertEquals(1, southCell.x)
-        assertEquals(2, southCell.y)
+        assertEquals(PositionXY(1, 2), southCell.position)
 
         val eastCell = middleCell.getCellOnSide(FlatRectCell.Side.EAST)!!
-        assertEquals(0, eastCell.x)
-        assertEquals(1, eastCell.y)
+        assertEquals(PositionXY(2, 1), eastCell.position)
 
         val westCell = middleCell.getCellOnSide(FlatRectCell.Side.WEST)!!
-        assertEquals(2, westCell.x)
-        assertEquals(1, westCell.y)
+        assertEquals(PositionXY(0, 1), westCell.position)
 
         assertNull(middleCell.getCellOnSide(FlatRectCell.Side.NONE))
         assertNull(northCell.getCellOnSide(FlatRectCell.Side.NORTH))
@@ -87,8 +84,8 @@ class FlatRectCellTest {
     fun changeSide() {
         val maze1 = FlatRectMaze(3, 3, FlatRectCell.Side.ALL.value)
 
-        val middleCell = maze1.cellAt(1, 1)
-        val northCell = maze1.cellAt(1, 0)
+        val middleCell = maze1.cellAt(PositionXY(1, 1))
+        val northCell = maze1.cellAt(PositionXY(1, 0))
         middleCell.openSide(FlatRectCell.Side.NORTH)
         assertFalse(middleCell.hasSide(FlatRectCell.Side.NORTH))
         assertFalse(northCell.hasSide(FlatRectCell.Side.SOUTH))
@@ -111,7 +108,7 @@ class FlatRectCellTest {
         assertTrue(northCell.hasSide(FlatRectCell.Side.SOUTH))
 
         val maze2 = FlatRectMaze(1, 1)
-        val cell2 = maze2.cellAt(0, 0)
+        val cell2 = maze2.cellAt(PositionXY(0, 0))
         cell2.toggleSide(FlatRectCell.Side.ALL)
         assertTrue(cell2.hasSide(FlatRectCell.Side.ALL))
     }
@@ -119,43 +116,43 @@ class FlatRectCellTest {
     @Test
     fun getNeighbors() {
         val maze1 = FlatRectMaze(3, 3)
-        val nwCell = maze1.cellAt(0, 0)
-        val nCell = maze1.cellAt(1, 0)
-        val neCell = maze1.cellAt(2, 0)
-        val eCell = maze1.cellAt(2, 1)
-        val mCell = maze1.cellAt(1, 1)
-        val wCell = maze1.cellAt(0, 1)
-        val sCell = maze1.cellAt(1, 2)
+        val nwCell = maze1.cellAt(PositionXY(0, 0))
+        val nCell = maze1.cellAt(PositionXY(1, 0))
+        val neCell = maze1.cellAt(PositionXY(2, 0))
+        val eCell = maze1.cellAt(PositionXY(2, 1))
+        val mCell = maze1.cellAt(PositionXY(1, 1))
+        val wCell = maze1.cellAt(PositionXY(0, 1))
+        val sCell = maze1.cellAt(PositionXY(1, 2))
 
         assertEquals(listOf(nCell, eCell, sCell, wCell), mCell.getNeighbors())
         assertEquals(listOf(neCell, mCell, nwCell), nCell.getNeighbors())
         assertEquals(listOf(nCell, wCell), nwCell.getNeighbors())
 
         val maze2 = FlatRectMaze(1, 1)
-        assertTrue(maze2.cellAt(0, 0).getNeighbors().isEmpty())
+        assertTrue(maze2.cellAt(PositionXY(0, 0)).getNeighbors().isEmpty())
     }
 
     @Test
     fun connectWith() {
         val maze = FlatRectMaze(3, 3, FlatRectCell.Side.ALL.value)
-        val middleCell = maze.cellAt(1, 1)
+        val middleCell = maze.cellAt(PositionXY(1, 1))
 
-        val northCell = maze.cellAt(1, 0)
+        val northCell = maze.cellAt(PositionXY(1, 0))
         middleCell.connectWith(northCell)
         assertFalse(middleCell.hasSide(FlatRectCell.Side.NORTH))
         assertFalse(northCell.hasSide(FlatRectCell.Side.SOUTH))
 
-        val eastCell = maze.cellAt(2, 1)
+        val eastCell = maze.cellAt(PositionXY(2, 1))
         middleCell.connectWith(eastCell)
         assertFalse(middleCell.hasSide(FlatRectCell.Side.EAST))
         assertFalse(eastCell.hasSide(FlatRectCell.Side.WEST))
 
-        val southCell = maze.cellAt(1, 2)
+        val southCell = maze.cellAt(PositionXY(1, 2))
         southCell.connectWith(middleCell)
         assertFalse(middleCell.hasSide(FlatRectCell.Side.SOUTH))
         assertFalse(southCell.hasSide(FlatRectCell.Side.NORTH))
 
-        val westCell = maze.cellAt(0, 1)
+        val westCell = maze.cellAt(PositionXY(0, 1))
         westCell.connectWith(middleCell)
         assertFalse(middleCell.hasSide(FlatRectCell.Side.WEST))
         assertFalse(westCell.hasSide(FlatRectCell.Side.EAST))

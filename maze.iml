@@ -21,5 +21,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="JFreeSvg" level="project" />
   </component>
 </module>

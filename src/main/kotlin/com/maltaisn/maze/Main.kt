@@ -25,14 +25,21 @@
 
 package com.maltaisn.maze
 
-import com.maltaisn.maze.generator.HuntKillGenerator
-import com.maltaisn.maze.maze.FlatRectMaze
+import com.maltaisn.maze.generator.RecursiveBacktrackerGenerator
+import com.maltaisn.maze.maze.FlatHexCell
+import com.maltaisn.maze.maze.FlatHexMaze
+import com.maltaisn.maze.maze.HexMaze
 
 
 fun main(args: Array<String>) {
-    val maze = FlatRectMaze(50, 50)
-    val generator = HuntKillGenerator(maze)
+    // TODO if widhth > 3, not working
+    // also other shapes than rhombus don't work
 
-    generator.generate()
+    val maze = FlatHexMaze(HexMaze.Arrangement.TRIANGLE, dimension = 2,
+            defaultCellValue = FlatHexCell.Side.ALL.value)
+    //val maze = FlatRectMaze(50, 50)
+    val generator = RecursiveBacktrackerGenerator(maze)
+
+    //generator.generate()
     println(maze.format())
 }

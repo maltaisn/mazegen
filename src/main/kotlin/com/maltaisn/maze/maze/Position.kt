@@ -27,23 +27,13 @@ package com.maltaisn.maze.maze
 
 
 /**
- * Interface for a maze cell.
+ * Interface for a cell position in the maze.
  */
-interface Cell {
+interface Position {
 
     /**
-     * The maze containing this cell.
+     * Return a new position corresponding to the sum of this position and [pos].
      */
-    val maze: Maze
-
-    /**
-     * The position of the cell in the maze.
-     */
-    val position: Position
-
-    /**
-     * Cell can be marked as visited by the generator.
-     */
-    var visited: Boolean
+    fun add(pos: Position): Position
 
 }

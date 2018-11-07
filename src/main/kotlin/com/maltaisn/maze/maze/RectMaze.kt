@@ -31,15 +31,10 @@ package com.maltaisn.maze.maze
  */
 interface RectMaze : Maze {
 
-    /**
-     * Returns the cell at coordinates ([x]; [y]).
-     */
-    fun cellAt(x: Int, y: Int): RectCell
+    override fun cellAt(pos: Position): RectCell
 
-    /**
-     * Returns the cell at coordinates ([x]; [y]) if valid.
-     * Otherwise returns null.
-     */
-    fun optionalCellAt(x: Int, y: Int): RectCell?
+    override fun optionalCellAt(pos: Position): RectCell?
+
+    override fun getRandomCell(): RectCell
 
 }

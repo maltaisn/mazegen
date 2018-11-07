@@ -27,23 +27,25 @@ package com.maltaisn.maze.maze
 
 
 /**
- * Interface for a maze cell.
+ * Interface for a rectangular maze.
  */
-interface Cell {
+interface HexMaze : Maze {
+
+    override fun cellAt(pos: Position): HexCell
+
+    override fun optionalCellAt(pos: Position): HexCell?
+
+    override fun getRandomCell(): HexCell
 
     /**
-     * The maze containing this cell.
+     * Enum used to choose the arrangement of cells in a hexagonal maze.
+     * More info on arrangements [here](https://www.redblobgames.com/grids/hexagons/#map-storage).
      */
-    val maze: Maze
-
-    /**
-     * The position of the cell in the maze.
-     */
-    val position: Position
-
-    /**
-     * Cell can be marked as visited by the generator.
-     */
-    var visited: Boolean
+    enum class Arrangement {
+        RECTANGLE,
+        TRIANGLE,
+        HEXAGON,
+        RHOMBUS
+    }
 
 }

@@ -26,24 +26,16 @@
 package com.maltaisn.maze.maze
 
 
-/**
- * Interface for a maze cell.
- */
-interface Cell {
+data class PositionXY(val x: Int, val y: Int) : Position {
 
-    /**
-     * The maze containing this cell.
-     */
-    val maze: Maze
+    override fun add(pos: Position): Position = if (pos is PositionXY) {
+        PositionXY(x + pos.x, y + pos.y)
+    } else {
+        this
+    }
 
-    /**
-     * The position of the cell in the maze.
-     */
-    val position: Position
-
-    /**
-     * Cell can be marked as visited by the generator.
-     */
-    var visited: Boolean
+    override fun toString(): String {
+        return "[x: $x, y: $y]"
+    }
 
 }

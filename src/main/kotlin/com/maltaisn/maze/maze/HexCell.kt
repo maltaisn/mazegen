@@ -27,23 +27,15 @@ package com.maltaisn.maze.maze
 
 
 /**
- * Interface for a maze cell.
+ * Interface for the cell of a hexagonal maze.
+ * Hexagonal mazes use an axial coordinate system described
+ * [here](https://www.redblobgames.com/grids/hexagons/#map-storage).
+ * Hexagonal cells are flat-topped.
  */
-interface Cell {
+interface HexCell : Cell {
 
-    /**
-     * The maze containing this cell.
-     */
-    val maze: Maze
+    override val maze: HexMaze
 
-    /**
-     * The position of the cell in the maze.
-     */
-    val position: Position
-
-    /**
-     * Cell can be marked as visited by the generator.
-     */
-    var visited: Boolean
+    override val position: PositionXY
 
 }

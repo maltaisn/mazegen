@@ -29,4 +29,10 @@ package com.maltaisn.maze.maze
 /**
  * Interface for the cell of a rectangular maze.
  */
-interface RectCell : Cell
+interface RectCell : Cell {
+
+    override val maze: RectMaze
+
+    override val position: PositionXY
+
+}
