@@ -25,6 +25,9 @@
 
 package com.maltaisn.maze.maze
 
+import java.awt.BasicStroke
+import java.awt.Color
+
 
 /**
  * Interface for a maze.
@@ -59,8 +62,14 @@ interface Maze {
     fun reset(empty: Boolean)
 
     /**
-     * Returns a string representation of the maze
+     * Render the maze to a SVG format and returns it.
      */
-    fun format(): String
+    fun renderToSvg(): String
+
+
+    companion object {
+        val SVG_STROKE_STYLE = BasicStroke(1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+        val SVG_STROKE_COLOR: Color = Color.BLACK
+    }
 
 }

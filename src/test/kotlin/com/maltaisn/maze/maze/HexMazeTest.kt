@@ -29,18 +29,18 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 
-class FlatHexMazeTest {
+class HexMazeTest {
 
     @Test
     fun grid_arrangment_rectangle() {
-        val maze1 = FlatHexMaze(HexMaze.Arrangement.RECTANGLE, 4, 1)
+        val maze1 = HexMaze(4, 1, HexMaze.Arrangement.RECTANGLE)
         val grid1 = arrayOf(
                 "**  ",
                 "  **"
         )
         assertMazeHasGrid(maze1, grid1)
 
-        val maze2 = FlatHexMaze(HexMaze.Arrangement.RECTANGLE, 5, 3)
+        val maze2 = HexMaze(5, 3, HexMaze.Arrangement.RECTANGLE)
         val grid2 = arrayOf(
                 "**   ",
                 "**** ",
@@ -53,14 +53,14 @@ class FlatHexMazeTest {
 
     @Test
     fun grid_arrangment_triangle() {
-        val maze1 = FlatHexMaze(HexMaze.Arrangement.TRIANGLE, 2)
+        val maze1 = HexMaze(2, HexMaze.Arrangement.TRIANGLE)
         val grid1 = arrayOf(
                 "**",
                 " *"
         )
         assertMazeHasGrid(maze1, grid1)
 
-        val maze2 = FlatHexMaze(HexMaze.Arrangement.TRIANGLE, 5)
+        val maze2 = HexMaze(5, HexMaze.Arrangement.TRIANGLE)
         val grid2 = arrayOf(
                 "*****",
                 " ****",
@@ -73,11 +73,11 @@ class FlatHexMazeTest {
 
     @Test
     fun grid_arrangment_hexagon() {
-        val maze1 = FlatHexMaze(HexMaze.Arrangement.HEXAGON, 1)
+        val maze1 = HexMaze(1, HexMaze.Arrangement.HEXAGON)
         val grid1 = arrayOf("*")
         assertMazeHasGrid(maze1, grid1)
 
-        val maze2 = FlatHexMaze(HexMaze.Arrangement.HEXAGON, 3)
+        val maze2 = HexMaze(3, HexMaze.Arrangement.HEXAGON)
         val grid2 = arrayOf(
                 "***  ",
                 "**** ",
@@ -90,11 +90,11 @@ class FlatHexMazeTest {
 
     @Test
     fun grid_arrangment_rhombus() {
-        val maze1 = FlatHexMaze(HexMaze.Arrangement.RHOMBUS, 1)
+        val maze1 = HexMaze(1, HexMaze.Arrangement.RHOMBUS)
         val grid1 = arrayOf("*")
         assertMazeHasGrid(maze1, grid1)
 
-        val maze2 = FlatHexMaze(HexMaze.Arrangement.RHOMBUS, 5)
+        val maze2 = HexMaze(5, HexMaze.Arrangement.RHOMBUS)
         val grid2 = arrayOf(
                 "*****",
                 "*****",
@@ -105,7 +105,7 @@ class FlatHexMazeTest {
         assertMazeHasGrid(maze2, grid2)
     }
 
-    private fun assertMazeHasGrid(maze: FlatHexMaze, grid: Array<String>) {
+    private fun assertMazeHasGrid(maze: HexMaze, grid: Array<String>) {
         for (y in 0 until grid.size) {
             for (x in 0 until grid[y].length) {
                 val pos = PositionXY(x, y)
@@ -118,11 +118,6 @@ class FlatHexMazeTest {
                 }
             }
         }
-    }
-
-    @Test
-    internal fun format() {
-        TODO("not implemented")
     }
 
 }

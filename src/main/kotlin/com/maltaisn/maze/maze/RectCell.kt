@@ -26,13 +26,84 @@
 package com.maltaisn.maze.maze
 
 
-/**
- * Interface for the cell of a rectangular maze.
- */
-interface RectCell : Cell {
+class RectCell(override val maze: RectMaze, override val position: PositionXY) : Cell {
 
-    override val maze: RectMaze
+    override var visited = false
 
-    override val position: PositionXY
+    override var value: Int = Side.NONE.value
+        set(value) {
+            field = value and Side.ALL.value
+        }
+
+    override var neighborList: List<Cell>? = null
+
+    /**
+     * Create new cell with initial value of [value].
+     */
+    constructor(maze: RectMaze, position: PositionXY, value: Int) : this(maze, position) {
+        this.value = value
+    }
+
+    override fun getAllSides(): List<Side> = ALL_SIDES
+
+    override fun getCellOnSide(side: Cell.Side): RectCell? {
+        return super.getCellOnSide(side) as RectCell?
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun getNeighbors(): List<RectCell> {
+        return super.getNeighbors() as List<RectCell>
+    }
+
+    override fun toString(): String {
+        val sb = StringBuilder()
+        sb.append("[pos: $position, sides: ")
+        when (value) {
+            Side.NONE.value -> sb.append("NONE")
+            Side.ALL.value -> sb.append("ALL")
+            else -> {
+                if (hasSide(Side.NORTH)) sb.append("N,")
+                if (hasSide(Side.EAST)) sb.append("E,")
+                if (hasSide(Side.SOUTH)) sb.append("S,")
+                if (hasSide(Side.WEST)) sb.append("W,")
+                sb.deleteCharAt(sb.length - 1)
+            }
+        }
+        sb.append(", ")
+        sb.append(if (visited) "visited" else "unvisited")
+        sb.append("]")
+        return sb.toString()
+    }
+
+    /**
+     * Enum class for the side a rectangular cell
+     */
+    enum class Side(override val value: Int,
+                    override val relativePos: PositionXY?) : Cell.Side {
+        NONE(0, null),
+        NORTH(1, PositionXY(0, -1)),
+        EAST(2, PositionXY(1, 0)),
+        SOUTH(4, PositionXY(0, 1)),
+        WEST(8, PositionXY(-1, 0)),
+        ALL(15, null);
+
+        /**
+         * Returns the opposite side of this side
+         */
+        override fun opposite(): Side = when (this) {
+            NONE -> NONE
+            NORTH -> SOUTH
+            SOUTH -> NORTH
+            EAST -> WEST
+            WEST -> EAST
+            ALL -> ALL
+        }
+
+        override fun isAll(): Boolean = (this == ALL)
+    }
+
+    companion object {
+        private val ALL_SIDES = listOf(Side.NORTH, Side.EAST, Side.SOUTH, Side.WEST)
+    }
 
 }

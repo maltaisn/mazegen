@@ -33,7 +33,7 @@ import java.util.concurrent.ThreadLocalRandom
  * Base class for a maze generator
  * Generates a maze into [maze], reseting its previous state.
  */
-abstract class Generator<T : Maze>(val maze: T) {
+abstract class Generator(val maze: Maze) {
 
     protected val random = ThreadLocalRandom.current()!!
 

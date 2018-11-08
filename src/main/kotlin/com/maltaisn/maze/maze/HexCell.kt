@@ -26,16 +26,97 @@
 package com.maltaisn.maze.maze
 
 
-/**
- * Interface for the cell of a hexagonal maze.
- * Hexagonal mazes use an axial coordinate system described
- * [here](https://www.redblobgames.com/grids/hexagons/#map-storage).
- * Hexagonal cells are flat-topped.
- */
-interface HexCell : Cell {
+class HexCell(override val maze: HexMaze,
+              override val position: PositionXY) : Cell {
 
-    override val maze: HexMaze
+    override var visited = false
 
-    override val position: PositionXY
+    override var value: Int = Side.NONE.value
+        set(value) {
+            field = value and Side.ALL.value
+        }
+
+    override var neighborList: List<Cell>? = null
+
+    /**
+     * Create new cell with initial value of [value].
+     */
+    constructor(maze: HexMaze, position: PositionXY, value: Int) : this(maze, position) {
+        this.value = value
+    }
+
+    override fun getAllSides(): List<Side> = ALL_SIDES
+
+    override fun getCellOnSide(side: Cell.Side): HexCell? {
+        return super.getCellOnSide(side) as HexCell?
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun getNeighbors(): List<HexCell> {
+        return super.getNeighbors() as List<HexCell>
+    }
+
+    override fun toString(): String {
+        val sb = StringBuilder()
+        sb.append("[pos: $position, sides, ")
+        when (value) {
+            Side.NONE.value -> sb.append("NONE")
+            Side.ALL.value -> sb.append("ALL")
+            else -> {
+                if (hasSide(Side.NORTH)) sb.append("N,")
+                if (hasSide(Side.NORTHEAST)) sb.append("NE,")
+                if (hasSide(Side.SOUTHEAST)) sb.append("SE,")
+                if (hasSide(Side.SOUTH)) sb.append("S,")
+                if (hasSide(Side.SOUTHWEST)) sb.append("SW,")
+                if (hasSide(Side.NORTHWEST)) sb.append("NW,")
+                sb.deleteCharAt(sb.length - 1)
+            }
+        }
+        sb.append(", ")
+        sb.append(if (visited) "visited" else "unvisited")
+        sb.append("]")
+        return sb.toString()
+    }
+
+    /**
+     * Enum class for the side a hexagonal cell
+     * ```
+     *     N -> __
+     *   NW -> /  \  <- NE
+     *   SW -> \__/  <- SE
+     *      S ->
+     * ```
+     */
+    enum class Side(override val value: Int, override val relativePos: Position?) : Cell.Side {
+        NONE(0, null),
+        NORTH(1, PositionXY(0, -1)),
+        NORTHEAST(2, PositionXY(1, 0)),
+        SOUTHEAST(4, PositionXY(1, 1)),
+        SOUTH(8, PositionXY(0, 1)),
+        SOUTHWEST(16, PositionXY(-1, 0)),
+        NORTHWEST(32, PositionXY(-1, -1)),
+        ALL(63, null);
+
+        /**
+         * Returns the opposite side of this side
+         */
+        override fun opposite(): Side = when (this) {
+            NONE -> NONE
+            NORTH -> SOUTH
+            NORTHEAST -> SOUTHWEST
+            SOUTHEAST -> NORTHWEST
+            SOUTH -> NORTH
+            SOUTHWEST -> NORTHEAST
+            NORTHWEST -> SOUTHEAST
+            ALL -> ALL
+        }
+
+        override fun isAll(): Boolean = (this == ALL)
+    }
+
+    companion object {
+        private val ALL_SIDES = listOf(Side.NORTH, Side.NORTHEAST, Side.SOUTHEAST,
+                Side.SOUTH, Side.SOUTHWEST, Side.NORTHWEST)
+    }
 
 }

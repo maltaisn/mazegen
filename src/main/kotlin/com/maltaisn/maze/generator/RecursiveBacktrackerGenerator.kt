@@ -25,8 +25,8 @@
 
 package com.maltaisn.maze.generator
 
-import com.maltaisn.maze.maze.FlatCell
-import com.maltaisn.maze.maze.FlatMaze
+import com.maltaisn.maze.maze.Cell
+import com.maltaisn.maze.maze.Maze
 
 
 /**
@@ -40,7 +40,7 @@ import com.maltaisn.maze.maze.FlatMaze
  *    - If not, pop the last cell on the stack and make it the current cell.
  * 3. Repeat step 2 until stack is empty.
  */
-class RecursiveBacktrackerGenerator(maze: FlatMaze) : Generator<FlatMaze>(maze) {
+class RecursiveBacktrackerGenerator(maze: Maze) : Generator(maze) {
 
     override fun generate() {
         maze.reset(false)
@@ -49,10 +49,10 @@ class RecursiveBacktrackerGenerator(maze: FlatMaze) : Generator<FlatMaze>(maze) 
         var currentCell = maze.getRandomCell()
         currentCell.visited = true
 
-        val stack = mutableListOf<FlatCell>()
+        val stack = mutableListOf<Cell>()
         while (true) {
             // Find an unvisited neighbor cell
-            var unvisitedNeighbor: FlatCell? = null
+            var unvisitedNeighbor: Cell? = null
             val neighbors = currentCell.getNeighbors().toMutableList()
             while (neighbors.size > 0) {
                 val index = random.nextInt(neighbors.size)

@@ -1,0 +1,9 @@
+- Grids
+    - delta
+    - polar (theta)
+    - sigma
+
+- Braiding
+- Weaving
+
+- More generator algorithms

@@ -30,34 +30,34 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 
-class FlatRectMazeTest {
+class RectMazeTest {
 
     @Test
     fun defaultValue_coordinates() {
-        val maze1 = FlatRectMaze(3, 3)
+        val maze1 = RectMaze(3, 3)
         for (x in 0 until maze1.width) {
             for (y in 0 until maze1.height) {
                 val pos = PositionXY(x, y)
                 val cell = maze1.cellAt(pos)
                 assertEquals(pos, cell.position)
-                assertEquals(FlatRectCell.Side.NONE.value, cell.value)
+                assertEquals(RectCell.Side.NONE.value, cell.value)
             }
         }
 
-        val maze2 = FlatRectMaze(3, 3, FlatRectCell.Side.ALL.value)
+        val maze2 = RectMaze(3, 3, RectCell.Side.ALL.value)
         for (x in 0 until maze2.width) {
             for (y in 0 until maze2.height) {
                 val pos = PositionXY(x, y)
                 val cell = maze2.cellAt(pos)
                 assertEquals(pos, cell.position)
-                assertEquals(FlatRectCell.Side.ALL.value, cell.value)
+                assertEquals(RectCell.Side.ALL.value, cell.value)
             }
         }
     }
 
     @Test
     fun cellAt() {
-        val maze = FlatRectMaze(10, 10)
+        val maze = RectMaze(10, 10)
 
         val pos1 = PositionXY(5, 5)
         val cell1 = maze.cellAt(pos1)
@@ -70,7 +70,7 @@ class FlatRectMazeTest {
 
     @Test
     fun optionalCellAt() {
-        val maze = FlatRectMaze(10, 10)
+        val maze = RectMaze(10, 10)
 
         val pos1 = PositionXY(5, 5)
         val cell1 = maze.optionalCellAt(pos1)!!
@@ -78,23 +78,6 @@ class FlatRectMazeTest {
 
         assertNull(maze.optionalCellAt(PositionXY(-1, 5)))
         assertNull(maze.optionalCellAt(PositionXY(10, 10)))
-    }
-
-    @Test
-    fun format() {
-        val maze1 = FlatRectMaze(1, 1, FlatRectCell.Side.ALL.value)
-        assertEquals("┌┐\n└┘", maze1.format())
-
-        val maze2 = FlatRectMaze(3, 3, FlatRectCell.Side.ALL.value)
-        maze2.cellAt(PositionXY(0, 0)).connectWith(maze2.cellAt(PositionXY(1, 0)))
-        maze2.cellAt(PositionXY(1, 0)).connectWith(maze2.cellAt(PositionXY(1, 1)))
-        maze2.cellAt(PositionXY(1, 1)).connectWith(maze2.cellAt(PositionXY(2, 1)))
-        maze2.cellAt(PositionXY(2, 1)).connectWith(maze2.cellAt(PositionXY(2, 0)))
-        maze2.cellAt(PositionXY(0, 1)).connectWith(maze2.cellAt(PositionXY(1, 1)))
-        maze2.cellAt(PositionXY(0, 1)).connectWith(maze2.cellAt(PositionXY(0, 2)))
-        maze2.cellAt(PositionXY(0, 2)).connectWith(maze2.cellAt(PositionXY(1, 2)))
-        maze2.cellAt(PositionXY(1, 2)).connectWith(maze2.cellAt(PositionXY(2, 2)))
-        assertEquals("┌─┬┐\n├╴╵│\n│╶─┤\n└──┘", maze2.format())
     }
 
 }
