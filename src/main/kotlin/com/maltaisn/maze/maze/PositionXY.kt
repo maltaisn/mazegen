@@ -26,6 +26,9 @@
 package com.maltaisn.maze.maze
 
 
+/**
+ * Class defining an orthogonal 2D position.
+ */
 data class PositionXY(val x: Int, val y: Int) : Position {
 
     override fun add(pos: Position): Position = if (pos is PositionXY) {

@@ -27,9 +27,12 @@ package com.maltaisn.maze.maze
 
 
 /**
- * Interface for the cell of a flat maze.
+ * Base class for the cell of a flat maze.
+ * Each cell has a value, a bit field encoding which sides are set.
+ * They also have a reference to the maze containing them as well as their position in that maze.
+ * Subclasses have define sides and their values, in a enum implementing [Side].
  */
-interface Cell {
+abstract class Cell {
 
     /**
      * The maze containing this cell.
@@ -37,25 +40,39 @@ interface Cell {
     val maze: Maze
 
     /**
-     * The position of the cell in the maze.
+     * The position of the cell in [maze].
      */
     val position: Position
 
     /**
-     * Cell can be marked as visited by the generator.
+     * Cell can be marked as visited by a generator.
      */
-    var visited: Boolean
+    var visited: Boolean = false
 
+    var value: Int = 0
 
-    var value: Int
+    private var neighborList: List<Cell>? = null
 
-    var neighborList: List<Cell>?
+    /**
+     * Create new empty cell at [position] in [maze].
+     */
+    constructor(maze: Maze, position: Position) {
+        this.maze = maze
+        this.position = position
+    }
+
+    /**
+     * Create new cell at [position] in [maze] with [value].
+     */
+    constructor(maze: Maze, position: Position, value: Int) : this(maze, position) {
+        this.value = value
+    }
 
     /**
      * Returns the neighbor cell on the [side] of the cell.
      * If the neighbor doesn't exist, returns null.
      */
-    fun getCellOnSide(side: Side): Cell? {
+    open fun getCellOnSide(side: Side): Cell? {
         if (side.relativePos == null) return null
         return maze.optionalCellAt(position.add(side.relativePos!!))
     }
@@ -63,8 +80,8 @@ interface Cell {
     /**
      * Get the list of all non-null neighbor cells of this cell.
      */
-    fun getNeighbors(): List<Cell> {
-        if (true) { // neighborList == null
+    open fun getNeighbors(): List<Cell> {
+        if (neighborList == null) {
             val list = mutableListOf<Cell>()
             for (side in getAllSides()) {
                 val cell = getCellOnSide(side)
@@ -109,7 +126,12 @@ interface Cell {
     /**
      * Returns a list of all possible side values.
      */
-    fun getAllSides(): List<Side>
+    abstract fun getAllSides(): List<Side>
+
+    /**
+     * Returns the enum value representing all sides.
+     */
+    abstract fun getAllSideValue(): Side
 
     /**
      * Do [operation] on the cell on [side]'s value
@@ -117,7 +139,7 @@ interface Cell {
     private fun changeSide(side: Side, operation: (v: Int, s: Int) -> Int) {
         if (side.value == 0) {
             return
-        } else if (side.isAll()) {
+        } else if (side === getAllSideValue()) {
             for (s in getAllSides()) {
                 val cell = getCellOnSide(s)
                 if (cell != null) {
@@ -150,8 +172,30 @@ interface Cell {
         }
     }
 
+    override fun toString(): String {
+        val sb = StringBuilder()
+        sb.append("[pos: $position, sides, ")
+        when (value) {
+            0 -> sb.append("NONE")
+            getAllSideValue().value -> sb.append("ALL")
+            else -> {
+                for (side in getAllSides()) {
+                    if (hasSide(side)) {
+                        sb.append(side.symbol)
+                        sb.append(",")
+                    }
+                }
+                sb.deleteCharAt(sb.length - 1)
+            }
+        }
+        sb.append(", ")
+        sb.append(if (visited) "visited" else "unvisited")
+        sb.append("]")
+        return sb.toString()
+    }
+
     /**
-     * Marker interface for a cell side enum.
+     * Interface for a cell side enum.
      */
     interface Side {
 
@@ -159,15 +203,13 @@ interface Cell {
 
         val relativePos: Position?
 
+        val symbol: String?
+
         /**
          * Get the side opposite to this side.
          */
         fun opposite(): Side
 
-        /**
-         * Returns true if this side describes an all sides value.
-         */
-        fun isAll(): Boolean
     }
 
 }

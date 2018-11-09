@@ -26,25 +26,16 @@
 package com.maltaisn.maze.maze
 
 
-class RectCell(override val maze: RectMaze, override val position: PositionXY) : Cell {
+class RectCell : Cell {
 
-    override var visited = false
+    constructor(maze: RectMaze, position: PositionXY) : super(maze, position)
 
-    override var value: Int = Side.NONE.value
-        set(value) {
-            field = value and Side.ALL.value
-        }
+    constructor(maze: RectMaze, position: PositionXY, value: Int) : super(maze, position, value)
 
-    override var neighborList: List<Cell>? = null
-
-    /**
-     * Create new cell with initial value of [value].
-     */
-    constructor(maze: RectMaze, position: PositionXY, value: Int) : this(maze, position) {
-        this.value = value
-    }
 
     override fun getAllSides(): List<Side> = ALL_SIDES
+
+    override fun getAllSideValue(): Side = Side.ALL
 
     override fun getCellOnSide(side: Cell.Side): RectCell? {
         return super.getCellOnSide(side) as RectCell?
@@ -79,13 +70,14 @@ class RectCell(override val maze: RectMaze, override val position: PositionXY) :
      * Enum class for the side a rectangular cell
      */
     enum class Side(override val value: Int,
-                    override val relativePos: PositionXY?) : Cell.Side {
-        NONE(0, null),
-        NORTH(1, PositionXY(0, -1)),
-        EAST(2, PositionXY(1, 0)),
-        SOUTH(4, PositionXY(0, 1)),
-        WEST(8, PositionXY(-1, 0)),
-        ALL(15, null);
+                    override val relativePos: PositionXY?,
+                    override val symbol: String?) : Cell.Side {
+        NONE(0, null, null),
+        NORTH(1, PositionXY(0, -1), "N"),
+        EAST(2, PositionXY(1, 0), "E"),
+        SOUTH(4, PositionXY(0, 1), "S"),
+        WEST(8, PositionXY(-1, 0), "W"),
+        ALL(15, null, null);
 
         /**
          * Returns the opposite side of this side
@@ -99,7 +91,6 @@ class RectCell(override val maze: RectMaze, override val position: PositionXY) :
             ALL -> ALL
         }
 
-        override fun isAll(): Boolean = (this == ALL)
     }
 
     companion object {
