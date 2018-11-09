@@ -25,14 +25,14 @@
 
 package com.maltaisn.maze
 
-import com.maltaisn.maze.generator.HuntKillGenerator
-import com.maltaisn.maze.maze.RectMaze
+import com.maltaisn.maze.generator.PrimGenerator
+import com.maltaisn.maze.maze.HexMaze
 import java.io.PrintWriter
 
 
 fun main(args: Array<String>) {
-    val maze = RectMaze(300, 200)
-    val generator = HuntKillGenerator(maze)
+    val maze = HexMaze(20, 30, HexMaze.Arrangement.RECTANGLE)
+    val generator = PrimGenerator(maze)
 
     generator.generate()
     PrintWriter("maze.svg").use {
