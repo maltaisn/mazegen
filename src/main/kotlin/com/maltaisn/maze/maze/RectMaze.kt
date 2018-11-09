@@ -85,38 +85,69 @@ class RectMaze(val width: Int, val height: Int,
         }
     }
 
+    /**
+     * Render the maze to SVG.
+     * The grid is first scanned horizontally and to find the longest possible line sections,
+     * until there's a "hole" in the line, after which a new line is drawn. The same is done
+     * vertically. Only north and west walls are checked except for the rightmost and bottommost
+     * walls where the south and east walls are checked. A single path object is created.
+     */
     override fun renderToSvg(): String {
-        val height = (height * SVG_CELL_SIZE).toInt()
-        val canvas = SVGGraphics2D((width * SVG_CELL_SIZE).toInt(), height)
+        val canvas = SVGGraphics2D((width * SVG_CELL_SIZE).toInt(),
+                (height * SVG_CELL_SIZE).toInt())
         canvas.stroke = Maze.SVG_STROKE_STYLE
         canvas.color = Maze.SVG_STROKE_COLOR
 
         val path = GeneralPath()
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                val cell = grid[x][y]
 
-                // Draw north and east sides if cell has them
-                if (cell.hasSide(RectCell.Side.NORTH)) {
-                    path.moveTo(x * SVG_CELL_SIZE, y * SVG_CELL_SIZE)
-                    path.lineTo((x + 1) * SVG_CELL_SIZE, y * SVG_CELL_SIZE)
-                }
-                if (cell.hasSide(RectCell.Side.WEST)) {
-                    path.moveTo(x * SVG_CELL_SIZE, y * SVG_CELL_SIZE)
-                    path.lineTo(x * SVG_CELL_SIZE, (y + 1) * SVG_CELL_SIZE)
-                }
-
-                // Only draw east and south sides for rightmost and bottommost cells
-                if (y == height - 1 && cell.hasSide(RectCell.Side.SOUTH)) {
-                    path.moveTo(x * SVG_CELL_SIZE, (y + 1) * SVG_CELL_SIZE)
-                    path.lineTo((x + 1) * SVG_CELL_SIZE, (y + 1) * SVG_CELL_SIZE)
-                }
-                if (x == width - 1 && cell.hasSide(RectCell.Side.EAST)) {
-                    path.moveTo((x + 1) * SVG_CELL_SIZE, y * SVG_CELL_SIZE)
-                    path.lineTo((x + 1) * SVG_CELL_SIZE, (y + 1) * SVG_CELL_SIZE)
+        // Draw horizontal walls
+        for (y in 0 until height + 1) {
+            val canvasY = y * SVG_CELL_SIZE
+            var startX = 0.0
+            var endX = 0.0
+            for (x in 0 until width) {
+                val cell = if (y == height) null else grid[x][y]
+                if (cell != null && cell.hasSide(RectCell.Side.NORTH)
+                        || cell == null && grid[x][y - 1].hasSide(RectCell.Side.SOUTH)) {
+                    if (startX == endX) {
+                        startX = x * SVG_CELL_SIZE
+                        endX = startX
+                    }
+                    endX += SVG_CELL_SIZE
+                } else if (startX != endX) {
+                    path.moveTo(startX, canvasY)
+                    path.lineTo(endX, canvasY)
+                    startX = endX
                 }
             }
+            path.moveTo(startX, canvasY)
+            path.lineTo(endX, canvasY)
         }
+
+        // Draw vertical walls
+        for (x in 0 until width + 1) {
+            val canvasX = x * SVG_CELL_SIZE
+            var startY = 0.0
+            var endY = 0.0
+            for (y in 0 until height) {
+                val cell = if (x == width) null else grid[x][y]
+                if (cell != null && cell.hasSide(RectCell.Side.WEST)
+                        || cell == null && grid[x - 1][y].hasSide(RectCell.Side.EAST)) {
+                    if (startY == endY) {
+                        startY = y * SVG_CELL_SIZE
+                        endY = startY
+                    }
+                    endY += SVG_CELL_SIZE
+                } else if (startY != endY) {
+                    path.moveTo(canvasX, startY)
+                    path.lineTo(canvasX, endY)
+                    startY = endY
+                }
+            }
+            path.moveTo(canvasX, startY)
+            path.lineTo(canvasX, endY)
+        }
+
         path.closePath()
         canvas.draw(path)
 
