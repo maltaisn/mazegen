@@ -25,17 +25,19 @@
 
 package com.maltaisn.maze
 
-import com.maltaisn.maze.generator.HuntKillGenerator
+import com.maltaisn.maze.generator.GrowingTreeGenerator
 import com.maltaisn.maze.maze.RectMaze
 import java.io.PrintWriter
 
 
 fun main(args: Array<String>) {
     val maze = RectMaze(50, 35)
-    val generator = HuntKillGenerator(maze)
 
+    val generator = GrowingTreeGenerator(maze)
+    generator.setChooseByWeight(1, 0, 0)
     generator.generate()
-    PrintWriter("maze.svg").use {
+
+    PrintWriter("mazes/lastest.svg").use {
         it.write(maze.renderToSvg())
     }
 }
