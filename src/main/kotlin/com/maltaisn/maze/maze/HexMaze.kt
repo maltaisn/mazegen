@@ -205,8 +205,10 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement,
             }
         }
 
-        path.closePath()
-        canvas.draw(path)
+        if (path.currentPoint != null) {
+            path.closePath()
+            canvas.draw(path)
+        }
 
         return canvas.svgDocument
     }

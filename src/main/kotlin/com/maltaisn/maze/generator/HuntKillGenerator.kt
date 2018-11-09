@@ -75,28 +75,17 @@ class HuntKillGenerator(maze: Maze) : Generator(maze) {
         var currentCell = cell
         while (true) {
             // Find an unvisited neighbor cell
-            var unvisitedNeighbor: Cell? = null
-            val neighbors = currentCell.getNeighbors().toMutableList()
-            while (neighbors.size > 0) {
-                val index = random.nextInt(neighbors.size)
-                val neighbor = neighbors[index]
-                if (!neighbor.visited) {
-                    // Found one
-                    unvisitedNeighbor = neighbor
-                    break
-                } else {
-                    neighbors.removeAt(index)
-                }
-            }
+            val unvisitedNeighbor = currentCell.getNeighbors().shuffled().find { !it.visited }
             if (unvisitedNeighbor != null) {
                 // Connect with current cell
                 currentCell.connectWith(unvisitedNeighbor)
 
+                // Make the connected cell the current cell
                 currentCell = unvisitedNeighbor
                 currentCell.visited = true
             } else {
                 // No unvisited neighbor cell
-                break
+                return
             }
         }
     }
@@ -113,8 +102,7 @@ class HuntKillGenerator(maze: Maze) : Generator(maze) {
 
         maze.forEachCell<Cell> { cell ->
             if (!cell.visited) {
-                val neighbors = cell.getNeighbors().toMutableList()
-                for (neighbor in neighbors) {
+                for (neighbor in cell.getNeighbors().shuffled()) {
                     if (neighbor.visited) {
                         // Neighbor was visited
                         unvisitedCell = cell

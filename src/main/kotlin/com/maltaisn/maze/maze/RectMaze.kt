@@ -120,8 +120,10 @@ class RectMaze(val width: Int, val height: Int,
                     startX = endX
                 }
             }
-            path.moveTo(startX, canvasY)
-            path.lineTo(endX, canvasY)
+            if (startX != endX) {
+                path.moveTo(startX, canvasY)
+                path.lineTo(endX, canvasY)
+            }
         }
 
         // Draw vertical walls
@@ -144,12 +146,16 @@ class RectMaze(val width: Int, val height: Int,
                     startY = endY
                 }
             }
-            path.moveTo(canvasX, startY)
-            path.lineTo(canvasX, endY)
+            if (startY != endY) {
+                path.moveTo(canvasX, startY)
+                path.lineTo(canvasX, endY)
+            }
         }
 
-        path.closePath()
-        canvas.draw(path)
+        if (path.currentPoint != null) {
+            path.closePath()
+            canvas.draw(path)
+        }
 
         return canvas.svgDocument
     }
