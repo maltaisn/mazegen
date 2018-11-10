@@ -35,8 +35,6 @@ class HexCell : Cell {
 
     override fun getAllSides(): List<Side> = ALL_SIDES
 
-    override fun getAllSideValue(): Side = Side.ALL
-
     override fun getCellOnSide(side: Cell.Side): HexCell? {
         return super.getCellOnSide(side) as HexCell?
     }

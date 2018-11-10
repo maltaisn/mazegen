@@ -35,8 +35,6 @@ class RectCell : Cell {
 
     override fun getAllSides(): List<Side> = ALL_SIDES
 
-    override fun getAllSideValue(): Side = Side.ALL
-
     override fun getCellOnSide(side: Cell.Side): RectCell? {
         return super.getCellOnSide(side) as RectCell?
     }

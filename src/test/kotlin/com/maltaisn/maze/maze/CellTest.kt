@@ -81,39 +81,6 @@ class CellTest {
     }
 
     @Test
-    fun changeSide() {
-        val maze1 = RectMaze(3, 3, RectCell.Side.ALL.value)
-
-        val middleCell = maze1.cellAt(PositionXY(1, 1))
-        val northCell = maze1.cellAt(PositionXY(1, 0))
-        middleCell.openSide(RectCell.Side.NORTH)
-        assertFalse(middleCell.hasSide(RectCell.Side.NORTH))
-        assertFalse(northCell.hasSide(RectCell.Side.SOUTH))
-
-        middleCell.closeSide(RectCell.Side.NORTH)
-        assertTrue(middleCell.hasSide(RectCell.Side.NORTH))
-        assertTrue(northCell.hasSide(RectCell.Side.SOUTH))
-
-        middleCell.openSide(RectCell.Side.ALL)
-        assertTrue(middleCell.hasSide(RectCell.Side.NONE))
-        assertFalse(northCell.hasSide(RectCell.Side.SOUTH))
-
-        middleCell.closeSide(RectCell.Side.ALL)
-        middleCell.toggleSide(RectCell.Side.NORTH)
-        assertFalse(middleCell.hasSide(RectCell.Side.NORTH))
-        assertFalse(northCell.hasSide(RectCell.Side.SOUTH))
-
-        middleCell.toggleSide(RectCell.Side.NORTH)
-        assertTrue(middleCell.hasSide(RectCell.Side.NORTH))
-        assertTrue(northCell.hasSide(RectCell.Side.SOUTH))
-
-        val maze2 = RectMaze(1, 1)
-        val cell2 = maze2.cellAt(PositionXY(0, 0))
-        cell2.toggleSide(RectCell.Side.ALL)
-        assertTrue(cell2.hasSide(RectCell.Side.ALL))
-    }
-
-    @Test
     fun getNeighbors() {
         val maze1 = RectMaze(3, 3)
         val nwCell = maze1.cellAt(PositionXY(0, 0))
@@ -156,6 +123,25 @@ class CellTest {
         westCell.connectWith(middleCell)
         assertFalse(middleCell.hasSide(RectCell.Side.WEST))
         assertFalse(westCell.hasSide(RectCell.Side.EAST))
+    }
+
+    @Test
+    fun findSideOfCell() {
+        val maze = RectMaze(3, 3, RectCell.Side.ALL.value)
+        val middleCell = maze.cellAt(PositionXY(1, 1))
+
+        val northCell = maze.cellAt(PositionXY(1, 0))
+        assertEquals(RectCell.Side.NORTH, middleCell.findSideOfCell(northCell))
+        assertEquals(RectCell.Side.SOUTH, northCell.findSideOfCell(middleCell))
+
+        val eastCell = maze.cellAt(PositionXY(2, 1))
+        assertEquals(RectCell.Side.EAST, middleCell.findSideOfCell(eastCell))
+        assertEquals(RectCell.Side.WEST, eastCell.findSideOfCell(middleCell))
+
+        val northEastCell = maze.cellAt(PositionXY(2, 0))
+        assertNull(middleCell.findSideOfCell(northEastCell))
+        assertNull(northEastCell.findSideOfCell(middleCell))
+        assertEquals(RectCell.Side.WEST, northEastCell.findSideOfCell(northCell))
     }
 
 }

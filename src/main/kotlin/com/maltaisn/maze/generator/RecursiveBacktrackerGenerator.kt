@@ -55,7 +55,7 @@ class RecursiveBacktrackerGenerator(maze: Maze) : Generator(maze) {
         val stack = mutableListOf<Cell>()
         while (true) {
             // Find an unvisited neighbor cell
-            val unvisitedNeighbor = currentCell.getNeighbors().shuffled().findLast { !it.visited }
+            val unvisitedNeighbor = currentCell.getNeighbors().shuffled().find { !it.visited }
             if (unvisitedNeighbor != null) {
                 // Connect with current cell
                 currentCell.connectWith(unvisitedNeighbor)

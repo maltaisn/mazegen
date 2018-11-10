@@ -103,24 +103,15 @@ abstract class Cell {
     }
 
     /**
-     * Opens (removes) [side] of the cell.
+     * Connect this cell with another cell [cell] if they are neighbors of the same maze.
+     * Does nothing otherwise. The common side of both cells is opened (removed).
      */
-    fun openSide(side: Side) {
-        changeSide(side) { v, s -> v and s.inv() }
-    }
-
-    /**
-     * Closes (adds) [side] of the cell.
-     */
-    fun closeSide(side: Side) {
-        changeSide(side, Int::or)
-    }
-
-    /**
-     * Toggles [side] of the cell.
-     */
-    fun toggleSide(side: Side) {
-        changeSide(side, Int::xor)
+    fun connectWith(cell: Cell) {
+        val side = findSideOfCell(cell)
+        if (side != null) {
+            cell.value = cell.value and side.opposite().value.inv()
+            value = value and side.value.inv()
+        }
     }
 
     /**
@@ -129,47 +120,18 @@ abstract class Cell {
     abstract fun getAllSides(): List<Side>
 
     /**
-     * Returns the enum value representing all sides.
+     * Return the side of this cell on which [cell] is placed, if they are
+     * neighbors in the same maze. Returns null otherwise.
      */
-    abstract fun getAllSideValue(): Side
-
-    /**
-     * Do [operation] on the cell on [side]'s value
-     */
-    private fun changeSide(side: Side, operation: (v: Int, s: Int) -> Int) {
-        if (side.value == 0) {
-            return
-        } else if (side === getAllSideValue()) {
-            for (s in getAllSides()) {
-                val cell = getCellOnSide(s)
-                if (cell != null) {
-                    cell.value = operation(cell.value, s.opposite().value)
+    fun findSideOfCell(cell: Cell): Side? {
+        if (cell.maze === maze) {
+            for (side in getAllSides()) {
+                if (getCellOnSide(side) == cell) {
+                    return side
                 }
             }
-        } else {
-            val cell = getCellOnSide(side)
-            if (cell != null) {
-                cell.value = operation(cell.value, side.opposite().value)
-            }
         }
-        value = operation(value, side.value)
-    }
-
-    /**
-     * Connect this cell with another cell [cell] if they are neighbors of the same maze.
-     * Does nothing otherwise. The common side of both cells is opened (removed).
-     */
-    fun connectWith(cell: Cell) {
-        if (cell.maze !== maze) return
-
-        for (side in getAllSides()) {
-            if (getCellOnSide(side) == cell) {
-                // The cell to connect is on this side
-                cell.value = cell.value and side.opposite().value.inv()
-                value = value and side.value.inv()
-                break
-            }
-        }
+        return null
     }
 
     override fun toString(): String {
@@ -177,7 +139,6 @@ abstract class Cell {
         sb.append("[pos: $position, sides, ")
         when (value) {
             0 -> sb.append("NONE")
-            getAllSideValue().value -> sb.append("ALL")
             else -> {
                 for (side in getAllSides()) {
                     if (hasSide(side)) {
