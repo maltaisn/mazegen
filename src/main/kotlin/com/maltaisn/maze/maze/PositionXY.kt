@@ -31,10 +31,10 @@ package com.maltaisn.maze.maze
  */
 data class PositionXY(val x: Int, val y: Int) : Position {
 
-    override fun add(pos: Position): Position = if (pos is PositionXY) {
+    override operator fun plus(pos: Position): Position = if (pos is PositionXY) {
         PositionXY(x + pos.x, y + pos.y)
     } else {
-        this
+        throw IllegalArgumentException("Cannot add position of another type")
     }
 
     override fun toString(): String {

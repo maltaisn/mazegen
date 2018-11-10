@@ -25,15 +25,15 @@
 
 package com.maltaisn.maze
 
-import com.maltaisn.maze.generator.AldousBroderGenerator
-import com.maltaisn.maze.maze.RectMaze
+import com.maltaisn.maze.generator.WilsonGenerator
+import com.maltaisn.maze.maze.HexMaze
 import java.io.PrintWriter
 
 
 fun main(args: Array<String>) {
-    val maze = RectMaze(50, 35)
+    val maze = HexMaze(50, 35, HexMaze.Arrangement.RECTANGLE)
 
-    val generator = AldousBroderGenerator(maze)
+    val generator = WilsonGenerator(maze)
     generator.generate()
 
     PrintWriter("mazes/lastest.svg").use {

@@ -66,16 +66,6 @@ class RectMaze(val width: Int, val height: Int,
         return cellAt(PositionXY(random.nextInt(width), random.nextInt(height)))
     }
 
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : Cell> forEachCell(action: (T) -> Boolean) {
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                val stop = action(cellAt(PositionXY(x, y)) as T)
-                if (stop) return
-            }
-        }
-    }
-
     override fun reset(empty: Boolean) {
         val value = if (empty) RectCell.Side.NONE.value else RectCell.Side.ALL.value
         for (x in 0 until width) {
@@ -85,6 +75,16 @@ class RectMaze(val width: Int, val height: Int,
                 cell.value = value
             }
         }
+    }
+
+    override fun getAllCells(): LinkedHashSet<Cell> {
+        val set = LinkedHashSet<Cell>(width * height)
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                set.add(grid[x][y])
+            }
+        }
+        return set
     }
 
     /**

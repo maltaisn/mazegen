@@ -43,9 +43,6 @@ import com.maltaisn.maze.maze.Maze
  * with equal probability. However this comes to the cost of efficiency,
  * which is very low, because each cell can be visited many times and the
  * algorithm has to find all the unvisited cells by walking randomly.
- *
- * Not suitable for very large mazes, for example a 1000 x 1000 maze took
- * 5500 ms to generate vs 750 ms with the recursive backtracker.
  */
 class AldousBroderGenerator(maze: Maze) : Generator(maze) {
 

@@ -55,10 +55,9 @@ interface Maze {
     fun getCellCount(): Int
 
     /**
-     * Do [action] on every cell of the maze.
-     * Return true from action to break out of the forEach.
+     * Returns a set containing all the cells in this maze.
      */
-    fun <T : Cell> forEachCell(action: (T) -> Boolean)
+    fun getAllCells(): LinkedHashSet<Cell>
 
     /**
      * Clears all the sides of all cells in the maze if [empty] is true,

@@ -127,16 +127,6 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement,
         return grid[x][random.nextInt(grid[x].size)]
     }
 
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : Cell> forEachCell(action: (T) -> Boolean) {
-        for (x in 0 until grid.size) {
-            for (y in 0 until grid[x].size) {
-                val stop = action(grid[x][y] as T)
-                if (stop) return
-            }
-        }
-    }
-
     override fun reset(empty: Boolean) {
         val value = if (empty) HexCell.Side.NONE.value else HexCell.Side.ALL.value
         for (x in 0 until grid.size) {
@@ -146,6 +136,16 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement,
                 cell.value = value
             }
         }
+    }
+
+    override fun getAllCells(): LinkedHashSet<Cell> {
+        val set = LinkedHashSet<Cell>(getCellCount())
+        for (x in 0 until grid.size) {
+            for (y in 0 until grid[x].size) {
+                set.add(grid[x][y])
+            }
+        }
+        return set
     }
 
     override fun renderToSvg(): String {

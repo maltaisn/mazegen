@@ -26,6 +26,7 @@
 package com.maltaisn.maze.generator
 
 import com.maltaisn.maze.maze.Maze
+import java.util.concurrent.ThreadLocalRandom
 
 
 /**
@@ -33,6 +34,8 @@ import com.maltaisn.maze.maze.Maze
  * Generates a maze into [maze], reseting its previous state.
  */
 abstract class Generator(val maze: Maze) {
+
+    protected val random = ThreadLocalRandom.current()!!
 
     /**
      * Generate a maze into [maze], which is reset before.

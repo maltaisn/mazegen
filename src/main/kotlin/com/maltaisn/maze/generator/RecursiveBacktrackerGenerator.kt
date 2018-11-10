@@ -31,7 +31,8 @@ import com.maltaisn.maze.maze.Maze
 
 /**
  * Implementation of a recursive backtracking maze generator as described
- * [here](http://weblog.jamisbuck.org/2010/12/27/maze-generation-recursive-backtracking).
+ * [here](http://weblog.jamisbuck.org/2010/12/27/maze-generation-recursive-backtracking),
+ * also known as randomized depth-first search.
  *
  * 1. Make the initial cell the current cell and mark it as visited.
  * 2. Find unvisited neighbor to current cell and connect them.

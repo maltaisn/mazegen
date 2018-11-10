@@ -34,6 +34,6 @@ interface Position {
     /**
      * Return a new position corresponding to the sum of this position and [pos].
      */
-    fun add(pos: Position): Position
+    operator fun plus(pos: Position): Position
 
 }

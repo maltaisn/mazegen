@@ -74,7 +74,7 @@ abstract class Cell {
      */
     open fun getCellOnSide(side: Side): Cell? {
         if (side.relativePos == null) return null
-        return maze.optionalCellAt(position.add(side.relativePos!!))
+        return maze.optionalCellAt(position + side.relativePos!!)
     }
 
     /**
