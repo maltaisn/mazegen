@@ -25,7 +25,7 @@
 
 package com.maltaisn.maze
 
-import com.maltaisn.maze.generator.GrowingTreeGenerator
+import com.maltaisn.maze.generator.AldousBroderGenerator
 import com.maltaisn.maze.maze.RectMaze
 import java.io.PrintWriter
 
@@ -33,8 +33,7 @@ import java.io.PrintWriter
 fun main(args: Array<String>) {
     val maze = RectMaze(50, 35)
 
-    val generator = GrowingTreeGenerator(maze)
-    generator.setChooseByWeight(1, 0, 0)
+    val generator = AldousBroderGenerator(maze)
     generator.generate()
 
     PrintWriter("mazes/lastest.svg").use {

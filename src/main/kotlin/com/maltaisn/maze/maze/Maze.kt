@@ -50,6 +50,11 @@ interface Maze {
     fun getRandomCell(): Cell
 
     /**
+     * Get the total number of cells in this maze.
+     */
+    fun getCellCount(): Int
+
+    /**
      * Do [action] on every cell of the maze.
      * Return true from action to break out of the forEach.
      */

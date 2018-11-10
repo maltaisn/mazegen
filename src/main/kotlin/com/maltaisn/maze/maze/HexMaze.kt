@@ -141,7 +141,9 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement,
         val value = if (empty) HexCell.Side.NONE.value else HexCell.Side.ALL.value
         for (x in 0 until grid.size) {
             for (y in 0 until grid[x].size) {
-                grid[x][y].value = value
+                val cell = grid[x][y]
+                cell.visited = false
+                cell.value = value
             }
         }
     }
@@ -211,6 +213,14 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement,
         }
 
         return canvas.svgDocument
+    }
+
+    override fun getCellCount(): Int {
+        var count = 0
+        for (x in 0 until grid.size) {
+            count += grid[x].size
+        }
+        return count
     }
 
     override fun toString(): String {

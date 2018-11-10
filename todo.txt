@@ -1,6 +1,5 @@
 - More generator algorithms
     - Kruskal's
-    - Growing Tree
     - Wilson's
     - Aldous-Broder's
     - Recursive Division

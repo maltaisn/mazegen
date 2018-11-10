@@ -80,7 +80,9 @@ class RectMaze(val width: Int, val height: Int,
         val value = if (empty) RectCell.Side.NONE.value else RectCell.Side.ALL.value
         for (x in 0 until width) {
             for (y in 0 until height) {
-                grid[x][y].value = value
+                val cell = grid[x][y]
+                cell.visited = false
+                cell.value = value
             }
         }
     }
@@ -159,6 +161,9 @@ class RectMaze(val width: Int, val height: Int,
 
         return canvas.svgDocument
     }
+
+
+    override fun getCellCount(): Int = width * height
 
     override fun toString(): String {
         return "[width: $width, height: $height]"
