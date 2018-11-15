@@ -43,9 +43,9 @@ import com.maltaisn.maze.maze.Maze
  * because the only difference in the algorithm is that instead of backtracking, it
  * chooses a cell at random from those already visited. That also makes it much slower.
  */
-class HuntKillGenerator(maze: Maze) : Generator(maze) {
+class HuntKillGenerator : Generator() {
 
-    override fun generate() {
+    override fun generate(maze: Maze) {
         maze.reset(false)
 
         val visitedCells = ArrayList<Cell>(maze.getCellCount())

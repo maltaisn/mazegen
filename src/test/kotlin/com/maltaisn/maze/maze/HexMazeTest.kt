@@ -32,15 +32,15 @@ import kotlin.test.assertEquals
 class HexMazeTest {
 
     @Test
-    fun grid_arrangment_rectangle() {
-        val maze1 = HexMaze(4, 1, HexMaze.Arrangement.RECTANGLE)
+    fun grid_arrangement_rectangle() {
+        val maze1 = HexMaze(4, 1, Arrangement.RECTANGLE)
         val grid1 = arrayOf(
                 "**  ",
                 "  **"
         )
         assertMazeHasGrid(maze1, grid1)
 
-        val maze2 = HexMaze(5, 3, HexMaze.Arrangement.RECTANGLE)
+        val maze2 = HexMaze(5, 3, Arrangement.RECTANGLE)
         val grid2 = arrayOf(
                 "**   ",
                 "**** ",
@@ -52,15 +52,15 @@ class HexMazeTest {
     }
 
     @Test
-    fun grid_arrangment_triangle() {
-        val maze1 = HexMaze(2, HexMaze.Arrangement.TRIANGLE)
+    fun grid_arrangement_triangle() {
+        val maze1 = HexMaze(2, Arrangement.TRIANGLE)
         val grid1 = arrayOf(
                 "**",
                 " *"
         )
         assertMazeHasGrid(maze1, grid1)
 
-        val maze2 = HexMaze(5, HexMaze.Arrangement.TRIANGLE)
+        val maze2 = HexMaze(5, Arrangement.TRIANGLE)
         val grid2 = arrayOf(
                 "*****",
                 " ****",
@@ -72,12 +72,12 @@ class HexMazeTest {
     }
 
     @Test
-    fun grid_arrangment_hexagon() {
-        val maze1 = HexMaze(1, HexMaze.Arrangement.HEXAGON)
+    fun grid_arrangement_hexagon() {
+        val maze1 = HexMaze(1, Arrangement.HEXAGON)
         val grid1 = arrayOf("*")
         assertMazeHasGrid(maze1, grid1)
 
-        val maze2 = HexMaze(3, HexMaze.Arrangement.HEXAGON)
+        val maze2 = HexMaze(3, Arrangement.HEXAGON)
         val grid2 = arrayOf(
                 "***  ",
                 "**** ",
@@ -89,12 +89,12 @@ class HexMazeTest {
     }
 
     @Test
-    fun grid_arrangment_rhombus() {
-        val maze1 = HexMaze(1, HexMaze.Arrangement.RHOMBUS)
+    fun grid_arrangement_rhombus() {
+        val maze1 = HexMaze(1, Arrangement.RHOMBUS)
         val grid1 = arrayOf("*")
         assertMazeHasGrid(maze1, grid1)
 
-        val maze2 = HexMaze(5, HexMaze.Arrangement.RHOMBUS)
+        val maze2 = HexMaze(5, Arrangement.RHOMBUS)
         val grid2 = arrayOf(
                 "*****",
                 "*****",

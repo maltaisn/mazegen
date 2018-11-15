@@ -43,9 +43,9 @@ import com.maltaisn.maze.maze.Maze
  *
  * Generated mazes have few deadends and long passages.
  */
-class RecursiveBacktrackerGenerator(maze: Maze) : Generator(maze) {
+class RecursiveBacktrackerGenerator : Generator() {
 
-    override fun generate() {
+    override fun generate(maze: Maze) {
         maze.reset(false)
 
         // Get cell on a random starting location

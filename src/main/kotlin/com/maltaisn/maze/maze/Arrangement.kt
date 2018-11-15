@@ -23,23 +23,14 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.maltaisn.maze.generator
-
-import com.maltaisn.maze.maze.Maze
-import java.util.concurrent.ThreadLocalRandom
-
+package com.maltaisn.maze.maze
 
 /**
- * Base class for a maze generator
- * Generates a maze into [maze], reseting its previous state.
+ * Arrangments of maze cells to form a shape.
  */
-abstract class Generator {
-
-    protected val random = ThreadLocalRandom.current()!!
-
-    /**
-     * Generate a maze into [maze], which is reset before.
-     */
-    abstract fun generate(maze: Maze)
-
+enum class Arrangement {
+    RECTANGLE,
+    TRIANGLE,
+    HEXAGON,
+    RHOMBUS
 }

@@ -44,9 +44,9 @@ import com.maltaisn.maze.maze.Maze
  * which is very low, because each cell can be visited many times and the
  * algorithm has to find all the unvisited cells by walking randomly.
  */
-class AldousBroderGenerator(maze: Maze) : Generator(maze) {
+class AldousBroderGenerator : Generator() {
 
-    override fun generate() {
+    override fun generate(maze: Maze) {
         maze.reset(false)
 
         var currentCell = maze.getRandomCell()

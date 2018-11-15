@@ -39,9 +39,9 @@ import java.util.*
  *    connect them and connect their trees' root
  * 3. Repeat step 2 until there are no more edges in the list.
  */
-class KruskalGenerator(maze: Maze) : Generator(maze) {
+class KruskalGenerator : Generator() {
 
-    override fun generate() {
+    override fun generate(maze: Maze) {
         maze.reset(false)
 
         // Get all edges and create a tree for every cell

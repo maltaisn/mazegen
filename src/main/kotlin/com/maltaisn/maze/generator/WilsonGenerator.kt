@@ -45,9 +45,9 @@ import com.maltaisn.maze.maze.Maze
  * algorithm has to find all the unvisited cells by walking randomly.
  * The algorithm is still more efficient than [AldousBroderGenerator].
  */
-class WilsonGenerator(maze: Maze) : Generator(maze) {
+class WilsonGenerator : Generator() {
 
-    override fun generate() {
+    override fun generate(maze: Maze) {
         maze.reset(false)
 
         val unvisitedCells = maze.getAllCells()

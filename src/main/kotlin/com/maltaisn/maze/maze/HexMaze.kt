@@ -32,7 +32,7 @@ import java.util.concurrent.ThreadLocalRandom
 
 /**
  * Class for a hexagon-tiled maze represented by 2D grid of [HexCell].
- * @param[arrangement] defines the arrangement of cells, see [HexMaze.Arrangement].
+ * @param[arrangement] defines the arrangement of cells, see [Arrangement].
  * @param[width] the number of columns
  * @param[height] the number of rows. If arrangement is hexagon or triangle, this parameter is ignored.
  */
@@ -57,12 +57,12 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement)
      * Create a new hexagonal maze with the same width and height, equal to [dimension]
      * Hexagon and triangle mazes should be created with this constructor.
      */
-    constructor(dimension: Int, arrangment: HexMaze.Arrangement) :
-            this(dimension, dimension, arrangment)
+    constructor(dimension: Int, arrangement: Arrangement) :
+            this(dimension, dimension, arrangement)
 
     init {
-        if (arrangement == HexMaze.Arrangement.TRIANGLE
-                || arrangement == HexMaze.Arrangement.HEXAGON) {
+        if (arrangement == Arrangement.TRIANGLE
+                || arrangement == Arrangement.HEXAGON) {
             // Hexagon and triangle mazes have only one dimension parameter.
             this.height = width
         } else {
@@ -74,20 +74,20 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement)
         val rowsForColumn: (column: Int) -> Int
         val rowOffset: (column: Int) -> Int
         when (arrangement) {
-            HexMaze.Arrangement.RECTANGLE -> {
+            Arrangement.RECTANGLE -> {
                 rowsForColumn = { height }
                 rowOffset = { it / 2 }
             }
-            HexMaze.Arrangement.HEXAGON -> {
+            Arrangement.HEXAGON -> {
                 gridWith = 2 * width - 1
                 rowsForColumn = { gridWith - Math.abs(it - width + 1) }
                 rowOffset = { if (it < width) 0 else it - width + 1 }
             }
-            HexMaze.Arrangement.TRIANGLE -> {
+            Arrangement.TRIANGLE -> {
                 rowsForColumn = { it + 1 }
                 rowOffset = { 0 }
             }
-            HexMaze.Arrangement.RHOMBUS -> {
+            Arrangement.RHOMBUS -> {
                 rowsForColumn = { height }
                 rowOffset = { 0 }
             }
@@ -226,20 +226,9 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement)
     }
 
     override fun toString(): String {
-        return "[arrangement: $arrangement, ${if (arrangement == HexMaze.Arrangement.TRIANGLE
-                || arrangement == HexMaze.Arrangement.HEXAGON)
+        return "[arrangement: $arrangement, ${if (arrangement == Arrangement.TRIANGLE
+                || arrangement == Arrangement.HEXAGON)
             "dimension : $width" else "width: $width, height: $height"}"
-    }
-
-    /**
-     * Enum used to choose the arrangement of cells in a hexagonal maze.
-     * More info on arrangements [here](https://www.redblobgames.com/grids/hexagons/#map-storage).
-     */
-    enum class Arrangement {
-        RECTANGLE,
-        TRIANGLE,
-        HEXAGON,
-        RHOMBUS
     }
 
     companion object {

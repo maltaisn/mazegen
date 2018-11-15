@@ -43,9 +43,9 @@ import com.maltaisn.maze.maze.Maze
  * Generated mazes have a lot more deadends than those generated with the recursive
  * backtracker for example, there are also very few long passages.
  */
-class PrimGenerator(maze: Maze) : Generator(maze) {
+class PrimGenerator : Generator() {
 
-    override fun generate() {
+    override fun generate(maze: Maze) {
         maze.reset(false)
 
         val initialCell = maze.getRandomCell()

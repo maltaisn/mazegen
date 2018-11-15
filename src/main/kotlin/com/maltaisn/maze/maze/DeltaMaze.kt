@@ -51,12 +51,12 @@ class DeltaMaze(val width: Int, height: Int, val arrangement: Arrangement) : Maz
      * Create a new delta maze with the same width and height, equal to [dimension]
      * Hexagon and triangle mazes should be created with this constructor.
      */
-    constructor(dimension: Int, arrangment: Arrangement) :
-            this(dimension, dimension, arrangment)
+    constructor(dimension: Int, arrangement: Arrangement) :
+            this(dimension, dimension, arrangement)
 
     init {
-        if (arrangement == HexMaze.Arrangement.TRIANGLE
-                || arrangement == HexMaze.Arrangement.HEXAGON) {
+        if (arrangement == Arrangement.TRIANGLE
+                || arrangement == Arrangement.HEXAGON) {
             // Hexagon and triangle mazes have only one dimension parameter.
             this.height = width
         } else {
@@ -231,16 +231,9 @@ class DeltaMaze(val width: Int, height: Int, val arrangement: Arrangement) : Maz
     }
 
     override fun toString(): String {
-        return "[arrangement: $arrangement, ${if (arrangement == HexMaze.Arrangement.TRIANGLE
-                || arrangement == HexMaze.Arrangement.HEXAGON)
+        return "[arrangement: $arrangement, ${if (arrangement == Arrangement.TRIANGLE
+                || arrangement == Arrangement.HEXAGON)
             "dimension : $width" else "width: $width, height: $height"}"
-    }
-
-    enum class Arrangement {
-        RECTANGLE,
-        TRIANGLE,
-        HEXAGON,
-        RHOMBUS
     }
 
     companion object {

@@ -50,7 +50,7 @@ import com.maltaisn.maze.maze.Maze
  * choosing a random cell, the newest cell and the oldest cell.
  * [cellChooser] can also be set directly for customized behavior.
  */
-class GrowingTreeGenerator(maze: Maze) : Generator(maze) {
+class GrowingTreeGenerator : Generator() {
 
     /**
      * The function used for choosing a cell instead of weights.
@@ -62,7 +62,7 @@ class GrowingTreeGenerator(maze: Maze) : Generator(maze) {
         setChooseByWeight(1, 1, 0)
     }
 
-    override fun generate() {
+    override fun generate(maze: Maze) {
         maze.reset(false)
 
         val initialCell = maze.getRandomCell()
