@@ -36,4 +36,9 @@ interface Position {
      */
     operator fun plus(pos: Position): Position
 
+    /**
+     * Compare this position with another position, [pos].
+     */
+    operator fun compareTo(pos: Position): Int
+
 }

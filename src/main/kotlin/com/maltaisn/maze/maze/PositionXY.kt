@@ -41,4 +41,16 @@ data class PositionXY(val x: Int, val y: Int) : Position {
         return "[x: $x, y: $y]"
     }
 
+    override fun compareTo(pos: Position): Int {
+        if (pos is PositionXY) {
+            return if (x == pos.x && y == pos.y) {
+                0
+            } else if (x > pos.x || x == pos.x && y > pos.y) {
+                1
+            } else {
+                -1
+            }
+        }
+        throw IllegalArgumentException("Cannot compare position of another type")
+    }
 }

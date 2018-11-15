@@ -136,7 +136,7 @@ abstract class Cell {
 
     override fun toString(): String {
         val sb = StringBuilder()
-        sb.append("[pos: $position, sides, ")
+        sb.append("[pos: $position, sides: ")
         when (value) {
             0 -> sb.append("NONE")
             else -> {
@@ -153,6 +153,14 @@ abstract class Cell {
         sb.append(if (visited) "visited" else "unvisited")
         sb.append("]")
         return sb.toString()
+    }
+
+    override fun hashCode(): Int = position.hashCode()
+
+    override fun equals(other: Any?): Boolean {
+        if (other === this) return true
+        if (other !is Cell) return false
+        return maze == other.maze && position == other.position
     }
 
     /**

@@ -25,15 +25,15 @@
 
 package com.maltaisn.maze
 
-import com.maltaisn.maze.generator.RecursiveBacktrackerGenerator
-import com.maltaisn.maze.maze.DeltaMaze
+import com.maltaisn.maze.generator.KruskalGenerator
+import com.maltaisn.maze.maze.RectMaze
 import java.io.PrintWriter
 
 
 fun main(args: Array<String>) {
-    val maze = DeltaMaze(20, DeltaMaze.Arrangement.HEXAGON)
+    val maze = RectMaze(50, 35)
 
-    val generator = RecursiveBacktrackerGenerator(maze)
+    val generator = KruskalGenerator(maze)
     generator.generate()
 
     PrintWriter("mazes/lastest.svg").use {
