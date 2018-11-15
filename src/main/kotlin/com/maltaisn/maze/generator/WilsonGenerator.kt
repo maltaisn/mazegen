@@ -69,6 +69,14 @@ class WilsonGenerator(maze: Maze) : Generator(maze) {
                     // Can't go back where it came from
                     neighbors.remove(walk[walk.size - 2])
                 }
+
+                if (neighbors.isEmpty()) {
+                    // No neighbors left, walked into deadend (can happen in delta mazes)
+                    // Start over from before last cell in the walk
+                    walk.removeAt(walk.size - 1)
+                    continue
+                }
+
                 val neighbor = neighbors.random()
 
                 if (neighbor.visited) {

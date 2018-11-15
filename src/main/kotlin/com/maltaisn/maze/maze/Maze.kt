@@ -57,11 +57,11 @@ interface Maze {
     /**
      * Returns a set containing all the cells in this maze.
      */
-    fun getAllCells(): LinkedHashSet<Cell>
+    fun getAllCells(): LinkedHashSet<out Cell>
 
     /**
      * Clears all the sides of all cells in the maze if [empty] is true,
-     * otherwise sets all sides on all the cells.
+     * otherwise sets all sides on all the cells. All cells are set as unvisited.
      */
     fun reset(empty: Boolean)
 

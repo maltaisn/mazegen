@@ -31,19 +31,18 @@ import java.util.concurrent.ThreadLocalRandom
 
 
 /**
- * Class for a flat rectangular maze represented by 2D grid of [RectCell].
+ * Class for a square-tiled maze represented by 2D grid of [RectCell].
  * @param[width] the number of columns
  * @param[height] the number of rows
  * @param[defaultCellValue] default value to assign to cells on construction, no sides by default.
  */
-class RectMaze(val width: Int, val height: Int,
-               defaultCellValue: Int = RectCell.Side.NONE.value) : Maze {
+class RectMaze(val width: Int, val height: Int) : Maze {
 
     private val grid: Array<Array<RectCell>>
 
     init {
         grid = Array(width) { x ->
-            Array(height) { y -> RectCell(this, PositionXY(x, y), defaultCellValue) }
+            Array(height) { y -> RectCell(this, PositionXY(x, y), RectCell.Side.NONE.value) }
         }
     }
 
@@ -77,8 +76,10 @@ class RectMaze(val width: Int, val height: Int,
         }
     }
 
-    override fun getAllCells(): LinkedHashSet<Cell> {
-        val set = LinkedHashSet<Cell>(width * height)
+    override fun getCellCount(): Int = width * height
+
+    override fun getAllCells(): LinkedHashSet<RectCell> {
+        val set = LinkedHashSet<RectCell>(width * height)
         for (x in 0 until width) {
             for (y in 0 until height) {
                 set.add(grid[x][y])
@@ -161,9 +162,6 @@ class RectMaze(val width: Int, val height: Int,
 
         return canvas.svgDocument
     }
-
-
-    override fun getCellCount(): Int = width * height
 
     override fun toString(): String {
         return "[width: $width, height: $height]"

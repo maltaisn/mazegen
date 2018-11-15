@@ -33,9 +33,9 @@ class CellTest {
 
     @Test
     fun hasSide() {
-        val maze = RectMaze(1, 1,
-                RectCell.Side.NORTH.value or RectCell.Side.SOUTH.value)
+        val maze = RectMaze(1, 1)
         val cell = maze.cellAt(PositionXY(0, 0))
+        cell.value = RectCell.Side.NORTH.value or RectCell.Side.SOUTH.value
         assertTrue(cell.hasSide(RectCell.Side.NORTH))
         assertFalse(cell.hasSide(RectCell.Side.EAST))
         assertTrue(cell.hasSide(RectCell.Side.SOUTH))
@@ -101,7 +101,8 @@ class CellTest {
 
     @Test
     fun connectWith() {
-        val maze = RectMaze(3, 3, RectCell.Side.ALL.value)
+        val maze = RectMaze(3, 3)
+        maze.reset(false)
         val middleCell = maze.cellAt(PositionXY(1, 1))
 
         val northCell = maze.cellAt(PositionXY(1, 0))
@@ -127,7 +128,8 @@ class CellTest {
 
     @Test
     fun findSideOfCell() {
-        val maze = RectMaze(3, 3, RectCell.Side.ALL.value)
+        val maze = RectMaze(3, 3)
+        maze.reset(false)
         val middleCell = maze.cellAt(PositionXY(1, 1))
 
         val northCell = maze.cellAt(PositionXY(1, 0))

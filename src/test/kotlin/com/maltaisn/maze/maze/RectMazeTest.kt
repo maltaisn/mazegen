@@ -44,7 +44,8 @@ class RectMazeTest {
             }
         }
 
-        val maze2 = RectMaze(3, 3, RectCell.Side.ALL.value)
+        val maze2 = RectMaze(3, 3)
+        maze2.reset(false)
         for (x in 0 until maze2.width) {
             for (y in 0 until maze2.height) {
                 val pos = PositionXY(x, y)

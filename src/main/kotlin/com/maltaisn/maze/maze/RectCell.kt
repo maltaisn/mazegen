@@ -26,6 +26,10 @@
 package com.maltaisn.maze.maze
 
 
+/**
+ * A square cell for [RectCell].
+ * Has north, east, south and east sides.
+ */
 class RectCell : Cell {
 
     constructor(maze: RectMaze, position: PositionXY) : super(maze, position)
@@ -34,35 +38,6 @@ class RectCell : Cell {
 
 
     override fun getAllSides(): List<Side> = ALL_SIDES
-
-    override fun getCellOnSide(side: Cell.Side): RectCell? {
-        return super.getCellOnSide(side) as RectCell?
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    override fun getNeighbors(): List<RectCell> {
-        return super.getNeighbors() as List<RectCell>
-    }
-
-    override fun toString(): String {
-        val sb = StringBuilder()
-        sb.append("[pos: $position, sides: ")
-        when (value) {
-            Side.NONE.value -> sb.append("NONE")
-            Side.ALL.value -> sb.append("ALL")
-            else -> {
-                if (hasSide(Side.NORTH)) sb.append("N,")
-                if (hasSide(Side.EAST)) sb.append("E,")
-                if (hasSide(Side.SOUTH)) sb.append("S,")
-                if (hasSide(Side.WEST)) sb.append("W,")
-                sb.deleteCharAt(sb.length - 1)
-            }
-        }
-        sb.append(", ")
-        sb.append(if (visited) "visited" else "unvisited")
-        sb.append("]")
-        return sb.toString()
-    }
 
     /**
      * Enum class for the side a rectangular cell
@@ -77,9 +52,6 @@ class RectCell : Cell {
         WEST(8, PositionXY(-1, 0), "W"),
         ALL(15, null, null);
 
-        /**
-         * Returns the opposite side of this side
-         */
         override fun opposite(): Side = when (this) {
             NONE -> NONE
             NORTH -> SOUTH

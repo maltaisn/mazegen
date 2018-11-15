@@ -27,56 +27,52 @@ package com.maltaisn.maze.maze
 
 
 /**
- * A hexagonal cell for [HexMaze].
- * Has north, northeast, southeast, south, southwest and northwest sides.
+ * A triangular cell in [DeltaMaze].
+ * Has west, east and base (north or south) sides.
  */
-class HexCell : Cell {
+class DeltaCell : Cell {
 
-    constructor(maze: HexMaze, position: PositionXY) : super(maze, position)
+    constructor(maze: DeltaMaze, position: PositionXY) : super(maze, position)
 
-    constructor(maze: HexMaze, position: PositionXY, value: Int) : super(maze, position, value)
+    constructor(maze: DeltaMaze, position: PositionXY, value: Int) : super(maze, position, value)
 
+    override fun getCellOnSide(side: Cell.Side): Cell? {
+        if (side == Side.BASE) {
+            // The cell on the base side can be either up or down, depending on the X position.
+            val pos = position as PositionXY
+            val flatTopped = (pos.x + pos.y) % 2 == 0
+            return maze.optionalCellAt(position
+                    + PositionXY(0, if (flatTopped) -1 else 1))
+        }
+        return super.getCellOnSide(side)
+    }
 
     override fun getAllSides(): List<Side> = ALL_SIDES
 
     /**
-     * Enum class for the side a hexagonal cell
-     * ```
-     *     N -> __
-     *   NW -> /  \  <- NE
-     *   SW -> \__/  <- SE
-     *      S ->
-     * ```
+     * Enum class for the side a delta cell.
      */
     enum class Side(override val value: Int,
-                    override val relativePos: Position?,
+                    override val relativePos: PositionXY?,
                     override val symbol: String?) : Cell.Side {
-
         NONE(0, null, null),
-        NORTH(1, PositionXY(0, -1), "N"),
-        NORTHEAST(2, PositionXY(1, 0), "NE"),
-        SOUTHEAST(4, PositionXY(1, 1), "SE"),
-        SOUTH(8, PositionXY(0, 1), "S"),
-        SOUTHWEST(16, PositionXY(-1, 0), "SW"),
-        NORTHWEST(32, PositionXY(-1, -1), "NW"),
-        ALL(63, null, null);
+        BASE(1, null, "B"),
+        EAST(2, PositionXY(1, 0), "E"),
+        WEST(4, PositionXY(-1, 0), "W"),
+        ALL(7, null, null);
 
         override fun opposite(): Side = when (this) {
             NONE -> NONE
-            NORTH -> SOUTH
-            NORTHEAST -> SOUTHWEST
-            SOUTHEAST -> NORTHWEST
-            SOUTH -> NORTH
-            SOUTHWEST -> NORTHEAST
-            NORTHWEST -> SOUTHEAST
+            BASE -> BASE
+            EAST -> WEST
+            WEST -> EAST
             ALL -> ALL
         }
 
     }
 
     companion object {
-        private val ALL_SIDES = listOf(Side.NORTH, Side.NORTHEAST, Side.SOUTHEAST,
-                Side.SOUTH, Side.SOUTHWEST, Side.NORTHWEST)
+        private val ALL_SIDES = listOf(Side.BASE, Side.EAST, Side.WEST)
     }
 
 }

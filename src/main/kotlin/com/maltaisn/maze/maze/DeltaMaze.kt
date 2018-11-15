@@ -31,21 +31,15 @@ import java.util.concurrent.ThreadLocalRandom
 
 
 /**
- * Class for a hexagon-tiled maze represented by 2D grid of [HexCell].
- * @param[arrangement] defines the arrangement of cells, see [HexMaze.Arrangement].
+ * Class for a triangle-tiled maze represented by 2D grid of [DeltaCell].
  * @param[width] the number of columns
- * @param[height] the number of rows. If arrangement is hexagon or triangle, this parameter is ignored.
+ * @param[height] the number of rows
  */
-class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement) : Maze {
+class DeltaMaze(val width: Int, height: Int, val arrangement: Arrangement) : Maze {
 
     val height: Int
 
-    /**
-     * Hexagonal maze grid. There number of columns is the same as the maze width, except for
-     * hexagonal shaped mazes where the number of columns is equal to `width * 2 - 1`.
-     * The number of rows varies for each column depending on the arrangement of the maze.
-     */
-    private val grid: Array<Array<HexCell>>
+    private val grid: Array<Array<DeltaCell>>
 
     /**
      * The offset of the actual Y coordinate of a cell in the grid array, for each column
@@ -54,10 +48,10 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement)
     private val rowOffsets: IntArray
 
     /**
-     * Create a new hexagonal maze with the same width and height, equal to [dimension]
+     * Create a new delta maze with the same width and height, equal to [dimension]
      * Hexagon and triangle mazes should be created with this constructor.
      */
-    constructor(dimension: Int, arrangment: HexMaze.Arrangement) :
+    constructor(dimension: Int, arrangment: Arrangement) :
             this(dimension, dimension, arrangment)
 
     init {
@@ -70,26 +64,48 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement)
         }
 
         // Create maze grid
-        var gridWith = width
+        var gridWith = width * 2 - 1
         val rowsForColumn: (column: Int) -> Int
         val rowOffset: (column: Int) -> Int
         when (arrangement) {
-            HexMaze.Arrangement.RECTANGLE -> {
-                rowsForColumn = { height }
-                rowOffset = { it / 2 }
-            }
-            HexMaze.Arrangement.HEXAGON -> {
-                gridWith = 2 * width - 1
-                rowsForColumn = { gridWith - Math.abs(it - width + 1) }
-                rowOffset = { if (it < width) 0 else it - width + 1 }
-            }
-            HexMaze.Arrangement.TRIANGLE -> {
-                rowsForColumn = { it + 1 }
-                rowOffset = { 0 }
-            }
-            HexMaze.Arrangement.RHOMBUS -> {
+            Arrangement.RECTANGLE -> {
                 rowsForColumn = { height }
                 rowOffset = { 0 }
+            }
+            Arrangement.HEXAGON -> {
+                gridWith = 4 * width - 1
+                rowsForColumn = {
+                    2 * when {
+                        it < width -> it + 1
+                        it >= gridWith - width -> gridWith - it
+                        else -> width
+                    }
+                }
+                rowOffset = {
+                    when {
+                        it < width -> width - it - 1
+                        it >= gridWith - width -> width + it - gridWith
+                        else -> 0
+                    }
+                }
+            }
+            Arrangement.TRIANGLE -> {
+                rowOffset = { 0 }
+                rowsForColumn = { width - Math.abs(it - gridWith / 2) }
+            }
+            Arrangement.RHOMBUS -> {
+                gridWith = 2 * width + height - 1
+                rowsForColumn = {
+                    var rows = height
+                    if (it < height) {
+                        rows -= height - it - 1
+                    }
+                    if (it >= gridWith - height) {
+                        rows -= it - (gridWith - height)
+                    }
+                    rows
+                }
+                rowOffset = { Math.max(0, height - gridWith + it) }
             }
         }
 
@@ -97,18 +113,20 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement)
         grid = Array(gridWith) { x ->
             rowOffsets[x] = rowOffset(x)
             Array(rowsForColumn(x)) { y ->
-                HexCell(this, PositionXY(x, y + rowOffsets[x]), HexCell.Side.NONE.value)
+                DeltaCell(this, PositionXY(x, y + rowOffsets[x]), DeltaCell.Side.NONE.value)
             }
         }
     }
 
-    override fun cellAt(pos: Position): HexCell = if (pos is PositionXY) {
-        grid[pos.x][pos.y - rowOffsets[pos.x]]
+    override fun cellAt(pos: Position): DeltaCell = if (pos is PositionXY) {
+        cellAt(pos.x, pos.y)
     } else {
         throw IllegalArgumentException("Position has wrong type.")
     }
 
-    override fun optionalCellAt(pos: Position): HexCell? {
+    private fun cellAt(x: Int, y: Int) = grid[x][y - rowOffsets[x]]
+
+    override fun optionalCellAt(pos: Position): DeltaCell? {
         if (pos is PositionXY) {
             if (pos.x < 0 || pos.x >= grid.size) return null
             val actualY = pos.y - rowOffsets[pos.x]
@@ -118,14 +136,14 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement)
         throw IllegalArgumentException("Position has wrong type")
     }
 
-    override fun getRandomCell(): HexCell {
+    override fun getRandomCell(): DeltaCell {
         val random = ThreadLocalRandom.current()
         val x = random.nextInt(grid.size)
         return grid[x][random.nextInt(grid[x].size)]
     }
 
     override fun reset(empty: Boolean) {
-        val value = if (empty) HexCell.Side.NONE.value else HexCell.Side.ALL.value
+        val value = if (empty) DeltaCell.Side.NONE.value else DeltaCell.Side.ALL.value
         for (x in 0 until grid.size) {
             for (y in 0 until grid[x].size) {
                 val cell = grid[x][y]
@@ -143,8 +161,8 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement)
         return count
     }
 
-    override fun getAllCells(): LinkedHashSet<HexCell> {
-        val set = LinkedHashSet<HexCell>(getCellCount())
+    override fun getAllCells(): LinkedHashSet<DeltaCell> {
+        val set = LinkedHashSet<DeltaCell>(getCellCount())
         for (x in 0 until grid.size) {
             for (y in 0 until grid[x].size) {
                 set.add(grid[x][y])
@@ -153,66 +171,53 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement)
         return set
     }
 
-    /**
-     * Render the maze to SVG.
-     * Without going into details, only half the sides are drawn for each cell except
-     * the bottommost and rightmost cells.
-     */
     override fun renderToSvg(): String {
-        // Find the empty top padding (minTop) and maximum column rows
-        var maxRow = 0.0
-        var minTop = Double.MAX_VALUE
+        var maxHeight = 0
         for (x in 0 until grid.size) {
-            val top = rowOffsets[x] + (grid.size - x - 1) / 2.0
-            if (top < minTop) minTop = top
-            val row = grid[x].size + top
-            if (row > maxRow) maxRow = row
+            val height = grid[x].size + rowOffsets[x]
+            if (height > maxHeight) maxHeight = height
         }
-        maxRow -= minTop
 
-        val cellHeight = Math.sqrt(3.0) * SVG_CELL_SIDE
-        val width = Math.ceil((1.5 * (grid.size - 1) + 2) * SVG_CELL_SIDE).toInt()
-        val height = Math.ceil(cellHeight * maxRow).toInt()
-        val canvas = SVGGraphics2D(width, height)
+        val cellHeight = Math.sqrt(3.0) / 2 * SVG_CELL_SIZE
+        val width = Math.ceil((grid.size / 2.0 + 0.5) * SVG_CELL_SIZE)
+        val height = Math.ceil(maxHeight * cellHeight)
+        val canvas = SVGGraphics2D(width.toInt(), height.toInt())
         canvas.stroke = Maze.SVG_STROKE_STYLE
         canvas.color = Maze.SVG_STROKE_COLOR
 
         val path = GeneralPath()
+
         for (x in 0 until grid.size) {
-            val cx = (1.5 * x + 1) * SVG_CELL_SIDE
             for (y in 0 until grid[x].size) {
-                val cy = (y + rowOffsets[x] - minTop + (grid.size - x - 1) / 2.0 + 0.5) * cellHeight
                 val cell = grid[x][y]
-
-                // Draw north, northwest and southwest for every cell
-                if (cell.hasSide(HexCell.Side.NORTH)) {
-                    path.moveTo(cx + SVG_CELL_SIDE / 2, cy - cellHeight / 2)
-                    path.lineTo(cx - SVG_CELL_SIDE / 2, cy - cellHeight / 2)
+                val actualY = y + rowOffsets[x]
+                val flatTopped = (x + actualY) % 2 == 0
+                if (cell.hasSide(DeltaCell.Side.BASE)) {
+                    if (flatTopped) {
+                        path.moveTo(x * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
+                        path.lineTo((x + 2) * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
+                    } else if (cell.getCellOnSide(DeltaCell.Side.BASE) == null) {
+                        path.moveTo(x * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
+                        path.lineTo((x + 2) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
+                    }
                 }
-                if (cell.hasSide(HexCell.Side.NORTHWEST)) {
-                    path.moveTo(cx - SVG_CELL_SIDE / 2, cy - cellHeight / 2)
-                    path.lineTo(cx - SVG_CELL_SIDE, cy)
+                if (cell.hasSide(DeltaCell.Side.EAST)) {
+                    if (flatTopped) {
+                        path.moveTo((x + 2) * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
+                        path.lineTo((x + 1) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
+                    } else if (cell.getCellOnSide(DeltaCell.Side.EAST) == null) {
+                        path.moveTo((x + 1) * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
+                        path.lineTo((x + 2) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
+                    }
                 }
-                if (cell.hasSide(HexCell.Side.SOUTHWEST)) {
-                    path.moveTo(cx - SVG_CELL_SIDE, cy)
-                    path.lineTo(cx - SVG_CELL_SIDE / 2, cy + cellHeight / 2)
-                }
-
-                // Only draw the remaining sides if there's no cell on the side
-                if (cell.hasSide(HexCell.Side.SOUTH)
-                        && cell.getCellOnSide(HexCell.Side.SOUTH) == null) {
-                    path.moveTo(cx - SVG_CELL_SIDE / 2, cy + cellHeight / 2)
-                    path.lineTo(cx + SVG_CELL_SIDE / 2, cy + cellHeight / 2)
-                }
-                if (cell.hasSide(HexCell.Side.SOUTHEAST)
-                        && cell.getCellOnSide(HexCell.Side.SOUTHEAST) == null) {
-                    path.moveTo(cx + SVG_CELL_SIDE / 2, cy + cellHeight / 2)
-                    path.lineTo(cx + SVG_CELL_SIDE, cy)
-                }
-                if (cell.hasSide(HexCell.Side.NORTHEAST)
-                        && cell.getCellOnSide(HexCell.Side.NORTHEAST) == null) {
-                    path.moveTo(cx + SVG_CELL_SIDE, cy)
-                    path.lineTo(cx + SVG_CELL_SIDE / 2, cy - cellHeight / 2)
+                if (cell.hasSide(DeltaCell.Side.WEST)) {
+                    if (flatTopped) {
+                        path.moveTo(x * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
+                        path.lineTo((x + 1) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
+                    } else if (cell.getCellOnSide(DeltaCell.Side.WEST) == null) {
+                        path.moveTo((x + 1) * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
+                        path.lineTo(x * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
+                    }
                 }
             }
         }
@@ -231,10 +236,6 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement)
             "dimension : $width" else "width: $width, height: $height"}"
     }
 
-    /**
-     * Enum used to choose the arrangement of cells in a hexagonal maze.
-     * More info on arrangements [here](https://www.redblobgames.com/grids/hexagons/#map-storage).
-     */
     enum class Arrangement {
         RECTANGLE,
         TRIANGLE,
@@ -243,7 +244,7 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement)
     }
 
     companion object {
-        private const val SVG_CELL_SIDE = 10.0
+        private const val SVG_CELL_SIZE = 10.0
     }
 
 }
