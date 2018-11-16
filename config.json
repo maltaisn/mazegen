@@ -1,0 +1,21 @@
+{
+  "mazes": [
+    {
+      "name": "delta",
+      "count": 3,
+      "type": "delta",
+      "dimension": 10,
+      "arrangement": "hex",
+      "algorithm": "recursive-backtracker"
+    },
+    {
+      "name": "rect",
+      "count": 3,
+      "type": "rect",
+      "width": 20,
+      "height": 15,
+      "algorithm": "wilson"
+    }
+  ],
+  "output": "mazes/new/"
+}

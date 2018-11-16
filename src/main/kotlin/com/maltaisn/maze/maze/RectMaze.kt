@@ -32,19 +32,38 @@ import java.util.concurrent.ThreadLocalRandom
 
 /**
  * Class for a square-tiled maze represented by 2D grid of [RectCell].
- * @param[width] the number of columns
- * @param[height] the number of rows
- * @param[defaultCellValue] default value to assign to cells on construction, no sides by default.
  */
-class RectMaze(val width: Int, val height: Int) : Maze {
+class RectMaze : Maze {
+
+    val width: Int
+    val height: Int
 
     private val grid: Array<Array<RectCell>>
 
-    init {
+    /**
+     * Create an empty maze with [width] columns and [height] rows.
+     */
+    constructor(width: Int, height: Int) {
+        if (width < 1 || height < 1) {
+            throw IllegalArgumentException("Dimensions must be at least 1.")
+        }
+
+        this.width = width
+        this.height = height
         grid = Array(width) { x ->
-            Array(height) { y -> RectCell(this, PositionXY(x, y), RectCell.Side.NONE.value) }
+            Array(height) { y ->
+                RectCell(this,
+                        PositionXY(x, y), RectCell.Side.NONE.value)
+            }
         }
     }
+
+    private constructor(maze: RectMaze) {
+        width = maze.width
+        height = maze.height
+        grid = Array(maze.grid.size) { maze.grid.get(it).clone() }
+    }
+
 
     override fun cellAt(pos: Position): RectCell = if (pos is PositionXY) {
         grid[pos.x][pos.y]
@@ -65,17 +84,6 @@ class RectMaze(val width: Int, val height: Int) : Maze {
         return cellAt(PositionXY(random.nextInt(width), random.nextInt(height)))
     }
 
-    override fun reset(empty: Boolean) {
-        val value = if (empty) RectCell.Side.NONE.value else RectCell.Side.ALL.value
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                val cell = grid[x][y]
-                cell.visited = false
-                cell.value = value
-            }
-        }
-    }
-
     override fun getCellCount(): Int = width * height
 
     override fun getAllCells(): LinkedHashSet<RectCell> {
@@ -87,6 +95,19 @@ class RectMaze(val width: Int, val height: Int) : Maze {
         }
         return set
     }
+
+    override fun reset(empty: Boolean) {
+        val value = if (empty) RectCell.Side.NONE.value else RectCell.Side.ALL.value
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                val cell = grid[x][y]
+                cell.visited = false
+                cell.value = value
+            }
+        }
+    }
+
+    override fun copy(): Maze = RectMaze(this)
 
     /**
      * Render the maze to SVG.

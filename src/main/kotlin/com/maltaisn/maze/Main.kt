@@ -26,187 +26,192 @@
 package com.maltaisn.maze
 
 import com.maltaisn.maze.generator.*
-import com.maltaisn.maze.maze.Arrangement
-import com.maltaisn.maze.maze.DeltaMaze
-import com.maltaisn.maze.maze.HexMaze
-import com.maltaisn.maze.maze.RectMaze
-import picocli.CommandLine
-import picocli.CommandLine.*
+import com.maltaisn.maze.maze.*
+import org.json.JSONObject
+import org.json.JSONTokener
 import java.io.File
+import java.io.FileInputStream
 import java.io.PrintWriter
 
+
 fun main(args: Array<String>) {
-    CommandLine.run(Options(), *args)
+    if (args.isNotEmpty()) {
+        val file = File(args[0])
+        if (file.exists()) {
+            val inputStream = FileInputStream(file)
+            val config = JSONObject(JSONTokener(inputStream))
+            inputStream.close()
+            Main(config)
+        } else {
+            throw IllegalArgumentException("Config file doesn't exists.")
+        }
+    } else {
+        throw IllegalArgumentException("No config file provided.")
+    }
 }
 
-@Command()
-private class Options : Runnable {
+private class Main(from: JSONObject) {
 
-    @Spec
-    private lateinit var commandSpec: Model.CommandSpec
-
-    @Option(names = ["-g", "--generator"],
-            description = ["Maze generation algorithm to use, one of:" +
-                    "%n'ab', 'aldous-broder' for Aldous-Broder's." +
-                    "%n'gt', 'growing-tree' for growing tree." +
-                    "%n'hk', 'hunt-kill' for hunt-and-kill." +
-                    "%n'kr', 'kruskal' for Kruskal's." +
-                    "%n'pr', 'prim' for Prim's." +
-                    "%n'rb', 'recursive-backtracker' for recursive backtracker (default)" +
-                    "%n'wi', 'wilson' for Wilson's."],
-            converter = [GeneratorConverter::class])
-    private var generator: Generator = RecursiveBacktrackerGenerator()
-
-    @Option(names = ["-c", "--count"],
-            description = ["Number of mazes to generate. Default is 1."])
-    private var count: Int = 1
-
-    @Option(names = ["-o", "--output"],
-            description = ["Output path. Default output is current directory."])
-    private var output: File = File(System.getProperty("user.dir"))
-
-    @Option(names = ["-f", "--filename"],
-            description = ["Output filename, without extension. Default is 'maze'."])
-    private var filename: String = "maze"
-
-    @Option(names = ["-t", "--type"],
-            description = ["Maze type, one of:" +
-                    "%n'rect', 'orth' for rectangular cells." +
-                    "%n'hex', 'sigma' for hexagonal cells." +
-                    "%n'triangle', 'delta' for triangular cells."],
-            converter = [MazeTypeConverter::class])
-    private var mazeType: MazeType = MazeType.RECT
-
-    @Option(names = ["-d", "--dimen"],
-            description = ["Maze dimensions, depends on the maze type."],
-            arity = "1..*",
-            required = true)
-    private lateinit var dimensions: IntArray
-
-    @Option(names = ["-a", "--arrangement"],
-            description = ["Arrangment of maze cells for hex and delta mazes, one of:" +
-                    "%n'rect', 'rectangle': rectangle shaped." +
-                    "%n'triangle': triangle shaped." +
-                    "%n'hex', 'hexagon': hexagon shaped. " +
-                    "%n'rhombus': rhombus (parallelogram) shaped."],
-            converter = [ArrangementConverter::class])
-    private var arrangement: Arrangement = Arrangement.RECTANGLE
-
-
-    override fun run() {
-        // Validate output path
-        output.mkdirs()
-        if (!output.canWrite()) {
-            throw ParameterException(commandSpec.commandLine(),
-                    "No write access to output path: ${output.absolutePath}")
+    init {
+        if (!from.has(KEY_MAZES)) {
+            throw IllegalArgumentException("No mazes to generate.")
         }
 
-        // Validate count
-        if (count < 1) {
-            throw ParameterException(commandSpec.commandLine(),
-                    "At least 1 maze must be generated.")
-        }
-
-        // Validate dimensions
-        for (dimen in dimensions) {
-            if (dimen < MIN_DIMENSION || dimen > MAX_DIMENSION) {
-                throw ParameterException(commandSpec.commandLine(),
-                        "Dimensions must be between $MIN_DIMENSION and $MAX_DIMENSION.")
+        var output = File(System.getProperty("user.dir"))
+        if (from.has(KEY_OUTPUT)) {
+            output = File(from.getString(KEY_OUTPUT))
+            output.mkdirs()
+            if (!output.canWrite()) {
+                throw IllegalArgumentException("Cannot write to output path: ${output.absolutePath}")
             }
         }
 
-        // Create the maze template from parameters
-        val maze = when (mazeType) {
-            MazeType.RECT -> {
-                val width = dimensions[0]
-                val height = when {
-                    dimensions.size == 1 -> width
-                    dimensions.size == 2 -> dimensions[1]
-                    else -> {
-                        throw ParameterException(commandSpec.commandLine(),
-                                "Too many dimensions given for rectangular maze.")
-                    }
+        for (mazeJson in from.getJSONArray(KEY_MAZES)) {
+            val mazeGen = MazeGen(mazeJson as JSONObject)
+            for (i in 0 until mazeGen.count) {
+                val maze = mazeGen.generate()
+
+                var filename = mazeGen.name
+                if (mazeGen.count > 1) {
+                    filename += "-${i + 1}"
                 }
-                println()
-                RectMaze(width, height)
-            }
-            MazeType.HEX, MazeType.DELTA -> {
-                val width = dimensions[0]
-                val height = when {
-                    dimensions.size == 1 -> width
-                    dimensions.size == 2 && (arrangement == Arrangement.RECTANGLE
-                            || arrangement == Arrangement.RHOMBUS) -> dimensions[1]
-                    else -> {
-                        throw ParameterException(commandSpec.commandLine(),
-                                "Too many dimensions given for maze type and arrangement.")
-                    }
+                filename += ".svg"
+
+                PrintWriter(File(output, filename)).use {
+                    it.print(maze.renderToSvg())
                 }
-                if (mazeType == MazeType.HEX) {
-                    HexMaze(width, height, arrangement)
-                } else {
-                    DeltaMaze(width, height, arrangement)
-                }
+
+                println("Generated and exported maze '${mazeGen.name}' ${i + 1} / ${mazeGen.count}")
             }
         }
+    }
 
-        // Generate and render mazes
-        for (i in 1..count) {
-            generator.generate(maze)
+    private class MazeGen(from: JSONObject) {
 
-            var name: String
-            if (count == 1) {
-                name = filename
+        val maze: Maze
+        val name: String
+        var count: Int
+        var generator: Generator
+
+        init {
+            name = if (from.has(KEY_NAME)) from.getString(KEY_NAME) else "maze"
+
+            count = if (from.has(KEY_COUNT)) from.getInt(KEY_COUNT) else 1
+            if (count < 1) {
+                throw IllegalArgumentException("Wrong value '$count' for count, must be at least 1.")
+            }
+
+            generator = if (from.has(KEY_ALGORITHM)) {
+                when (val algStr = from.getString(KEY_ALGORITHM)) {
+                    "ab", "aldous-broder" -> AldousBroderGenerator()
+                    "gt", "growing-tree" -> GrowingTreeGenerator()
+                    "hk", "hunt-kill" -> HuntKillGenerator()
+                    "kr", "kruskal" -> KruskalGenerator()
+                    "pr", "prim" -> PrimGenerator()
+                    "rb", "recursive-backtracker" -> RecursiveBacktrackerGenerator()
+                    "wi", "wilson" -> WilsonGenerator()
+                    else -> throw IllegalArgumentException("Invalid algorithm '$algStr'.")
+                }
             } else {
-                name = "$filename-$i"
+                RecursiveBacktrackerGenerator()
             }
-            name += ".svg"
 
-            PrintWriter(File(output, name)).use {
-                it.print(maze.renderToSvg())
+            val type = if (from.has(KEY_TYPE)) {
+                when (val typeStr = from.getString(KEY_TYPE)) {
+                    "rect", "orth" -> MazeType.RECT
+                    "hex", "sigma" -> MazeType.HEX
+                    "triangle", "delta" -> MazeType.DELTA
+                    else -> throw IllegalArgumentException("Invalid maze type '$typeStr'.")
+                }
+            } else {
+                MazeType.RECT
             }
-            println("Generated maze $i / $count")
-        }
-    }
 
-    private enum class MazeType {
-        RECT, HEX, DELTA
-    }
+            var width = if (from.has(KEY_WIDTH)) from.getInt(KEY_WIDTH) else null
+            var height = if (from.has(KEY_HEIGHT)) from.getInt(KEY_HEIGHT) else null
+            val dimension = if (from.has(KEY_DIMENSION)) from.getInt(KEY_DIMENSION) else null
 
-    private class GeneratorConverter : ITypeConverter<Generator> {
-        override fun convert(value: String) = when (value) {
-            "ab", "aldous-broder" -> AldousBroderGenerator()
-            "gt", "growing-tree" -> GrowingTreeGenerator()
-            "hk", "hunt-kill" -> HuntKillGenerator()
-            "kr", "kruskal" -> KruskalGenerator()
-            "pr", "prim" -> PrimGenerator()
-            "rb", "recursive-backtracker" -> RecursiveBacktrackerGenerator()
-            "wi", "wilson" -> WilsonGenerator()
-            else -> throw IllegalArgumentException("Invalid algorithm.")
-        }
-    }
+            val arrangement = if (from.has(KEY_ARRANGEMENT)) {
+                when (val arrStr = from.getString(KEY_ARRANGEMENT)) {
+                    "rect", "rectangle" -> Arrangement.RECTANGLE
+                    "triangle" -> Arrangement.TRIANGLE
+                    "hex", "hexagon" -> Arrangement.HEXAGON
+                    "rhombus" -> Arrangement.RHOMBUS
+                    else -> throw IllegalArgumentException("Invalid maze arrangement '$arrStr'.")
+                }
+            } else {
+                Arrangement.RECTANGLE
+            }
 
-    private class MazeTypeConverter : ITypeConverter<MazeType> {
-        override fun convert(value: String) = when (value) {
-            "rect", "orth" -> MazeType.RECT
-            "hex", "sigma" -> MazeType.HEX
-            "triangle", "delta" -> MazeType.DELTA
-            else -> throw IllegalArgumentException("Invalid maze type.")
+            maze = when (type) {
+                MazeType.RECT -> {
+                    if (dimension == null && (width == null || height == null)
+                            || dimension != null && (width != null || height != null)) {
+                        throw IllegalArgumentException("For orthogonal mazes, only 'dimension' " +
+                                "or both 'width' and 'height' must be defined.")
+                    }
+                    if (dimension != null) {
+                        width = dimension
+                        height = dimension
+                    }
+                    RectMaze(width!!, height!!)
+                }
+                MazeType.HEX, MazeType.DELTA -> {
+                    when (arrangement) {
+                        Arrangement.HEXAGON, Arrangement.TRIANGLE -> {
+                            if (dimension == null || width != null || height != null) {
+                                throw IllegalArgumentException("For hexagon and triangle shaped delta and sigma " +
+                                        "mazes, only 'dimension' must be defined, but not 'width' nor 'height'.")
+                            }
+                            width = dimension
+                            height = dimension
+                        }
+                        else -> {
+                            if (dimension == null && (width == null || height == null)
+                                    || dimension != null && (width != null || height != null)) {
+                                throw IllegalArgumentException("For rectangle and rhombus shaped delta and sigma " +
+                                        "mazes, only 'dimension' or both 'width' and 'height' must be defined.")
+                            }
+                            if (dimension != null) {
+                                width = dimension
+                                height = dimension
+                            }
+                        }
+                    }
+                    if (type == MazeType.HEX) {
+                        HexMaze(width!!, height!!, arrangement)
+                    } else {
+                        DeltaMaze(width!!, height!!, arrangement)
+                    }
+                }
+            }
         }
-    }
 
-    private class ArrangementConverter : ITypeConverter<Arrangement> {
-        override fun convert(value: String) = when (value) {
-            "rect", "rectangle" -> Arrangement.RECTANGLE
-            "triangle" -> Arrangement.TRIANGLE
-            "hex", "hexagon" -> Arrangement.HEXAGON
-            "rhombus" -> Arrangement.RHOMBUS
-            else -> throw IllegalArgumentException("Invalid maze arrangement.")
+        fun generate(): Maze {
+            generator.generate(maze)
+            return maze
         }
+
+        private enum class MazeType {
+            RECT, HEX, DELTA
+        }
+
+        companion object {
+            private const val KEY_NAME = "name"
+            private const val KEY_COUNT = "count"
+            private const val KEY_TYPE = "type"
+            private const val KEY_WIDTH = "width"
+            private const val KEY_HEIGHT = "height"
+            private const val KEY_DIMENSION = "dimension"
+            private const val KEY_ARRANGEMENT = "arrangement"
+            private const val KEY_ALGORITHM = "algorithm"
+        }
+
     }
 
     companion object {
-        private const val MIN_DIMENSION = 1
-        private const val MAX_DIMENSION = 65536
+        private const val KEY_MAZES = "mazes"
+        private const val KEY_OUTPUT = "output"
     }
 
 }

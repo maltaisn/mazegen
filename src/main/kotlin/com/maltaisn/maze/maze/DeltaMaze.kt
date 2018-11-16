@@ -32,12 +32,12 @@ import java.util.concurrent.ThreadLocalRandom
 
 /**
  * Class for a triangle-tiled maze represented by 2D grid of [DeltaCell].
- * @param[width] the number of columns
- * @param[height] the number of rows
  */
-class DeltaMaze(val width: Int, height: Int, val arrangement: Arrangement) : Maze {
+class DeltaMaze : Maze {
 
+    val width: Int
     val height: Int
+    val arrangement: Arrangement
 
     private val grid: Array<Array<DeltaCell>>
 
@@ -48,13 +48,16 @@ class DeltaMaze(val width: Int, height: Int, val arrangement: Arrangement) : Maz
     private val rowOffsets: IntArray
 
     /**
-     * Create a new delta maze with the same width and height, equal to [dimension]
-     * Hexagon and triangle mazes should be created with this constructor.
+     * Create an empty delta maze with [width] columns and [height] rows shaped in [arrangement].
      */
-    constructor(dimension: Int, arrangement: Arrangement) :
-            this(dimension, dimension, arrangement)
+    constructor(width: Int, height: Int, arrangement: Arrangement) {
+        if (width < 1 || height < 1) {
+            throw IllegalArgumentException("Dimensions must be at least 1.")
+        }
 
-    init {
+        this.width = width
+        this.arrangement = arrangement
+
         if (arrangement == Arrangement.TRIANGLE
                 || arrangement == Arrangement.HEXAGON) {
             // Hexagon and triangle mazes have only one dimension parameter.
@@ -118,6 +121,22 @@ class DeltaMaze(val width: Int, height: Int, val arrangement: Arrangement) : Maz
         }
     }
 
+    /**
+     * Create a new delta maze with the same width and height, equal to [dimension]
+     * Hexagon and triangle mazes should be created with this constructor.
+     */
+    constructor(dimension: Int, arrangement: Arrangement) :
+            this(dimension, dimension, arrangement)
+
+    private constructor(maze: DeltaMaze) {
+        width = maze.width
+        height = maze.height
+        arrangement = maze.arrangement
+        grid = Array(maze.grid.size) { maze.grid.get(it).clone() }
+        rowOffsets = maze.rowOffsets.clone()
+    }
+
+
     override fun cellAt(pos: Position): DeltaCell = if (pos is PositionXY) {
         cellAt(pos.x, pos.y)
     } else {
@@ -142,17 +161,6 @@ class DeltaMaze(val width: Int, height: Int, val arrangement: Arrangement) : Maz
         return grid[x][random.nextInt(grid[x].size)]
     }
 
-    override fun reset(empty: Boolean) {
-        val value = if (empty) DeltaCell.Side.NONE.value else DeltaCell.Side.ALL.value
-        for (x in 0 until grid.size) {
-            for (y in 0 until grid[x].size) {
-                val cell = grid[x][y]
-                cell.visited = false
-                cell.value = value
-            }
-        }
-    }
-
     override fun getCellCount(): Int {
         var count = 0
         for (x in 0 until grid.size) {
@@ -170,6 +178,19 @@ class DeltaMaze(val width: Int, height: Int, val arrangement: Arrangement) : Maz
         }
         return set
     }
+
+    override fun reset(empty: Boolean) {
+        val value = if (empty) DeltaCell.Side.NONE.value else DeltaCell.Side.ALL.value
+        for (x in 0 until grid.size) {
+            for (y in 0 until grid[x].size) {
+                val cell = grid[x][y]
+                cell.visited = false
+                cell.value = value
+            }
+        }
+    }
+
+    override fun copy(): Maze = DeltaMaze(this)
 
     override fun renderToSvg(): String {
         var maxHeight = 0

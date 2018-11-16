@@ -66,6 +66,11 @@ interface Maze {
     fun reset(empty: Boolean)
 
     /**
+     * Creates a deep copy of this maze.
+     */
+    fun copy(): Maze
+
+    /**
      * Render the maze to a SVG format and returns it.
      */
     fun renderToSvg(): String

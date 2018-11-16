@@ -32,13 +32,12 @@ import java.util.concurrent.ThreadLocalRandom
 
 /**
  * Class for a hexagon-tiled maze represented by 2D grid of [HexCell].
- * @param[arrangement] defines the arrangement of cells, see [Arrangement].
- * @param[width] the number of columns
- * @param[height] the number of rows. If arrangement is hexagon or triangle, this parameter is ignored.
  */
-class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement) : Maze {
+class HexMaze : Maze {
 
+    val width: Int
     val height: Int
+    val arrangement: Arrangement
 
     /**
      * Hexagonal maze grid. There number of columns is the same as the maze width, except for
@@ -54,13 +53,16 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement)
     private val rowOffsets: IntArray
 
     /**
-     * Create a new hexagonal maze with the same width and height, equal to [dimension]
-     * Hexagon and triangle mazes should be created with this constructor.
+     * Create an empty delta maze with [width] columns and [height] rows shaped in [arrangement].
      */
-    constructor(dimension: Int, arrangement: Arrangement) :
-            this(dimension, dimension, arrangement)
+    constructor(width: Int, height: Int, arrangement: Arrangement) {
+        if (width < 1 || height < 1) {
+            throw IllegalArgumentException("Dimensions must be at least 1.")
+        }
 
-    init {
+        this.width = width
+        this.arrangement = arrangement
+
         if (arrangement == Arrangement.TRIANGLE
                 || arrangement == Arrangement.HEXAGON) {
             // Hexagon and triangle mazes have only one dimension parameter.
@@ -102,6 +104,21 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement)
         }
     }
 
+    /**
+     * Create a new hexagonal maze with the same width and height, equal to [dimension]
+     * Hexagon and triangle mazes should be created with this constructor.
+     */
+    constructor(dimension: Int, arrangement: Arrangement) :
+            this(dimension, dimension, arrangement)
+
+    private constructor(maze: HexMaze) {
+        width = maze.width
+        height = maze.height
+        arrangement = maze.arrangement
+        grid = Array(maze.grid.size) { maze.grid.get(it).clone() }
+        rowOffsets = maze.rowOffsets.clone()
+    }
+
     override fun cellAt(pos: Position): HexCell = if (pos is PositionXY) {
         grid[pos.x][pos.y - rowOffsets[pos.x]]
     } else {
@@ -124,17 +141,6 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement)
         return grid[x][random.nextInt(grid[x].size)]
     }
 
-    override fun reset(empty: Boolean) {
-        val value = if (empty) HexCell.Side.NONE.value else HexCell.Side.ALL.value
-        for (x in 0 until grid.size) {
-            for (y in 0 until grid[x].size) {
-                val cell = grid[x][y]
-                cell.visited = false
-                cell.value = value
-            }
-        }
-    }
-
     override fun getCellCount(): Int {
         var count = 0
         for (x in 0 until grid.size) {
@@ -152,6 +158,19 @@ class HexMaze(val width: Int, height: Int = width, val arrangement: Arrangement)
         }
         return set
     }
+
+    override fun reset(empty: Boolean) {
+        val value = if (empty) HexCell.Side.NONE.value else HexCell.Side.ALL.value
+        for (x in 0 until grid.size) {
+            for (y in 0 until grid[x].size) {
+                val cell = grid[x][y]
+                cell.visited = false
+                cell.value = value
+            }
+        }
+    }
+
+    override fun copy(): Maze = HexMaze(this)
 
     /**
      * Render the maze to SVG.
