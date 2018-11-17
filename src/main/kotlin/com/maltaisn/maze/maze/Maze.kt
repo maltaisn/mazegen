@@ -60,6 +60,12 @@ interface Maze {
     fun getAllCells(): LinkedHashSet<out Cell>
 
     /**
+     * Create openings [openings] in the maze.
+     * An exception is thrown if the opening position doesn't match any cell.
+     */
+    fun createOpenings(vararg openings: Opening)
+
+    /**
      * Clears all the sides of all cells in the maze if [empty] is true,
      * otherwise sets all sides on all the cells. All cells are set as unvisited.
      */

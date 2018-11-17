@@ -25,6 +25,7 @@
 
 package com.maltaisn.maze.maze
 
+import com.maltaisn.maze.maze.RectCell.Side
 import org.jfree.graphics2d.svg.SVGGraphics2D
 import java.awt.geom.GeneralPath
 import java.util.concurrent.ThreadLocalRandom
@@ -52,8 +53,7 @@ class RectMaze : Maze {
         this.height = height
         grid = Array(width) { x ->
             Array(height) { y ->
-                RectCell(this,
-                        PositionXY(x, y), RectCell.Side.NONE.value)
+                RectCell(this, PositionXY(x, y), Side.NONE.value)
             }
         }
     }
@@ -96,8 +96,37 @@ class RectMaze : Maze {
         return set
     }
 
+    override fun createOpenings(vararg openings: Opening) {
+        for (opening in openings) {
+            val x = when (val pos = opening.position[0]) {
+                Opening.POS_START -> 0
+                Opening.POS_CENTER -> width / 2
+                Opening.POS_END -> width - 1
+                else -> pos
+            }
+            val y = when (val pos = opening.position[1]) {
+                Opening.POS_START -> 0
+                Opening.POS_CENTER -> height / 2
+                Opening.POS_END -> height - 1
+                else -> pos
+            }
+
+            val cell = optionalCellAt(PositionXY(x, y))
+            if (cell != null) {
+                for (side in cell.getAllSides()) {
+                    if (cell.getCellOnSide(side) == null) {
+                        cell.openSide(side)
+                        break
+                    }
+                }
+            } else {
+                throw IllegalArgumentException("Opening describes no cell in the maze.")
+            }
+        }
+    }
+
     override fun reset(empty: Boolean) {
-        val value = if (empty) RectCell.Side.NONE.value else RectCell.Side.ALL.value
+        val value = if (empty) Side.NONE.value else Side.ALL.value
         for (x in 0 until width) {
             for (y in 0 until height) {
                 val cell = grid[x][y]
@@ -131,8 +160,8 @@ class RectMaze : Maze {
             var endX = 0.0
             for (x in 0 until width) {
                 val cell = if (y == height) null else grid[x][y]
-                if (cell != null && cell.hasSide(RectCell.Side.NORTH)
-                        || cell == null && grid[x][y - 1].hasSide(RectCell.Side.SOUTH)) {
+                if (cell != null && cell.hasSide(Side.NORTH)
+                        || cell == null && grid[x][y - 1].hasSide(Side.SOUTH)) {
                     if (startX == endX) {
                         startX = x * SVG_CELL_SIZE
                         endX = startX
@@ -157,8 +186,8 @@ class RectMaze : Maze {
             var endY = 0.0
             for (y in 0 until height) {
                 val cell = if (x == width) null else grid[x][y]
-                if (cell != null && cell.hasSide(RectCell.Side.WEST)
-                        || cell == null && grid[x - 1][y].hasSide(RectCell.Side.EAST)) {
+                if (cell != null && cell.hasSide(Side.WEST)
+                        || cell == null && grid[x - 1][y].hasSide(Side.EAST)) {
                     if (startY == endY) {
                         startY = y * SVG_CELL_SIZE
                         endY = startY

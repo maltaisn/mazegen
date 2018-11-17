@@ -1,20 +1,23 @@
 {
   "mazes": [
     {
-      "name": "delta",
-      "count": 3,
-      "type": "delta",
-      "dimension": 10,
-      "arrangement": "hex",
-      "algorithm": "recursive-backtracker"
-    },
-    {
-      "name": "rect",
-      "count": 3,
-      "type": "rect",
-      "width": 20,
-      "height": 15,
-      "algorithm": "wilson"
+      "name": "maze",
+      "count": 1,
+      "type": "sigma",
+      "width": 10,
+      "height": 10,
+      "arrangement": "rhombus",
+      "algorithm": "recursive-backtracker",
+      "openings": [
+        [
+          "C",
+          "S"
+        ],
+        [
+          "C",
+          "E"
+        ]
+      ]
     }
   ],
   "output": "mazes/new/"

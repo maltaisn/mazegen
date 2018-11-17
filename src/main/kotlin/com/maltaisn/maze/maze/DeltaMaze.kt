@@ -25,6 +25,7 @@
 
 package com.maltaisn.maze.maze
 
+import com.maltaisn.maze.maze.DeltaCell.Side
 import org.jfree.graphics2d.svg.SVGGraphics2D
 import java.awt.geom.GeneralPath
 import java.util.concurrent.ThreadLocalRandom
@@ -89,7 +90,7 @@ class DeltaMaze : Maze {
                         it < width -> width - it - 1
                         it >= gridWith - width -> width + it - gridWith
                         else -> 0
-                    }
+                    } + width % 2
                 }
             }
             Arrangement.TRIANGLE -> {
@@ -116,7 +117,7 @@ class DeltaMaze : Maze {
         grid = Array(gridWith) { x ->
             rowOffsets[x] = rowOffset(x)
             Array(rowsForColumn(x)) { y ->
-                DeltaCell(this, PositionXY(x, y + rowOffsets[x]), DeltaCell.Side.NONE.value)
+                DeltaCell(this, PositionXY(x, y + rowOffsets[x]), Side.NONE.value)
             }
         }
     }
@@ -179,8 +180,37 @@ class DeltaMaze : Maze {
         return set
     }
 
+    override fun createOpenings(vararg openings: Opening) {
+        for (opening in openings) {
+            val x = when (val pos = opening.position[0]) {
+                Opening.POS_START -> 0
+                Opening.POS_CENTER -> grid.size / 2
+                Opening.POS_END -> grid.size - 1
+                else -> pos
+            }
+            val y = when (val pos = opening.position[1]) {
+                Opening.POS_START -> 0
+                Opening.POS_CENTER -> grid[x].size / 2
+                Opening.POS_END -> grid[x].size - 1
+                else -> pos
+            } + rowOffsets[x]
+
+            val cell = optionalCellAt(PositionXY(x, y))
+            if (cell != null) {
+                for (side in cell.getAllSides()) {
+                    if (cell.getCellOnSide(side) == null) {
+                        cell.openSide(side)
+                        break
+                    }
+                }
+            } else {
+                throw IllegalArgumentException("Opening describes no cell in the maze.")
+            }
+        }
+    }
+
     override fun reset(empty: Boolean) {
-        val value = if (empty) DeltaCell.Side.NONE.value else DeltaCell.Side.ALL.value
+        val value = if (empty) Side.NONE.value else Side.ALL.value
         for (x in 0 until grid.size) {
             for (y in 0 until grid[x].size) {
                 val cell = grid[x][y]
@@ -213,29 +243,29 @@ class DeltaMaze : Maze {
                 val cell = grid[x][y]
                 val actualY = y + rowOffsets[x]
                 val flatTopped = (x + actualY) % 2 == 0
-                if (cell.hasSide(DeltaCell.Side.BASE)) {
+                if (cell.hasSide(Side.BASE)) {
                     if (flatTopped) {
                         path.moveTo(x * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
                         path.lineTo((x + 2) * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
-                    } else if (cell.getCellOnSide(DeltaCell.Side.BASE) == null) {
+                    } else if (cell.getCellOnSide(Side.BASE) == null) {
                         path.moveTo(x * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
                         path.lineTo((x + 2) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
                     }
                 }
-                if (cell.hasSide(DeltaCell.Side.EAST)) {
+                if (cell.hasSide(Side.EAST)) {
                     if (flatTopped) {
                         path.moveTo((x + 2) * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
                         path.lineTo((x + 1) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
-                    } else if (cell.getCellOnSide(DeltaCell.Side.EAST) == null) {
+                    } else if (cell.getCellOnSide(Side.EAST) == null) {
                         path.moveTo((x + 1) * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
                         path.lineTo((x + 2) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
                     }
                 }
-                if (cell.hasSide(DeltaCell.Side.WEST)) {
+                if (cell.hasSide(Side.WEST)) {
                     if (flatTopped) {
                         path.moveTo(x * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
                         path.lineTo((x + 1) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
-                    } else if (cell.getCellOnSide(DeltaCell.Side.WEST) == null) {
+                    } else if (cell.getCellOnSide(Side.WEST) == null) {
                         path.moveTo((x + 1) * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
                         path.lineTo(x * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
                     }

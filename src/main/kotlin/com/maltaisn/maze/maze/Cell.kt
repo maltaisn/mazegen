@@ -103,6 +103,49 @@ abstract class Cell {
     }
 
     /**
+     * Opens (removes) [side] of the cell.
+     */
+    fun openSide(side: Side) {
+        changeSide(side) { v, s -> v and s.inv() }
+    }
+
+    /**
+     * Closes (adds) [side] of the cell.
+     */
+    fun closeSide(side: Side) {
+        changeSide(side, Int::or)
+    }
+
+    /**
+     * Toggles [side] of the cell.
+     */
+    fun toggleSide(side: Side) {
+        changeSide(side, Int::xor)
+    }
+
+    /**
+     * Do [operation] on the cell on [side]'s value
+     */
+    private fun changeSide(side: Side, operation: (v: Int, s: Int) -> Int) {
+        if (side.value == 0) {
+            return
+        } else if (side === getAllSideValue()) {
+            for (s in getAllSides()) {
+                val cell = getCellOnSide(s)
+                if (cell != null) {
+                    cell.value = operation(cell.value, s.opposite().value)
+                }
+            }
+        } else {
+            val cell = getCellOnSide(side)
+            if (cell != null) {
+                cell.value = operation(cell.value, side.opposite().value)
+            }
+        }
+        value = operation(value, side.value)
+    }
+
+    /**
      * Connect this cell with another cell [cell] if they are neighbors of the same maze.
      * Does nothing otherwise. The common side of both cells is opened (removed).
      */
@@ -113,6 +156,11 @@ abstract class Cell {
             value = value and side.value.inv()
         }
     }
+
+    /**
+     * Returns the enum value representing all sides.
+     */
+    abstract fun getAllSideValue(): Side
 
     /**
      * Returns a list of all possible side values.

@@ -25,6 +25,7 @@
 
 package com.maltaisn.maze.maze
 
+import com.maltaisn.maze.maze.HexCell.Side
 import org.jfree.graphics2d.svg.SVGGraphics2D
 import java.awt.geom.GeneralPath
 import java.util.concurrent.ThreadLocalRandom
@@ -99,7 +100,7 @@ class HexMaze : Maze {
         grid = Array(gridWith) { x ->
             rowOffsets[x] = rowOffset(x)
             Array(rowsForColumn(x)) { y ->
-                HexCell(this, PositionXY(x, y + rowOffsets[x]), HexCell.Side.NONE.value)
+                HexCell(this, PositionXY(x, y + rowOffsets[x]), Side.NONE.value)
             }
         }
     }
@@ -159,8 +160,37 @@ class HexMaze : Maze {
         return set
     }
 
+    override fun createOpenings(vararg openings: Opening) {
+        for (opening in openings) {
+            val x = when (val pos = opening.position[0]) {
+                Opening.POS_START -> 0
+                Opening.POS_CENTER -> grid.size / 2
+                Opening.POS_END -> grid.size - 1
+                else -> pos
+            }
+            val y = when (val pos = opening.position[1]) {
+                Opening.POS_START -> 0
+                Opening.POS_CENTER -> grid[x].size / 2
+                Opening.POS_END -> grid[x].size - 1
+                else -> pos
+            } + rowOffsets[x]
+
+            val cell = optionalCellAt(PositionXY(x, y))
+            if (cell != null) {
+                for (side in cell.getAllSides()) {
+                    if (cell.getCellOnSide(side) == null) {
+                        cell.openSide(side)
+                        break
+                    }
+                }
+            } else {
+                throw IllegalArgumentException("Opening describes no cell in the maze.")
+            }
+        }
+    }
+
     override fun reset(empty: Boolean) {
-        val value = if (empty) HexCell.Side.NONE.value else HexCell.Side.ALL.value
+        val value = if (empty) Side.NONE.value else Side.ALL.value
         for (x in 0 until grid.size) {
             for (y in 0 until grid[x].size) {
                 val cell = grid[x][y]
@@ -204,32 +234,32 @@ class HexMaze : Maze {
                 val cell = grid[x][y]
 
                 // Draw north, northwest and southwest for every cell
-                if (cell.hasSide(HexCell.Side.NORTH)) {
+                if (cell.hasSide(Side.NORTH)) {
                     path.moveTo(cx + SVG_CELL_SIDE / 2, cy - cellHeight / 2)
                     path.lineTo(cx - SVG_CELL_SIDE / 2, cy - cellHeight / 2)
                 }
-                if (cell.hasSide(HexCell.Side.NORTHWEST)) {
+                if (cell.hasSide(Side.NORTHWEST)) {
                     path.moveTo(cx - SVG_CELL_SIDE / 2, cy - cellHeight / 2)
                     path.lineTo(cx - SVG_CELL_SIDE, cy)
                 }
-                if (cell.hasSide(HexCell.Side.SOUTHWEST)) {
+                if (cell.hasSide(Side.SOUTHWEST)) {
                     path.moveTo(cx - SVG_CELL_SIDE, cy)
                     path.lineTo(cx - SVG_CELL_SIDE / 2, cy + cellHeight / 2)
                 }
 
                 // Only draw the remaining sides if there's no cell on the side
-                if (cell.hasSide(HexCell.Side.SOUTH)
-                        && cell.getCellOnSide(HexCell.Side.SOUTH) == null) {
+                if (cell.hasSide(Side.SOUTH)
+                        && cell.getCellOnSide(Side.SOUTH) == null) {
                     path.moveTo(cx - SVG_CELL_SIDE / 2, cy + cellHeight / 2)
                     path.lineTo(cx + SVG_CELL_SIDE / 2, cy + cellHeight / 2)
                 }
-                if (cell.hasSide(HexCell.Side.SOUTHEAST)
-                        && cell.getCellOnSide(HexCell.Side.SOUTHEAST) == null) {
+                if (cell.hasSide(Side.SOUTHEAST)
+                        && cell.getCellOnSide(Side.SOUTHEAST) == null) {
                     path.moveTo(cx + SVG_CELL_SIDE / 2, cy + cellHeight / 2)
                     path.lineTo(cx + SVG_CELL_SIDE, cy)
                 }
-                if (cell.hasSide(HexCell.Side.NORTHEAST)
-                        && cell.getCellOnSide(HexCell.Side.NORTHEAST) == null) {
+                if (cell.hasSide(Side.NORTHEAST)
+                        && cell.getCellOnSide(Side.NORTHEAST) == null) {
                     path.moveTo(cx + SVG_CELL_SIDE, cy)
                     path.lineTo(cx + SVG_CELL_SIDE / 2, cy - cellHeight / 2)
                 }

@@ -49,6 +49,8 @@ class DeltaCell : Cell {
 
     override fun getAllSides(): List<Side> = ALL_SIDES
 
+    override fun getAllSideValue(): Side = Side.ALL
+
     /**
      * Enum class for the side a delta cell.
      */

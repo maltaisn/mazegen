@@ -25,48 +25,40 @@
 
 package com.maltaisn.maze.maze
 
+import org.json.JSONArray
+
 
 /**
- * A square cell for [RectCell].
- * Has north, east, south and east sides.
+ * Class defining an opening position in a maze.
  */
-class RectCell : Cell {
+class Opening(from: JSONArray) {
 
-    constructor(maze: RectMaze, position: PositionXY) : super(maze, position)
+    val position: IntArray = IntArray(from.length())
 
-    constructor(maze: RectMaze, position: PositionXY, value: Int) : super(maze, position, value)
-
-
-    override fun getAllSides(): List<Side> = ALL_SIDES
-
-    override fun getAllSideValue(): Side = Side.ALL
-
-    /**
-     * Enum class for the side a rectangular cell
-     */
-    enum class Side(override val value: Int,
-                    override val relativePos: PositionXY?,
-                    override val symbol: String?) : Cell.Side {
-        NONE(0, null, null),
-        NORTH(1, PositionXY(0, -1), "N"),
-        EAST(2, PositionXY(1, 0), "E"),
-        SOUTH(4, PositionXY(0, 1), "S"),
-        WEST(8, PositionXY(-1, 0), "W"),
-        ALL(15, null, null);
-
-        override fun opposite(): Side = when (this) {
-            NONE -> NONE
-            NORTH -> SOUTH
-            SOUTH -> NORTH
-            EAST -> WEST
-            WEST -> EAST
-            ALL -> ALL
+    init {
+        for (i in 0 until from.length()) {
+            val pos = from[i]
+            when (pos) {
+                is String -> position[i] = when (pos[0]) {
+                    CHAR_START -> POS_START
+                    CHAR_CENTER -> POS_CENTER
+                    CHAR_END -> POS_END
+                    else -> throw IllegalArgumentException("Wrong opening position character '$pos'.")
+                }
+                is Int -> position[i] = pos
+                else -> throw IllegalArgumentException("Wrong opening position argument '$pos'.")
+            }
         }
-
     }
 
     companion object {
-        private val ALL_SIDES = listOf(Side.NORTH, Side.SOUTH, Side.WEST, Side.EAST)
+        const val POS_START = -3
+        const val POS_CENTER = -2
+        const val POS_END = -1
+
+        const val CHAR_START = 'S'
+        const val CHAR_CENTER = 'C'
+        const val CHAR_END = 'E'
     }
 
 }

@@ -39,6 +39,8 @@ class HexCell : Cell {
 
     override fun getAllSides(): List<Side> = ALL_SIDES
 
+    override fun getAllSideValue(): Side = Side.ALL
+
     /**
      * Enum class for the side a hexagonal cell
      * ```
@@ -75,8 +77,8 @@ class HexCell : Cell {
     }
 
     companion object {
-        private val ALL_SIDES = listOf(Side.NORTH, Side.NORTHEAST, Side.SOUTHEAST,
-                Side.SOUTH, Side.SOUTHWEST, Side.NORTHWEST)
+        private val ALL_SIDES = listOf(Side.NORTH, Side.SOUTH, Side.NORTHEAST,
+                Side.SOUTHWEST, Side.SOUTHEAST, Side.NORTHWEST)
     }
 
 }
