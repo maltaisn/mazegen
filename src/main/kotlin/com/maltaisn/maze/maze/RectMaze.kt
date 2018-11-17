@@ -25,9 +25,8 @@
 
 package com.maltaisn.maze.maze
 
+import com.maltaisn.maze.SVGRenderer
 import com.maltaisn.maze.maze.RectCell.Side
-import org.jfree.graphics2d.svg.SVGGraphics2D
-import java.awt.geom.GeneralPath
 import java.util.concurrent.ThreadLocalRandom
 
 
@@ -140,77 +139,32 @@ class RectMaze : Maze {
 
     /**
      * Render the maze to SVG.
-     * The grid is first scanned horizontally and to find the longest possible line sections,
-     * until there's a "hole" in the line, after which a new line is drawn. The same is done
-     * vertically. Only north and west walls are checked except for the rightmost and bottommost
-     * walls where the south and east walls are checked. A single path object is created.
+     * For each cell, only the north and east sides are drawn if they are set,
+     * except for the last row and column where to south and east side are also drawn.
      */
-    override fun renderToSvg(): String {
-        val canvas = SVGGraphics2D((width * SVG_CELL_SIZE).toInt(),
+    override fun renderToSvg(): SVGRenderer {
+        val svg = SVGRenderer((width * SVG_CELL_SIZE).toInt(),
                 (height * SVG_CELL_SIZE).toInt())
-        canvas.stroke = Maze.SVG_STROKE_STYLE
-        canvas.color = Maze.SVG_STROKE_COLOR
+        svg.strokeColor = Maze.SVG_STROKE_COLOR
+        svg.strokeWidth = Maze.SVG_STROKE_WIDTH
 
-        val path = GeneralPath()
-
-        // Draw horizontal walls
-        for (y in 0 until height + 1) {
-            val canvasY = y * SVG_CELL_SIZE
-            var startX = 0.0
-            var endX = 0.0
-            for (x in 0 until width) {
-                val cell = if (y == height) null else grid[x][y]
-                if (cell != null && cell.hasSide(Side.NORTH)
-                        || cell == null && grid[x][y - 1].hasSide(Side.SOUTH)) {
-                    if (startX == endX) {
-                        startX = x * SVG_CELL_SIZE
-                        endX = startX
-                    }
-                    endX += SVG_CELL_SIZE
-                } else if (startX != endX) {
-                    path.moveTo(startX, canvasY)
-                    path.lineTo(endX, canvasY)
-                    startX = endX
+        for (x in 0..width) {
+            val px = x * SVG_CELL_SIZE
+            for (y in 0..height) {
+                val py = y * SVG_CELL_SIZE
+                val cell = optionalCellAt(PositionXY(x, y))
+                if (cell != null && cell.hasSide(Side.NORTH) || cell == null
+                        && optionalCellAt(PositionXY(x, y - 1))?.hasSide(Side.SOUTH) != null) {
+                    svg.drawLine(px, py, px + SVG_CELL_SIZE, py)
+                }
+                if (cell != null && cell.hasSide(Side.WEST) || cell == null
+                        && optionalCellAt(PositionXY(x - 1, y))?.hasSide(Side.EAST) != null) {
+                    svg.drawLine(px, py, px, py + SVG_CELL_SIZE)
                 }
             }
-            if (startX != endX) {
-                path.moveTo(startX, canvasY)
-                path.lineTo(endX, canvasY)
-            }
         }
 
-        // Draw vertical walls
-        for (x in 0 until width + 1) {
-            val canvasX = x * SVG_CELL_SIZE
-            var startY = 0.0
-            var endY = 0.0
-            for (y in 0 until height) {
-                val cell = if (x == width) null else grid[x][y]
-                if (cell != null && cell.hasSide(Side.WEST)
-                        || cell == null && grid[x - 1][y].hasSide(Side.EAST)) {
-                    if (startY == endY) {
-                        startY = y * SVG_CELL_SIZE
-                        endY = startY
-                    }
-                    endY += SVG_CELL_SIZE
-                } else if (startY != endY) {
-                    path.moveTo(canvasX, startY)
-                    path.lineTo(canvasX, endY)
-                    startY = endY
-                }
-            }
-            if (startY != endY) {
-                path.moveTo(canvasX, startY)
-                path.lineTo(canvasX, endY)
-            }
-        }
-
-        if (path.currentPoint != null) {
-            path.closePath()
-            canvas.draw(path)
-        }
-
-        return canvas.svgDocument
+        return svg
     }
 
     override fun toString(): String {

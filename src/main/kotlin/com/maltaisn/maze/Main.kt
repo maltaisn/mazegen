@@ -58,6 +58,7 @@ private class Main {
             throw IllegalArgumentException("No mazes to generate.")
         }
 
+        // Output settings
         var output = File(System.getProperty("user.dir"))
         if (configJson.has(KEY_OUTPUT)) {
             output = File(configJson.getString(KEY_OUTPUT))
@@ -67,12 +68,29 @@ private class Main {
             }
         }
 
+        // SVG settings
+        var optimize = true
+        var precision = 2
+        if (configJson.has(KEY_SVG)) {
+            val svgJson = configJson.getJSONObject(KEY_SVG)
+            if (svgJson.has(KEY_OPTIMIZE)) {
+                optimize = svgJson.getBoolean(KEY_OPTIMIZE)
+            }
+            if (svgJson.has(KEY_PRECISION)) {
+                precision = svgJson.getInt(KEY_PRECISION)
+                if (precision < 0 || precision > 8) {
+                    throw IllegalArgumentException("SVG precision must be between 0 and 8.")
+                }
+            }
+        }
+
+        // Parse mazes
         for (mazeJson in configJson.getJSONArray(KEY_MAZES)) {
-            parseMaze(mazeJson as JSONObject, output)
+            parseMaze(mazeJson as JSONObject, output, optimize, precision)
         }
     }
 
-    fun parseMaze(mazeJson: JSONObject, output: File) {
+    fun parseMaze(mazeJson: JSONObject, output: File, optimize: Boolean, precision: Int) {
         val name = if (mazeJson.has(KEY_NAME)) mazeJson.getString(KEY_NAME) else "maze"
 
         val count = if (mazeJson.has(KEY_COUNT)) mazeJson.getInt(KEY_COUNT) else 1
@@ -187,7 +205,12 @@ private class Main {
             }
             filename += ".svg"
             PrintWriter(File(output, filename)).use {
-                it.print(maze.renderToSvg())
+                val svg = maze.renderToSvg()
+                svg.precision = precision
+                if (optimize) {
+                    svg.optimize()
+                }
+                it.print(svg.create())
             }
 
             println("Generated and exported maze '$name' ${i + 1} / $count")
@@ -209,7 +232,12 @@ private class Main {
         private const val KEY_ARRANGEMENT = "arrangement"
         private const val KEY_ALGORITHM = "algorithm"
         private const val KEY_OPENINGS = "openings"
+
         private const val KEY_OUTPUT = "output"
+
+        private const val KEY_SVG = "svg"
+        private const val KEY_OPTIMIZE = "optimize"
+        private const val KEY_PRECISION = "precision"
     }
 
 }

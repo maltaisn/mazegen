@@ -25,9 +25,8 @@
 
 package com.maltaisn.maze.maze
 
+import com.maltaisn.maze.SVGRenderer
 import com.maltaisn.maze.maze.HexCell.Side
-import org.jfree.graphics2d.svg.SVGGraphics2D
-import java.awt.geom.GeneralPath
 import java.util.concurrent.ThreadLocalRandom
 
 
@@ -207,7 +206,7 @@ class HexMaze : Maze {
      * Without going into details, only half the sides are drawn for each cell except
      * the bottommost and rightmost cells.
      */
-    override fun renderToSvg(): String {
+    override fun renderToSvg(): SVGRenderer {
         // Find the empty top padding (minTop) and maximum column rows
         var maxRow = 0.0
         var minTop = Double.MAX_VALUE
@@ -222,11 +221,10 @@ class HexMaze : Maze {
         val cellHeight = Math.sqrt(3.0) * SVG_CELL_SIDE
         val width = Math.ceil((1.5 * (grid.size - 1) + 2) * SVG_CELL_SIDE).toInt()
         val height = Math.ceil(cellHeight * maxRow).toInt()
-        val canvas = SVGGraphics2D(width, height)
-        canvas.stroke = Maze.SVG_STROKE_STYLE
-        canvas.color = Maze.SVG_STROKE_COLOR
+        val svg = SVGRenderer(width, height)
+        svg.strokeColor = Maze.SVG_STROKE_COLOR
+        svg.strokeWidth = Maze.SVG_STROKE_WIDTH
 
-        val path = GeneralPath()
         for (x in 0 until grid.size) {
             val cx = (1.5 * x + 1) * SVG_CELL_SIDE
             for (y in 0 until grid[x].size) {
@@ -235,43 +233,38 @@ class HexMaze : Maze {
 
                 // Draw north, northwest and southwest for every cell
                 if (cell.hasSide(Side.NORTH)) {
-                    path.moveTo(cx + SVG_CELL_SIDE / 2, cy - cellHeight / 2)
-                    path.lineTo(cx - SVG_CELL_SIDE / 2, cy - cellHeight / 2)
+                    svg.drawLine(cx + SVG_CELL_SIDE / 2, cy - cellHeight / 2,
+                            cx - SVG_CELL_SIDE / 2, cy - cellHeight / 2)
                 }
                 if (cell.hasSide(Side.NORTHWEST)) {
-                    path.moveTo(cx - SVG_CELL_SIDE / 2, cy - cellHeight / 2)
-                    path.lineTo(cx - SVG_CELL_SIDE, cy)
+                    svg.drawLine(cx - SVG_CELL_SIDE / 2, cy - cellHeight / 2,
+                            cx - SVG_CELL_SIDE, cy)
                 }
                 if (cell.hasSide(Side.SOUTHWEST)) {
-                    path.moveTo(cx - SVG_CELL_SIDE, cy)
-                    path.lineTo(cx - SVG_CELL_SIDE / 2, cy + cellHeight / 2)
+                    svg.drawLine(cx - SVG_CELL_SIDE, cy,
+                            cx - SVG_CELL_SIDE / 2, cy + cellHeight / 2)
                 }
 
                 // Only draw the remaining sides if there's no cell on the side
                 if (cell.hasSide(Side.SOUTH)
                         && cell.getCellOnSide(Side.SOUTH) == null) {
-                    path.moveTo(cx - SVG_CELL_SIDE / 2, cy + cellHeight / 2)
-                    path.lineTo(cx + SVG_CELL_SIDE / 2, cy + cellHeight / 2)
+                    svg.drawLine(cx - SVG_CELL_SIDE / 2, cy + cellHeight / 2,
+                            cx + SVG_CELL_SIDE / 2, cy + cellHeight / 2)
                 }
                 if (cell.hasSide(Side.SOUTHEAST)
                         && cell.getCellOnSide(Side.SOUTHEAST) == null) {
-                    path.moveTo(cx + SVG_CELL_SIDE / 2, cy + cellHeight / 2)
-                    path.lineTo(cx + SVG_CELL_SIDE, cy)
+                    svg.drawLine(cx + SVG_CELL_SIDE / 2, cy + cellHeight / 2,
+                            cx + SVG_CELL_SIDE, cy)
                 }
                 if (cell.hasSide(Side.NORTHEAST)
                         && cell.getCellOnSide(Side.NORTHEAST) == null) {
-                    path.moveTo(cx + SVG_CELL_SIDE, cy)
-                    path.lineTo(cx + SVG_CELL_SIDE / 2, cy - cellHeight / 2)
+                    svg.drawLine(cx + SVG_CELL_SIDE, cy,
+                            cx + SVG_CELL_SIDE / 2, cy - cellHeight / 2)
                 }
             }
         }
 
-        if (path.currentPoint != null) {
-            path.closePath()
-            canvas.draw(path)
-        }
-
-        return canvas.svgDocument
+        return svg
     }
 
     override fun toString(): String {

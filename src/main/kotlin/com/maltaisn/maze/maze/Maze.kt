@@ -25,7 +25,7 @@
 
 package com.maltaisn.maze.maze
 
-import java.awt.BasicStroke
+import com.maltaisn.maze.SVGRenderer
 import java.awt.Color
 
 
@@ -77,13 +77,13 @@ interface Maze {
     fun copy(): Maze
 
     /**
-     * Render the maze to a SVG format and returns it.
+     * Render the maze SVG. The returned renderer hasn't been optimized yet.
      */
-    fun renderToSvg(): String
+    fun renderToSvg(): SVGRenderer
 
 
     companion object {
-        val SVG_STROKE_STYLE = BasicStroke(1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+        const val SVG_STROKE_WIDTH = 1.0
         val SVG_STROKE_COLOR: Color = Color.BLACK
     }
 

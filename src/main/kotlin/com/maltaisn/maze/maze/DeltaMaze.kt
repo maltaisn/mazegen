@@ -25,9 +25,8 @@
 
 package com.maltaisn.maze.maze
 
+import com.maltaisn.maze.SVGRenderer
 import com.maltaisn.maze.maze.DeltaCell.Side
-import org.jfree.graphics2d.svg.SVGGraphics2D
-import java.awt.geom.GeneralPath
 import java.util.concurrent.ThreadLocalRandom
 
 
@@ -222,7 +221,7 @@ class DeltaMaze : Maze {
 
     override fun copy(): Maze = DeltaMaze(this)
 
-    override fun renderToSvg(): String {
+    override fun renderToSvg(): SVGRenderer {
         var maxHeight = 0
         for (x in 0 until grid.size) {
             val height = grid[x].size + rowOffsets[x]
@@ -232,11 +231,9 @@ class DeltaMaze : Maze {
         val cellHeight = Math.sqrt(3.0) / 2 * SVG_CELL_SIZE
         val width = Math.ceil((grid.size / 2.0 + 0.5) * SVG_CELL_SIZE)
         val height = Math.ceil(maxHeight * cellHeight)
-        val canvas = SVGGraphics2D(width.toInt(), height.toInt())
-        canvas.stroke = Maze.SVG_STROKE_STYLE
-        canvas.color = Maze.SVG_STROKE_COLOR
-
-        val path = GeneralPath()
+        val svg = SVGRenderer(width.toInt(), height.toInt())
+        svg.strokeColor = Maze.SVG_STROKE_COLOR
+        svg.strokeWidth = Maze.SVG_STROKE_WIDTH
 
         for (x in 0 until grid.size) {
             for (y in 0 until grid[x].size) {
@@ -245,40 +242,35 @@ class DeltaMaze : Maze {
                 val flatTopped = (x + actualY) % 2 == 0
                 if (cell.hasSide(Side.BASE)) {
                     if (flatTopped) {
-                        path.moveTo(x * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
-                        path.lineTo((x + 2) * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
+                        svg.drawLine(x * SVG_CELL_SIZE / 2.0, actualY * cellHeight,
+                                (x + 2) * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
                     } else if (cell.getCellOnSide(Side.BASE) == null) {
-                        path.moveTo(x * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
-                        path.lineTo((x + 2) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
+                        svg.drawLine(x * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight,
+                                (x + 2) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
                     }
                 }
                 if (cell.hasSide(Side.EAST)) {
                     if (flatTopped) {
-                        path.moveTo((x + 2) * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
-                        path.lineTo((x + 1) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
+                        svg.drawLine((x + 2) * SVG_CELL_SIZE / 2.0, actualY * cellHeight,
+                                (x + 1) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
                     } else if (cell.getCellOnSide(Side.EAST) == null) {
-                        path.moveTo((x + 1) * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
-                        path.lineTo((x + 2) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
+                        svg.drawLine((x + 1) * SVG_CELL_SIZE / 2.0, actualY * cellHeight,
+                                (x + 2) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
                     }
                 }
                 if (cell.hasSide(Side.WEST)) {
                     if (flatTopped) {
-                        path.moveTo(x * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
-                        path.lineTo((x + 1) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
+                        svg.drawLine(x * SVG_CELL_SIZE / 2.0, actualY * cellHeight,
+                                (x + 1) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
                     } else if (cell.getCellOnSide(Side.WEST) == null) {
-                        path.moveTo((x + 1) * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
-                        path.lineTo(x * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
+                        svg.drawLine((x + 1) * SVG_CELL_SIZE / 2.0, actualY * cellHeight,
+                                x * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
                     }
                 }
             }
         }
 
-        if (path.currentPoint != null) {
-            path.closePath()
-            canvas.draw(path)
-        }
-
-        return canvas.svgDocument
+        return svg
     }
 
     override fun toString(): String {

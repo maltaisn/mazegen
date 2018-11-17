@@ -3,10 +3,9 @@
     {
       "name": "maze",
       "count": 1,
-      "type": "sigma",
-      "width": 10,
-      "height": 10,
-      "arrangement": "rhombus",
+      "type": "hex",
+      "width": 50,
+      "height": 35,
       "algorithm": "recursive-backtracker",
       "openings": [
         [
@@ -20,5 +19,9 @@
       ]
     }
   ],
-  "output": "mazes/new/"
+  "output": "mazes/new/",
+  "svg": {
+    "optimize": true,
+    "precision": 2
+  }
 }
