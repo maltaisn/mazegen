@@ -2,21 +2,10 @@
   "mazes": [
     {
       "name": "maze",
-      "count": 1,
       "type": "hex",
+      "count": 1,
       "width": 50,
-      "height": 35,
-      "algorithm": "recursive-backtracker",
-      "openings": [
-        [
-          "C",
-          "S"
-        ],
-        [
-          "C",
-          "E"
-        ]
-      ]
+      "height": 35
     }
   ],
   "output": "mazes/new/",

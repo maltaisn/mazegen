@@ -204,6 +204,7 @@ private class Main {
                 filename += "-${i + 1}"
             }
             filename += ".svg"
+            val time = System.currentTimeMillis()
             PrintWriter(File(output, filename)).use {
                 val svg = maze.renderToSvg()
                 svg.precision = precision
@@ -213,7 +214,8 @@ private class Main {
                 it.print(svg.create())
             }
 
-            println("Generated and exported maze '$name' ${i + 1} / $count")
+            val duration = System.currentTimeMillis() - time
+            println("Generated and exported maze '$name' ${i + 1} / $count in $duration ms")
         }
     }
 
