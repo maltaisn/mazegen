@@ -202,59 +202,7 @@ class SVGCanvas : Canvas() {
     }
 
     override fun exportTo(file: File) {
-        // Create the SVG path data
-        val path = StringBuilder()
-        if (polylines != null) {
-            for (polyline in polylines!!) {
-                var lastPoint: Point? = null
-                for (i in 0 until polyline.size) {
-                    val point = polyline[i]
-                    if (lastPoint != null) {
-                        val relative = point - lastPoint
-                        when {
-                            point.y == lastPoint.y -> {
-                                // Same Y as last point: horizontal line
-                                path.append('h')
-                                path.append(numberFormat.format(relative.x))
-                            }
-                            point.x == lastPoint.x -> {
-                                // Same X as last point: vertical line
-                                path.append('v')
-                                path.append(numberFormat.format(relative.y))
-                            }
-                            else -> {
-                                path.append('l')
-                                path.append(numberFormat.format(relative.x))
-                                path.append(',')
-                                path.append(numberFormat.format(relative.y))
-                            }
-                        }
-                    } else {
-                        // First point of polyline
-                        path.append('M')
-                        path.append(numberFormat.format(point.x))
-                        path.append(',')
-                        path.append(numberFormat.format(point.y))
-                    }
-                    lastPoint = point
-                }
-            }
-        } else {
-            for (i in 0 until points.size step 2) {
-                val p1 = points[i]
-                val p2 = points[i + 1]
-                path.append('M')
-                path.append(numberFormat.format(p1.x))
-                path.append(',')
-                path.append(numberFormat.format(p1.y))
-                path.append('L')
-                path.append(numberFormat.format(p2.x))
-                path.append(',')
-                path.append(numberFormat.format(p2.y))
-            }
-        }
-
-        val svg = StringBuilder(path.length + 256)
+        val svg = StringBuilder(4096)
         svg.append("<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\" ")
         svg.append("width=\"${numberFormat.format(width + strokeWidth)}\" ")
         svg.append("height=\"${numberFormat.format(height + strokeWidth)}\">")
@@ -278,11 +226,73 @@ class SVGCanvas : Canvas() {
         svg.append("transform=\"matrix(1,0,0,1,0,0) translate($offSetStr $offSetStr)\"")
 
         svg.append(" d=\"")
-        svg.append(path)
+        svg.append(getPathData())
         svg.append("\"/></svg>")
 
         // Export it to the file
         PrintWriter(file).use { it.print(svg) }
+    }
+
+    private fun getPathData(): String {
+        // Create the SVG path data
+        val path = StringBuilder()
+        var lastPoint: Point? = null
+        if (polylines != null) {
+            // SVG was optimized to polylines: draw them.
+            for (polyline in polylines!!) {
+                for (i in 0 until polyline.size) {
+                    val p = polyline[i]
+                    addPointToPathData(path, p, lastPoint, i == 0)
+                    lastPoint = p
+                }
+            }
+        } else {
+            // SVG wasn't optimized: draw segments between even and odd indexed points
+            for (i in 0 until points.size step 2) {
+                val p1 = points[i]
+                val p2 = points[i + 1]
+                addPointToPathData(path, p1, lastPoint, true)
+                addPointToPathData(path, p2, p1, false)
+                lastPoint = p2
+            }
+        }
+        return path.toString()
+    }
+
+    private fun addPointToPathData(path: StringBuilder, point: Point,
+                                   lastPoint: Point?, isFirst: Boolean) {
+        if (lastPoint != null) {
+            val relative = point - lastPoint
+            when {
+                isFirst -> {
+                    path.append('m')
+                    path.append(numberFormat.format(relative.x))
+                    path.append(',')
+                    path.append(numberFormat.format(relative.y))
+                }
+                point.y == lastPoint.y -> {
+                    // Same Y as last point: horizontal line
+                    path.append('h')
+                    path.append(numberFormat.format(relative.x))
+                }
+                point.x == lastPoint.x -> {
+                    // Same X as last point: vertical line
+                    path.append('v')
+                    path.append(numberFormat.format(relative.y))
+                }
+                else -> {
+                    path.append('l')
+                    path.append(numberFormat.format(relative.x))
+                    path.append(',')
+                    path.append(numberFormat.format(relative.y))
+                }
+            }
+        } else {
+            path.append('M')
+            path.append(numberFormat.format(point.x))
+            path.append(',')
+            path.append(numberFormat.format(point.y))
+        }
     }
 
     private fun colorToHex(color: Color): String =

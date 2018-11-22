@@ -1,11 +1,11 @@
 {
   "mazes": [
     {
-      "name": "maze",
+      "name": "maze2",
       "type": "rect",
-      "count": 100,
-      "width": 10,
-      "height": 10,
+      "count": 1,
+      "width": 50,
+      "height": 35,
       "arrangement": "rect",
       "algorithm": "rb",
       "openings": []

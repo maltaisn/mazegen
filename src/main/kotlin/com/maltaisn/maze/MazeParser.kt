@@ -37,8 +37,6 @@ import org.json.JSONObject
 class MazeParser {
 
     fun parse(config: JSONObject): List<Maze> {
-        val name = if (config.has(KEY_NAME)) config.getString(KEY_NAME) else "maze"
-
         val count = if (config.has(KEY_COUNT)) config.getInt(KEY_COUNT) else 1
         if (count < 1) {
             throw IllegalArgumentException("Wrong value '$count' for count, must be at least 1.")
@@ -129,6 +127,10 @@ class MazeParser {
             }
         }
 
+        if (config.has(KEY_NAME)) {
+            template.name = config.getString(KEY_NAME)
+        }
+
         var openings: Array<Opening>? = null
         if (config.has(KEY_OPENINGS)) {
             val openingsJson = config.getJSONArray(KEY_OPENINGS)
@@ -151,7 +153,7 @@ class MazeParser {
             generated.add(maze)
 
             val duration = System.currentTimeMillis() - startTime
-            println("Generated '$name' ${i + 1} / $count in $duration ms.")
+            println("Generated '${maze.name}' ${i + 1} / $count in $duration ms.")
         }
 
         return generated
