@@ -25,8 +25,8 @@
 
 package com.maltaisn.maze.maze
 
-import com.maltaisn.maze.SVGRenderer
 import com.maltaisn.maze.maze.DeltaCell.Side
+import com.maltaisn.maze.render.Canvas
 import java.util.concurrent.ThreadLocalRandom
 
 
@@ -128,11 +128,13 @@ class DeltaMaze : Maze {
     constructor(dimension: Int, arrangement: Arrangement) :
             this(dimension, dimension, arrangement)
 
-    private constructor(maze: DeltaMaze) {
+    private constructor(maze: DeltaMaze) : super(maze) {
         width = maze.width
         height = maze.height
         arrangement = maze.arrangement
-        grid = Array(maze.grid.size) { maze.grid.get(it).clone() }
+        grid = Array(maze.grid.size) { x ->
+            Array(maze.grid[x].size) { y -> maze.grid[x][y].copy(this) }
+        }
         rowOffsets = maze.rowOffsets.clone()
     }
 
@@ -221,19 +223,16 @@ class DeltaMaze : Maze {
 
     override fun copy(): Maze = DeltaMaze(this)
 
-    override fun renderToSvg(): SVGRenderer {
+    override fun drawTo(canvas: Canvas, cellSize: Double) {
         var maxHeight = 0
         for (x in 0 until grid.size) {
             val height = grid[x].size + rowOffsets[x]
             if (height > maxHeight) maxHeight = height
         }
 
-        val cellHeight = Math.sqrt(3.0) / 2 * SVG_CELL_SIZE
-        val width = Math.ceil((grid.size / 2.0 + 0.5) * SVG_CELL_SIZE)
-        val height = Math.ceil(maxHeight * cellHeight)
-        val svg = SVGRenderer(width.toInt(), height.toInt())
-        svg.strokeColor = Maze.SVG_STROKE_COLOR
-        svg.strokeWidth = Maze.SVG_STROKE_WIDTH
+        val cellHeight = Math.sqrt(3.0) / 2 * cellSize
+        canvas.width = (grid.size / 2.0 + 0.5) * cellSize
+        canvas.height = maxHeight * cellHeight
 
         for (x in 0 until grid.size) {
             for (y in 0 until grid[x].size) {
@@ -242,45 +241,39 @@ class DeltaMaze : Maze {
                 val flatTopped = (x + actualY) % 2 == 0
                 if (cell.hasSide(Side.BASE)) {
                     if (flatTopped) {
-                        svg.drawLine(x * SVG_CELL_SIZE / 2.0, actualY * cellHeight,
-                                (x + 2) * SVG_CELL_SIZE / 2.0, actualY * cellHeight)
+                        canvas.drawLine(x * cellSize / 2.0, actualY * cellHeight,
+                                (x + 2) * cellSize / 2.0, actualY * cellHeight)
                     } else if (cell.getCellOnSide(Side.BASE) == null) {
-                        svg.drawLine(x * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight,
-                                (x + 2) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
+                        canvas.drawLine(x * cellSize / 2.0, (actualY + 1) * cellHeight,
+                                (x + 2) * cellSize / 2.0, (actualY + 1) * cellHeight)
                     }
                 }
                 if (cell.hasSide(Side.EAST)) {
                     if (flatTopped) {
-                        svg.drawLine((x + 2) * SVG_CELL_SIZE / 2.0, actualY * cellHeight,
-                                (x + 1) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
+                        canvas.drawLine((x + 2) * cellSize / 2.0, actualY * cellHeight,
+                                (x + 1) * cellSize / 2.0, (actualY + 1) * cellHeight)
                     } else if (cell.getCellOnSide(Side.EAST) == null) {
-                        svg.drawLine((x + 1) * SVG_CELL_SIZE / 2.0, actualY * cellHeight,
-                                (x + 2) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
+                        canvas.drawLine((x + 1) * cellSize / 2.0, actualY * cellHeight,
+                                (x + 2) * cellSize / 2.0, (actualY + 1) * cellHeight)
                     }
                 }
                 if (cell.hasSide(Side.WEST)) {
                     if (flatTopped) {
-                        svg.drawLine(x * SVG_CELL_SIZE / 2.0, actualY * cellHeight,
-                                (x + 1) * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
+                        canvas.drawLine(x * cellSize / 2.0, actualY * cellHeight,
+                                (x + 1) * cellSize / 2.0, (actualY + 1) * cellHeight)
                     } else if (cell.getCellOnSide(Side.WEST) == null) {
-                        svg.drawLine((x + 1) * SVG_CELL_SIZE / 2.0, actualY * cellHeight,
-                                x * SVG_CELL_SIZE / 2.0, (actualY + 1) * cellHeight)
+                        canvas.drawLine((x + 1) * cellSize / 2.0, actualY * cellHeight,
+                                x * cellSize / 2.0, (actualY + 1) * cellHeight)
                     }
                 }
             }
         }
-
-        return svg
     }
 
     override fun toString(): String {
         return "[arrangement: $arrangement, ${if (arrangement == Arrangement.TRIANGLE
                 || arrangement == Arrangement.HEXAGON)
             "dimension : $width" else "width: $width, height: $height"}"
-    }
-
-    companion object {
-        private const val SVG_CELL_SIZE = 10.0
     }
 
 }

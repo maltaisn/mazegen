@@ -25,8 +25,8 @@
 
 package com.maltaisn.maze.maze
 
-import com.maltaisn.maze.SVGRenderer
 import com.maltaisn.maze.maze.HexCell.Side
+import com.maltaisn.maze.render.Canvas
 import java.util.concurrent.ThreadLocalRandom
 
 
@@ -111,11 +111,13 @@ class HexMaze : Maze {
     constructor(dimension: Int, arrangement: Arrangement) :
             this(dimension, dimension, arrangement)
 
-    private constructor(maze: HexMaze) {
+    private constructor(maze: HexMaze) : super(maze) {
         width = maze.width
         height = maze.height
         arrangement = maze.arrangement
-        grid = Array(maze.grid.size) { maze.grid.get(it).clone() }
+        grid = Array(maze.grid.size) { x ->
+            Array(maze.grid[x].size) { y -> maze.grid[x][y].copy(this) }
+        }
         rowOffsets = maze.rowOffsets.clone()
     }
 
@@ -202,11 +204,11 @@ class HexMaze : Maze {
     override fun copy(): Maze = HexMaze(this)
 
     /**
-     * Render the maze to SVG.
-     * Without going into details, only half the sides are drawn for each cell except
-     * the bottommost and rightmost cells.
+     * Render the maze to a canvas.
+     * Without going into details, only half the sides are drawn
+     * for each cell except the bottommost and rightmost cells.
      */
-    override fun renderToSvg(): SVGRenderer {
+    override fun drawTo(canvas: Canvas, cellSize: Double) {
         // Find the empty top padding (minTop) and maximum column rows
         var maxRow = 0.0
         var minTop = Double.MAX_VALUE
@@ -218,63 +220,54 @@ class HexMaze : Maze {
         }
         maxRow -= minTop
 
-        val cellHeight = Math.sqrt(3.0) * SVG_CELL_SIDE
-        val width = Math.ceil((1.5 * (grid.size - 1) + 2) * SVG_CELL_SIDE).toInt()
-        val height = Math.ceil(cellHeight * maxRow).toInt()
-        val svg = SVGRenderer(width, height)
-        svg.strokeColor = Maze.SVG_STROKE_COLOR
-        svg.strokeWidth = Maze.SVG_STROKE_WIDTH
+        val cellHeight = Math.sqrt(3.0) * cellSize
+        canvas.width = (1.5 * (grid.size - 1) + 2) * cellSize
+        canvas.height = cellHeight * maxRow
 
         for (x in 0 until grid.size) {
-            val cx = (1.5 * x + 1) * SVG_CELL_SIDE
+            val cx = (1.5 * x + 1) * cellSize
             for (y in 0 until grid[x].size) {
                 val cy = (y + rowOffsets[x] - minTop + (grid.size - x - 1) / 2.0 + 0.5) * cellHeight
                 val cell = grid[x][y]
 
                 // Draw north, northwest and southwest for every cell
                 if (cell.hasSide(Side.NORTH)) {
-                    svg.drawLine(cx + SVG_CELL_SIDE / 2, cy - cellHeight / 2,
-                            cx - SVG_CELL_SIDE / 2, cy - cellHeight / 2)
+                    canvas.drawLine(cx + cellSize / 2, cy - cellHeight / 2,
+                            cx - cellSize / 2, cy - cellHeight / 2)
                 }
                 if (cell.hasSide(Side.NORTHWEST)) {
-                    svg.drawLine(cx - SVG_CELL_SIDE / 2, cy - cellHeight / 2,
-                            cx - SVG_CELL_SIDE, cy)
+                    canvas.drawLine(cx - cellSize / 2, cy - cellHeight / 2,
+                            cx - cellSize, cy)
                 }
                 if (cell.hasSide(Side.SOUTHWEST)) {
-                    svg.drawLine(cx - SVG_CELL_SIDE, cy,
-                            cx - SVG_CELL_SIDE / 2, cy + cellHeight / 2)
+                    canvas.drawLine(cx - cellSize, cy,
+                            cx - cellSize / 2, cy + cellHeight / 2)
                 }
 
                 // Only draw the remaining sides if there's no cell on the side
                 if (cell.hasSide(Side.SOUTH)
                         && cell.getCellOnSide(Side.SOUTH) == null) {
-                    svg.drawLine(cx - SVG_CELL_SIDE / 2, cy + cellHeight / 2,
-                            cx + SVG_CELL_SIDE / 2, cy + cellHeight / 2)
+                    canvas.drawLine(cx - cellSize / 2, cy + cellHeight / 2,
+                            cx + cellSize / 2, cy + cellHeight / 2)
                 }
                 if (cell.hasSide(Side.SOUTHEAST)
                         && cell.getCellOnSide(Side.SOUTHEAST) == null) {
-                    svg.drawLine(cx + SVG_CELL_SIDE / 2, cy + cellHeight / 2,
-                            cx + SVG_CELL_SIDE, cy)
+                    canvas.drawLine(cx + cellSize / 2, cy + cellHeight / 2,
+                            cx + cellSize, cy)
                 }
                 if (cell.hasSide(Side.NORTHEAST)
                         && cell.getCellOnSide(Side.NORTHEAST) == null) {
-                    svg.drawLine(cx + SVG_CELL_SIDE, cy,
-                            cx + SVG_CELL_SIDE / 2, cy - cellHeight / 2)
+                    canvas.drawLine(cx + cellSize, cy,
+                            cx + cellSize / 2, cy - cellHeight / 2)
                 }
             }
         }
-
-        return svg
     }
 
     override fun toString(): String {
         return "[arrangement: $arrangement, ${if (arrangement == Arrangement.TRIANGLE
                 || arrangement == Arrangement.HEXAGON)
             "dimension : $width" else "width: $width, height: $height"}"
-    }
-
-    companion object {
-        private const val SVG_CELL_SIDE = 10.0
     }
 
 }

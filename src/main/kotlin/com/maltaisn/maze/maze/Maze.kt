@@ -25,66 +25,67 @@
 
 package com.maltaisn.maze.maze
 
-import com.maltaisn.maze.SVGRenderer
-import java.awt.Color
+import com.maltaisn.maze.render.Canvas
 
 
 /**
  * Interface for a maze.
  */
-interface Maze {
+abstract class Maze {
+
+    var name: String? = null
+
+    constructor()
+
+    constructor(maze: Maze) {
+        name = maze.name
+    }
 
     /**
      * Returns the cell at [pos].
      */
-    fun cellAt(pos: Position): Cell
+    abstract fun cellAt(pos: Position): Cell
 
     /**
      * Returns the cell at [pos] if it exists, otherwise returns null.
      */
-    fun optionalCellAt(pos: Position): Cell?
+    abstract fun optionalCellAt(pos: Position): Cell?
 
     /**
      * Returns a random cell in the maze.
      */
-    fun getRandomCell(): Cell
+    abstract fun getRandomCell(): Cell
 
     /**
      * Get the total number of cells in this maze.
      */
-    fun getCellCount(): Int
+    abstract fun getCellCount(): Int
 
     /**
      * Returns a set containing all the cells in this maze.
      */
-    fun getAllCells(): LinkedHashSet<out Cell>
+    abstract fun getAllCells(): LinkedHashSet<out Cell>
 
     /**
      * Create openings [openings] in the maze.
      * An exception is thrown if the opening position doesn't match any cell.
      */
-    fun createOpenings(vararg openings: Opening)
+    abstract fun createOpenings(vararg openings: Opening)
 
     /**
      * Clears all the sides of all cells in the maze if [empty] is true,
      * otherwise sets all sides on all the cells. All cells are set as unvisited.
      */
-    fun reset(empty: Boolean)
+    abstract fun reset(empty: Boolean)
 
     /**
      * Creates a deep copy of this maze.
      */
-    fun copy(): Maze
+    abstract fun copy(): Maze
 
     /**
-     * Render the maze SVG. The returned renderer hasn't been optimized yet.
+     * Draw the maze to a [canvas], with an arbitrarey cell size parameter of [cellSize].
      */
-    fun renderToSvg(): SVGRenderer
-
-
-    companion object {
-        const val SVG_STROKE_WIDTH = 1.0
-        val SVG_STROKE_COLOR: Color = Color.BLACK
-    }
+    abstract fun drawTo(canvas: Canvas, cellSize: Double)
 
 }

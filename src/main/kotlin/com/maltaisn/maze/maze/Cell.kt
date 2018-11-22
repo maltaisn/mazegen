@@ -69,6 +69,16 @@ abstract class Cell {
     }
 
     /**
+     * Create a copy of this cell to be put in [maze].
+     */
+    constructor(maze: Maze, cell: Cell) {
+        this.maze = maze
+        this.position = cell.position
+        this.visited = cell.visited
+        this.value = cell.value
+    }
+
+    /**
      * Returns the neighbor cell on the [side] of the cell.
      * If the neighbor doesn't exist, returns null.
      */
@@ -181,6 +191,8 @@ abstract class Cell {
         }
         return null
     }
+
+    abstract fun copy(maze: Maze): Cell
 
     override fun toString(): String {
         val sb = StringBuilder()

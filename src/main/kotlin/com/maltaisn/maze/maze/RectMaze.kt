@@ -25,8 +25,8 @@
 
 package com.maltaisn.maze.maze
 
-import com.maltaisn.maze.SVGRenderer
 import com.maltaisn.maze.maze.RectCell.Side
+import com.maltaisn.maze.render.Canvas
 import java.util.concurrent.ThreadLocalRandom
 
 
@@ -57,10 +57,12 @@ class RectMaze : Maze {
         }
     }
 
-    private constructor(maze: RectMaze) {
+    private constructor(maze: RectMaze) : super(maze) {
         width = maze.width
         height = maze.height
-        grid = Array(maze.grid.size) { maze.grid.get(it).clone() }
+        grid = Array(maze.grid.size) { x ->
+            Array(maze.grid[x].size) { y -> maze.grid[x][y].copy(this) }
+        }
     }
 
 
@@ -138,41 +140,33 @@ class RectMaze : Maze {
     override fun copy(): Maze = RectMaze(this)
 
     /**
-     * Render the maze to SVG.
+     * Draw the maze to a canvas.
      * For each cell, only the north and east sides are drawn if they are set,
      * except for the last row and column where to south and east side are also drawn.
      */
-    override fun renderToSvg(): SVGRenderer {
-        val svg = SVGRenderer((width * SVG_CELL_SIZE).toInt(),
-                (height * SVG_CELL_SIZE).toInt())
-        svg.strokeColor = Maze.SVG_STROKE_COLOR
-        svg.strokeWidth = Maze.SVG_STROKE_WIDTH
+    override fun drawTo(canvas: Canvas, cellSize: Double) {
+        canvas.width = width * cellSize
+        canvas.height = height * cellSize
 
         for (x in 0..width) {
-            val px = x * SVG_CELL_SIZE
+            val px = x * cellSize
             for (y in 0..height) {
-                val py = y * SVG_CELL_SIZE
+                val py = y * cellSize
                 val cell = optionalCellAt(PositionXY(x, y))
                 if (cell != null && cell.hasSide(Side.NORTH) || cell == null
                         && optionalCellAt(PositionXY(x, y - 1))?.hasSide(Side.SOUTH) != null) {
-                    svg.drawLine(px, py, px + SVG_CELL_SIZE, py)
+                    canvas.drawLine(px, py, px + cellSize, py)
                 }
                 if (cell != null && cell.hasSide(Side.WEST) || cell == null
                         && optionalCellAt(PositionXY(x - 1, y))?.hasSide(Side.EAST) != null) {
-                    svg.drawLine(px, py, px, py + SVG_CELL_SIZE)
+                    canvas.drawLine(px, py, px, py + cellSize)
                 }
             }
         }
-
-        return svg
     }
 
     override fun toString(): String {
         return "[width: $width, height: $height]"
-    }
-
-    companion object {
-        private const val SVG_CELL_SIZE = 10.0
     }
 
 }

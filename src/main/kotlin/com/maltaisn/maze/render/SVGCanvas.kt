@@ -23,9 +23,11 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.maltaisn.maze
+package com.maltaisn.maze.render
 
 import java.awt.Color
+import java.io.File
+import java.io.PrintWriter
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
@@ -33,13 +35,10 @@ import kotlin.collections.HashMap
 
 
 /**
- * Simple SVG file builder to create extremely optimized SVG paths.
- * Might be a bit slow for very large mazes.
+ * Canvas for exporting SVG files.
+ * SVG path data can be optimized with [optimize] to reduce the file size.
  */
-class SVGRenderer(val width: Int, val height: Int) {
-
-    var strokeWidth = 1.0
-    var strokeColor: Color = Color.BLACK
+class SVGCanvas : Canvas() {
 
     /**
      * The maximum number of decimal digits used in path coordinates.
@@ -73,7 +72,7 @@ class SVGRenderer(val width: Int, val height: Int) {
         precision = 2
     }
 
-    fun drawLine(x1: Double, y1: Double, x2: Double, y2: Double) {
+    override fun drawLine(x1: Double, y1: Double, x2: Double, y2: Double) {
         points.add(Point(x1, y1))
         points.add(Point(x2, y2))
     }
@@ -86,6 +85,8 @@ class SVGRenderer(val width: Int, val height: Int) {
      * For each line drawn with [drawLine], if a point of the line matches the head or
      * the tail of an existing polyline, add the line to it. If not, create a new polyline.
      * If the line connects two polylines, merge them into one.
+     *
+     * Should not be used with over 40k points, performance is not good.
      */
     fun optimize() {
         polylines = null
@@ -200,10 +201,8 @@ class SVGRenderer(val width: Int, val height: Int) {
         }
     }
 
-    /**
-     * Creates and returns the SVG file content corresponding to the drawn objects.
-     */
-    fun create(): String {
+    override fun exportTo(file: File) {
+        // Create the SVG path data
         val path = StringBuilder()
         if (polylines != null) {
             for (polyline in polylines!!) {
@@ -255,13 +254,39 @@ class SVGRenderer(val width: Int, val height: Int) {
             }
         }
 
-        val colorHex = Integer.toHexString(strokeColor.rgb and 0xFFFFFF).padStart(6, '0')
-        val color = "stroke:#$colorHex;stroke-opacity:${strokeColor.alpha / 255.0}"
-        return "<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\" " +
-                "width=\"$width\" height=\"$height\"><path style=\"stroke-width:$strokeWidth;" +
-                "$color;stroke-linecap:round;stroke-linejoin:round;fill:none\" " +
-                "transform=\"matrix(1,0,0,1,0,0)\" d=\"$path\"/></svg>"
+        val svg = StringBuilder(path.length + 256)
+        svg.append("<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\" ")
+        svg.append("width=\"${numberFormat.format(width + strokeWidth)}\" ")
+        svg.append("height=\"${numberFormat.format(height + strokeWidth)}\">")
+
+        // Add a filled rect for background color if not transparent
+        if (backgroundColor.alpha != 0) {
+            svg.append("<rect width=\"100%\" height=\"100%\" " +
+                    "fill=\"${colorToHex(backgroundColor)}\"/>")
+        }
+
+        // Stroke style
+        svg.append("<path style=\"")
+        svg.append("stroke-width:${numberFormat.format(strokeWidth)};")
+        svg.append("stroke:${colorToHex(strokeColor)};")
+        svg.append("stroke-opacity:${strokeColor.alpha / 255.0};")
+        svg.append("stroke-linecap:round;stroke-linejoin:round;fill:none\" ")
+
+        // The transform matrix is used to convert between
+        // the renderer Y-down coordinate system to SVG's Y-up.
+        val offSetStr = numberFormat.format((strokeWidth / 2))
+        svg.append("transform=\"matrix(1,0,0,1,0,0) translate($offSetStr $offSetStr)\"")
+
+        svg.append(" d=\"")
+        svg.append(path)
+        svg.append("\"/></svg>")
+
+        // Export it to the file
+        PrintWriter(file).use { it.print(svg) }
     }
+
+    private fun colorToHex(color: Color): String =
+            '#' + Integer.toHexString(color.rgb and 0xFFFFFF).padStart(6, '0')
 
     private data class Point(val x: Double, val y: Double) {
 

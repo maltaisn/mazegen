@@ -2,15 +2,25 @@
   "mazes": [
     {
       "name": "maze",
-      "type": "hex",
-      "count": 1,
-      "width": 50,
-      "height": 35
+      "type": "rect",
+      "count": 100,
+      "width": 10,
+      "height": 10,
+      "arrangement": "rect",
+      "algorithm": "rb",
+      "openings": []
     }
   ],
-  "output": "mazes/new/",
-  "svg": {
-    "optimize": true,
-    "precision": 2
+  "output": {
+    "format": "svg",
+    "path": "mazes/new/",
+    "svg_optimize": true,
+    "svg_precision": 2,
+    "style": {
+      "stroke_color": "#000000",
+      "stroke_width": 1,
+      "background_color": "#00FFFFFF",
+      "cell_size": 10
+    }
   }
 }

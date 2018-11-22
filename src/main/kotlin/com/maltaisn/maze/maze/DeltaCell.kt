@@ -36,6 +36,9 @@ class DeltaCell : Cell {
 
     constructor(maze: DeltaMaze, position: PositionXY, value: Int) : super(maze, position, value)
 
+    constructor(maze: Maze, cell: Cell) : super(maze, cell)
+
+
     override fun getCellOnSide(side: Cell.Side): Cell? {
         if (side == Side.BASE) {
             // The cell on the base side can be either up or down, depending on the X position.
@@ -50,6 +53,8 @@ class DeltaCell : Cell {
     override fun getAllSides(): List<Side> = ALL_SIDES
 
     override fun getAllSideValue(): Side = Side.ALL
+
+    override fun copy(maze: Maze) = DeltaCell(maze, this)
 
     /**
      * Enum class for the side a delta cell.

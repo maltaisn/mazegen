@@ -36,10 +36,14 @@ class RectCell : Cell {
 
     constructor(maze: RectMaze, position: PositionXY, value: Int) : super(maze, position, value)
 
+    constructor(maze: Maze, cell: Cell) : super(maze, cell)
+
 
     override fun getAllSides(): List<Side> = ALL_SIDES
 
     override fun getAllSideValue(): Side = Side.ALL
+
+    override fun copy(maze: Maze) = RectCell(maze, this)
 
     /**
      * Enum class for the side a rectangular cell

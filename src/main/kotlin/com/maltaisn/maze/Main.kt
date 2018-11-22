@@ -25,14 +25,10 @@
 
 package com.maltaisn.maze
 
-import com.maltaisn.maze.generator.*
-import com.maltaisn.maze.maze.*
-import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.File
 import java.io.FileInputStream
-import java.io.PrintWriter
 
 
 fun main(args: Array<String>) {
@@ -53,193 +49,31 @@ fun main(args: Array<String>) {
 
 private class Main {
 
-    fun parseConfig(configJson: JSONObject) {
-        if (!configJson.has(KEY_MAZES)) {
-            throw IllegalArgumentException("No mazes to generate.")
-        }
+    fun parseConfig(config: JSONObject) {
+        val canvasWriter = CanvasWriter(if (config.has(KEY_OUTPUT))
+            config.getJSONObject(KEY_OUTPUT) else null)
+        val mazeParser = MazeParser()
 
-        // Output settings
-        var output = File(System.getProperty("user.dir"))
-        if (configJson.has(KEY_OUTPUT)) {
-            output = File(configJson.getString(KEY_OUTPUT))
-            output.mkdirs()
-            if (!output.canWrite()) {
-                throw IllegalArgumentException("Cannot write to output path: ${output.absolutePath}")
+        // Parse mazes and export them
+        if (!config.has(KEY_MAZES)) {
+            println("No mazes to generate")
+            return
+        }
+        for (mazeConfig in config.getJSONArray(KEY_MAZES)) {
+            val mazes = mazeParser.parse(mazeConfig as JSONObject)
+            for (i in 0 until mazes.size) {
+                val maze = mazes[i]
+                val name = maze.name ?: DEFAULT_FILENAME
+                canvasWriter.write(maze, if (mazes.size == 1) name else "$name-${i + 1}")
             }
         }
-
-        // SVG settings
-        var optimize = true
-        var precision = 2
-        if (configJson.has(KEY_SVG)) {
-            val svgJson = configJson.getJSONObject(KEY_SVG)
-            if (svgJson.has(KEY_OPTIMIZE)) {
-                optimize = svgJson.getBoolean(KEY_OPTIMIZE)
-            }
-            if (svgJson.has(KEY_PRECISION)) {
-                precision = svgJson.getInt(KEY_PRECISION)
-                if (precision < 0 || precision > 8) {
-                    throw IllegalArgumentException("SVG precision must be between 0 and 8.")
-                }
-            }
-        }
-
-        // Parse mazes
-        for (mazeJson in configJson.getJSONArray(KEY_MAZES)) {
-            parseMaze(mazeJson as JSONObject, output, optimize, precision)
-        }
-    }
-
-    fun parseMaze(mazeJson: JSONObject, output: File, optimize: Boolean, precision: Int) {
-        val name = if (mazeJson.has(KEY_NAME)) mazeJson.getString(KEY_NAME) else "maze"
-
-        val count = if (mazeJson.has(KEY_COUNT)) mazeJson.getInt(KEY_COUNT) else 1
-        if (count < 1) {
-            throw IllegalArgumentException("Wrong value '$count' for count, must be at least 1.")
-        }
-
-        val generator = if (mazeJson.has(KEY_ALGORITHM)) {
-            when (val algStr = mazeJson.getString(KEY_ALGORITHM)) {
-                "ab", "aldous-broder" -> AldousBroderGenerator()
-                "gt", "growing-tree" -> GrowingTreeGenerator()
-                "hk", "hunt-kill" -> HuntKillGenerator()
-                "kr", "kruskal" -> KruskalGenerator()
-                "pr", "prim" -> PrimGenerator()
-                "rb", "recursive-backtracker" -> RecursiveBacktrackerGenerator()
-                "wi", "wilson" -> WilsonGenerator()
-                else -> throw IllegalArgumentException("Invalid algorithm '$algStr'.")
-            }
-        } else {
-            RecursiveBacktrackerGenerator()
-        }
-
-        val type = if (mazeJson.has(KEY_TYPE)) {
-            when (val typeStr = mazeJson.getString(KEY_TYPE)) {
-                "rect", "orth" -> MazeType.RECT
-                "hex", "sigma" -> MazeType.HEX
-                "triangle", "delta" -> MazeType.DELTA
-                else -> throw IllegalArgumentException("Invalid maze type '$typeStr'.")
-            }
-        } else {
-            MazeType.RECT
-        }
-
-        var width = if (mazeJson.has(KEY_WIDTH)) mazeJson.getInt(KEY_WIDTH) else null
-        var height = if (mazeJson.has(KEY_HEIGHT)) mazeJson.getInt(KEY_HEIGHT) else null
-        val dimension = if (mazeJson.has(KEY_DIMENSION)) mazeJson.getInt(KEY_DIMENSION) else null
-
-        val arrangement = if (mazeJson.has(KEY_ARRANGEMENT)) {
-            when (val arrStr = mazeJson.getString(KEY_ARRANGEMENT)) {
-                "rect", "rectangle" -> Arrangement.RECTANGLE
-                "triangle" -> Arrangement.TRIANGLE
-                "hex", "hexagon" -> Arrangement.HEXAGON
-                "rhombus" -> Arrangement.RHOMBUS
-                else -> throw IllegalArgumentException("Invalid maze arrangement '$arrStr'.")
-            }
-        } else {
-            Arrangement.RECTANGLE
-        }
-
-        val maze = when (type) {
-            MazeType.RECT -> {
-                if (dimension == null && (width == null || height == null)
-                        || dimension != null && (width != null || height != null)) {
-                    throw IllegalArgumentException("For orthogonal mazes, only 'dimension' " +
-                            "or both 'width' and 'height' must be defined.")
-                }
-                if (dimension != null) {
-                    width = dimension
-                    height = dimension
-                }
-                RectMaze(width!!, height!!)
-            }
-            MazeType.HEX, MazeType.DELTA -> {
-                when (arrangement) {
-                    Arrangement.HEXAGON, Arrangement.TRIANGLE -> {
-                        if (dimension == null || width != null || height != null) {
-                            throw IllegalArgumentException("For hexagon and triangle shaped delta and sigma " +
-                                    "mazes, only 'dimension' must be defined, but not 'width' nor 'height'.")
-                        }
-                        width = dimension
-                        height = dimension
-                    }
-                    else -> {
-                        if (dimension == null && (width == null || height == null)
-                                || dimension != null && (width != null || height != null)) {
-                            throw IllegalArgumentException("For rectangle and rhombus shaped delta and sigma " +
-                                    "mazes, only 'dimension' or both 'width' and 'height' must be defined.")
-                        }
-                        if (dimension != null) {
-                            width = dimension
-                            height = dimension
-                        }
-                    }
-                }
-                if (type == MazeType.HEX) {
-                    HexMaze(width!!, height!!, arrangement)
-                } else {
-                    DeltaMaze(width!!, height!!, arrangement)
-                }
-            }
-        }
-
-        var openings: Array<Opening>? = null
-        if (mazeJson.has(KEY_OPENINGS)) {
-            val openingsJson = mazeJson.getJSONArray(KEY_OPENINGS)
-            openings = Array(openingsJson.length()) { Opening(openingsJson[it] as JSONArray) }
-        }
-
-        for (i in 0 until count) {
-            // Generate the maze
-            generator.generate(maze)
-
-            // Add the openings
-            if (openings != null) {
-                maze.createOpenings(*openings)
-            }
-
-            // Export to SVG
-            var filename = name
-            if (count > 1) {
-                filename += "-${i + 1}"
-            }
-            filename += ".svg"
-            val time = System.currentTimeMillis()
-            PrintWriter(File(output, filename)).use {
-                val svg = maze.renderToSvg()
-                svg.precision = precision
-                if (optimize) {
-                    svg.optimize()
-                }
-                it.print(svg.create())
-            }
-
-            val duration = System.currentTimeMillis() - time
-            println("Generated and exported maze '$name' ${i + 1} / $count in $duration ms")
-        }
-    }
-
-    private enum class MazeType {
-        RECT, HEX, DELTA
     }
 
     companion object {
         private const val KEY_MAZES = "mazes"
-        private const val KEY_NAME = "name"
-        private const val KEY_COUNT = "count"
-        private const val KEY_TYPE = "type"
-        private const val KEY_WIDTH = "width"
-        private const val KEY_HEIGHT = "height"
-        private const val KEY_DIMENSION = "dimension"
-        private const val KEY_ARRANGEMENT = "arrangement"
-        private const val KEY_ALGORITHM = "algorithm"
-        private const val KEY_OPENINGS = "openings"
-
         private const val KEY_OUTPUT = "output"
 
-        private const val KEY_SVG = "svg"
-        private const val KEY_OPTIMIZE = "optimize"
-        private const val KEY_PRECISION = "precision"
+        private const val DEFAULT_FILENAME = "maze"
     }
 
 }
