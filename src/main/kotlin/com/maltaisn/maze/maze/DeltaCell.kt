@@ -30,14 +30,7 @@ package com.maltaisn.maze.maze
  * A triangular cell in [DeltaMaze].
  * Has west, east and base (north or south) sides.
  */
-class DeltaCell : Cell {
-
-    constructor(maze: DeltaMaze, position: PositionXY) : super(maze, position)
-
-    constructor(maze: DeltaMaze, position: PositionXY, value: Int) : super(maze, position, value)
-
-    constructor(maze: Maze, cell: Cell) : super(maze, cell)
-
+class DeltaCell(maze: DeltaMaze, position: PositionXY) : Cell(maze, position) {
 
     override fun getCellOnSide(side: Cell.Side): Cell? {
         if (side == Side.BASE) {
@@ -53,8 +46,6 @@ class DeltaCell : Cell {
     override fun getAllSides(): List<Side> = ALL_SIDES
 
     override fun getAllSideValue(): Side = Side.ALL
-
-    override fun copy(maze: Maze) = DeltaCell(maze, this)
 
     /**
      * Enum class for the side a delta cell.

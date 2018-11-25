@@ -38,8 +38,13 @@ abstract class Generator {
     protected val random = ThreadLocalRandom.current()!!
 
     /**
-     * Generate a maze into [maze], which is reset before.
+     * Generate a maze into [maze].
      */
-    abstract fun generate(maze: Maze)
+    open fun generate(maze: Maze) {
+        if (maze.generated) {
+            throw IllegalStateException("This maze was already generated.")
+        }
+        maze.generated = true
+    }
 
 }

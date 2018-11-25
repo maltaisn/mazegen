@@ -37,6 +37,8 @@ import org.json.JSONObject
 class MazeParser {
 
     fun parse(config: JSONObject): List<Maze> {
+        val name = if (config.has(KEY_NAME)) config.getString(KEY_NAME) else null
+
         val count = if (config.has(KEY_COUNT)) config.getInt(KEY_COUNT) else 1
         if (count < 1) {
             throw IllegalArgumentException("Wrong value '$count' for count, must be at least 1.")
@@ -84,7 +86,7 @@ class MazeParser {
             Arrangement.RECTANGLE
         }
 
-        val template = when (type) {
+        when (type) {
             MazeType.RECT -> {
                 if (dimension == null && (width == null || height == null)
                         || dimension != null && (width != null || height != null)) {
@@ -95,7 +97,6 @@ class MazeParser {
                     width = dimension
                     height = dimension
                 }
-                RectMaze(width!!, height!!)
             }
             MazeType.HEX, MazeType.DELTA -> {
                 when (arrangement) {
@@ -119,41 +120,49 @@ class MazeParser {
                         }
                     }
                 }
-                if (type == MazeType.HEX) {
-                    HexMaze(width!!, height!!, arrangement)
-                } else {
-                    DeltaMaze(width!!, height!!, arrangement)
-                }
             }
         }
 
-        if (config.has(KEY_NAME)) {
-            template.name = config.getString(KEY_NAME)
-        }
-
-        var openings: Array<Opening>? = null
+        val openings = mutableListOf<Opening>()
         if (config.has(KEY_OPENINGS)) {
             val openingsJson = config.getJSONArray(KEY_OPENINGS)
-            openings = Array(openingsJson.length()) { Opening(openingsJson[it] as JSONArray) }
+            for (openingJson in openingsJson) {
+                openings.add(Opening(openingJson as JSONArray))
+            }
         }
+
+        val solve = config.has(KEY_SOLVE) && config.getBoolean(KEY_SOLVE)
 
         val generated = ArrayList<Maze>(count)
         for (i in 0 until count) {
-            val startTime = System.currentTimeMillis()
-            val maze = template.copy()
+            var startTime = System.currentTimeMillis()
+
+            val maze = when (type) {
+                MazeType.RECT -> RectMaze(width!!, height!!)
+                MazeType.HEX -> HexMaze(width!!, height!!, arrangement)
+                MazeType.DELTA -> DeltaMaze(width!!, height!!, arrangement)
+            }
+            maze.name = name
 
             // Generate the maze
             generator.generate(maze)
 
             // Add the openings
-            if (openings != null) {
-                maze.createOpenings(*openings)
+            for (opening in openings) {
+                maze.createOpening(opening)
             }
+            var time = System.currentTimeMillis()
+            println("Generated '${maze.name}' ${i + 1} / $count in ${time - startTime} ms.")
+
+            // Solve the maze if needed
+            startTime = time
+            if (solve) {
+                maze.solve()
+            }
+            time = System.currentTimeMillis()
+            println("Solved '${maze.name}' ${i + 1} / $count in ${time - startTime} ms.")
 
             generated.add(maze)
-
-            val duration = System.currentTimeMillis() - startTime
-            println("Generated '${maze.name}' ${i + 1} / $count in $duration ms.")
         }
 
         return generated
@@ -164,7 +173,6 @@ class MazeParser {
     }
 
     companion object {
-        private const val KEY_MAZES = "mazes"
         private const val KEY_NAME = "name"
         private const val KEY_COUNT = "count"
         private const val KEY_TYPE = "type"
@@ -174,6 +182,7 @@ class MazeParser {
         private const val KEY_ARRANGEMENT = "arrangement"
         private const val KEY_ALGORITHM = "algorithm"
         private const val KEY_OPENINGS = "openings"
+        private const val KEY_SOLVE = "solve"
     }
 
 

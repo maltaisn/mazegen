@@ -40,9 +40,9 @@ class Opening(from: JSONArray) {
             val pos = from[i]
             when (pos) {
                 is String -> position[i] = when (pos[0]) {
-                    CHAR_START -> POS_START
-                    CHAR_CENTER -> POS_CENTER
-                    CHAR_END -> POS_END
+                    in CHAR_START -> POS_START
+                    in CHAR_CENTER -> POS_CENTER
+                    in CHAR_END -> POS_END
                     else -> throw IllegalArgumentException("Wrong opening position character '$pos'.")
                 }
                 is Int -> position[i] = pos
@@ -56,9 +56,9 @@ class Opening(from: JSONArray) {
         const val POS_CENTER = -2
         const val POS_END = -1
 
-        const val CHAR_START = 'S'
-        const val CHAR_CENTER = 'C'
-        const val CHAR_END = 'E'
+        const val CHAR_START = "Ss"
+        const val CHAR_CENTER = "Cc"
+        const val CHAR_END = "Ee"
     }
 
 }

@@ -30,20 +30,11 @@ package com.maltaisn.maze.maze
  * A hexagonal cell for [HexMaze].
  * Has north, northeast, southeast, south, southwest and northwest sides.
  */
-class HexCell : Cell {
-
-    constructor(maze: HexMaze, position: PositionXY) : super(maze, position)
-
-    constructor(maze: HexMaze, position: PositionXY, value: Int) : super(maze, position, value)
-
-    constructor(maze: Maze, cell: Cell) : super(maze, cell)
-
+class HexCell(maze: HexMaze, position: PositionXY) : Cell(maze, position) {
 
     override fun getAllSides(): List<Side> = ALL_SIDES
 
     override fun getAllSideValue(): Side = Side.ALL
-
-    override fun copy(maze: Maze) = HexCell(maze, this)
 
     /**
      * Enum class for the side a hexagonal cell

@@ -31,26 +31,37 @@ package com.maltaisn.maze.maze
  */
 data class PositionXY(val x: Int, val y: Int) : Position {
 
-    override operator fun plus(pos: Position): Position = if (pos is PositionXY) {
-        PositionXY(x + pos.x, y + pos.y)
-    } else {
-        throw IllegalArgumentException("Cannot add position of another type")
+    /**
+     * Compute the Manhattan distance between this position and [pos].
+     */
+    override fun distanceTo(pos: Position): Int {
+        val posXY = pos as PositionXY
+        return Math.abs(posXY.x - x) + Math.abs(posXY.y - y)
+    }
+
+    override operator fun plus(pos: Position): Position {
+        val posXY = pos as PositionXY
+        return PositionXY(x + posXY.x, y + posXY.y)
+    }
+
+    override fun compareTo(pos: Position): Int {
+        val posXY = pos as PositionXY
+        return if (x == posXY.x && y == posXY.y) {
+            0
+        } else if (x > posXY.x || x == posXY.x && y > posXY.y) {
+            1
+        } else {
+            -1
+        }
+    }
+
+    override fun hashCode(): Int {
+        // Unique hashcodes up to 65536
+        return (x shl 16) and y
     }
 
     override fun toString(): String {
         return "[x: $x, y: $y]"
     }
 
-    override fun compareTo(pos: Position): Int {
-        if (pos is PositionXY) {
-            return if (x == pos.x && y == pos.y) {
-                0
-            } else if (x > pos.x || x == pos.x && y > pos.y) {
-                1
-            } else {
-                -1
-            }
-        }
-        throw IllegalArgumentException("Cannot compare position of another type")
-    }
 }

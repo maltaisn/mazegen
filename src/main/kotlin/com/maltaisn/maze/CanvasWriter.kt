@@ -31,6 +31,7 @@ import com.maltaisn.maze.render.OutputFormat
 import com.maltaisn.maze.render.RasterCanvas
 import com.maltaisn.maze.render.SVGCanvas
 import org.json.JSONObject
+import java.awt.BasicStroke
 import java.awt.Color
 import java.io.File
 
@@ -47,12 +48,18 @@ class CanvasWriter(config: JSONObject?) {
     private var svgOptimize = true
     private var svgPrecision = 2
 
+    // Styling settings
     private var cellSize = 10.0
-    private var strokeWidth = 1.0
-    private var strokeColor = Color.BLACK!!
     private var backgroundColor = Canvas.parseColor("#00FFFFFF")
+    private var stroke: BasicStroke
+    private var color: Color = Color.BLACK
+    private var solutionStroke: BasicStroke
+    private var solutionColor: Color = Color.BLUE
 
     init {
+        var strokeWidth = 1f
+        var solutionStrokeWidth = 1f
+
         if (config != null) {
             if (config.has(KEY_PATH)) {
                 path = File(config.getString(KEY_PATH))
@@ -87,34 +94,46 @@ class CanvasWriter(config: JSONObject?) {
                 if (styleConfig.has(KEY_STYLE_CELL_SIZE)) {
                     cellSize = styleConfig.getDouble(KEY_STYLE_CELL_SIZE)
                 }
-                if (styleConfig.has(KEY_STYLE_STROKE_WIDTH)) {
-                    strokeWidth = styleConfig.getDouble(KEY_STYLE_STROKE_WIDTH)
-                }
-                if (styleConfig.has(KEY_STYLE_STROKE_COLOR)) {
-                    strokeColor = Canvas.parseColor(
-                            styleConfig.getString(KEY_STYLE_STROKE_COLOR))
-                }
                 if (styleConfig.has(KEY_STYLE_BACKGROUND_COLOR)) {
                     backgroundColor = Canvas.parseColor(
                             styleConfig.getString(KEY_STYLE_BACKGROUND_COLOR))
                 }
+                if (styleConfig.has(KEY_STYLE_STROKE_WIDTH)) {
+                    strokeWidth = styleConfig.getFloat(KEY_STYLE_STROKE_WIDTH)
+                }
+                if (styleConfig.has(KEY_STYLE_COLOR)) {
+                    color = Canvas.parseColor(styleConfig.getString(KEY_STYLE_COLOR))
+                }
+                if (styleConfig.has(KEY_STYLE_SOLUTION_STROKE_WIDTH)) {
+                    solutionStrokeWidth = styleConfig.getFloat(KEY_STYLE_SOLUTION_STROKE_WIDTH)
+                }
+                if (styleConfig.has(KEY_STYLE_SOLUTION_COLOR)) {
+                    solutionColor = Canvas.parseColor(styleConfig.getString(KEY_STYLE_SOLUTION_COLOR))
+                }
             }
         }
+
+        stroke = BasicStroke(strokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+        solutionStroke = BasicStroke(solutionStrokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
     }
 
     /**
-     * Write a [maze] to a file.
-     * @param[filename] Name of the file, without the extension.
+     * Write a [maze] to a file named [filename] (without the extension)
      */
     fun write(maze: Maze, filename: String) {
         val startTime = System.currentTimeMillis()
 
         val canvas = if (format == OutputFormat.SVG) SVGCanvas() else RasterCanvas(format)
-        canvas.strokeWidth = strokeWidth
-        canvas.strokeColor = strokeColor
-        canvas.backgroundColor = backgroundColor
 
-        maze.drawTo(canvas, cellSize)
+        // If background color is completely transparent and format is SVG or PNG, don't draw it.
+        val bgColor = if (backgroundColor.alpha == 0
+                && (format == OutputFormat.PNG || format == OutputFormat.SVG)) {
+            null
+        } else {
+            backgroundColor
+        }
+
+        maze.drawTo(canvas, cellSize, bgColor, color, stroke, solutionColor, solutionStroke)
 
         if (canvas is SVGCanvas) {
             // Apply additional SVG settings
@@ -129,7 +148,7 @@ class CanvasWriter(config: JSONObject?) {
         canvas.exportTo(file)
 
         val duration = System.currentTimeMillis() - startTime
-        println("Exported to '$fullFilename' in $duration ms.")
+        println("Exported '$fullFilename' in $duration ms.")
     }
 
     companion object {
@@ -140,9 +159,11 @@ class CanvasWriter(config: JSONObject?) {
 
         private const val KEY_STYLE = "style"
         private const val KEY_STYLE_CELL_SIZE = "cell_size"
-        private const val KEY_STYLE_STROKE_COLOR = "stroke_color"
-        private const val KEY_STYLE_STROKE_WIDTH = "stroke_width"
         private const val KEY_STYLE_BACKGROUND_COLOR = "background_color"
+        private const val KEY_STYLE_COLOR = "color"
+        private const val KEY_STYLE_STROKE_WIDTH = "stroke_width"
+        private const val KEY_STYLE_SOLUTION_COLOR = "solution_color"
+        private const val KEY_STYLE_SOLUTION_STROKE_WIDTH = "solution_stroke_width"
     }
 
 

@@ -51,7 +51,8 @@ import com.maltaisn.maze.maze.Maze
 class HuntKillGenerator : Generator() {
 
     override fun generate(maze: Maze) {
-        maze.reset(false)
+        super.generate(maze)
+        maze.fillAll()
 
         val visitedCells = ArrayList<Cell>(maze.getCellCount())
 

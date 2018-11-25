@@ -48,7 +48,8 @@ import com.maltaisn.maze.maze.Maze
 class WilsonGenerator : Generator() {
 
     override fun generate(maze: Maze) {
-        maze.reset(false)
+        super.generate(maze)
+        maze.fillAll()
 
         val unvisitedCells = maze.getAllCells()
 

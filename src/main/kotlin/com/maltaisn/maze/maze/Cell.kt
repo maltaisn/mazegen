@@ -31,18 +31,10 @@ package com.maltaisn.maze.maze
  * Each cell has a value, a bit field encoding which sides are set.
  * They also have a reference to the maze containing them as well as their position in that maze.
  * Subclasses have define sides and their values, in a enum implementing [Side].
+ * @property[maze] The maze containing this cell.
+ * @property[position] The position of the cell in [maze].
  */
-abstract class Cell {
-
-    /**
-     * The maze containing this cell.
-     */
-    val maze: Maze
-
-    /**
-     * The position of the cell in [maze].
-     */
-    val position: Position
+abstract class Cell(val maze: Maze, val position: Position) {
 
     /**
      * Cell can be marked as visited by a generator.
@@ -52,31 +44,6 @@ abstract class Cell {
     var value: Int = 0
 
     private var neighborList: List<Cell>? = null
-
-    /**
-     * Create new empty cell at [position] in [maze].
-     */
-    constructor(maze: Maze, position: Position) {
-        this.maze = maze
-        this.position = position
-    }
-
-    /**
-     * Create new cell at [position] in [maze] with [value].
-     */
-    constructor(maze: Maze, position: Position, value: Int) : this(maze, position) {
-        this.value = value
-    }
-
-    /**
-     * Create a copy of this cell to be put in [maze].
-     */
-    constructor(maze: Maze, cell: Cell) {
-        this.maze = maze
-        this.position = cell.position
-        this.visited = cell.visited
-        this.value = cell.value
-    }
 
     /**
      * Returns the neighbor cell on the [side] of the cell.
@@ -191,8 +158,6 @@ abstract class Cell {
         }
         return null
     }
-
-    abstract fun copy(maze: Maze): Cell
 
     override fun toString(): String {
         val sb = StringBuilder()

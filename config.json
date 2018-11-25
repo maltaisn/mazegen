@@ -1,14 +1,14 @@
 {
   "mazes": [
     {
-      "name": "maze2",
-      "type": "rect",
+      "name": "maze",
+      "type": "hex",
       "count": 1,
-      "width": 50,
-      "height": 35,
-      "arrangement": "rect",
+      "dimension": 50,
+      "arrangement": "hexagon",
       "algorithm": "rb",
-      "openings": []
+      "openings": [["S", "S"], ["E", "E"]],
+      "solve": true
     }
   ],
   "output": {
@@ -17,10 +17,12 @@
     "svg_optimize": true,
     "svg_precision": 2,
     "style": {
-      "stroke_color": "#000000",
-      "stroke_width": 1,
+      "cell_size": 10,
       "background_color": "#00FFFFFF",
-      "cell_size": 10
+      "color": "#000000",
+      "stroke_width": 1,
+      "solution_color": "#0000FF",
+      "solution_stroke_width": 2
     }
   }
 }

@@ -47,7 +47,7 @@ import com.maltaisn.maze.maze.Maze
 class AldousBroderGenerator : Generator() {
 
     override fun generate(maze: Maze) {
-        maze.reset(false)
+        super.generate(maze)
 
         var currentCell = maze.getRandomCell()
         currentCell.visited = true

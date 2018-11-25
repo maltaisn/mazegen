@@ -34,7 +34,7 @@ import java.util.*
  * Implementation of Kruskal's algorithm as described
  * [here](http://weblog.jamisbuck.org/2011/1/3/maze-generation-kruskal-s-algorithm).
  *
- * 1. Initialize a list with all edges and create an empty tree for each cell.
+ * 1. Initialize a list with all edges and create an empty tree node for each cell.
  * 2. Pop a random edge from the list and if the trees of its cells are not connected,
  *    connect them and connect their trees' root
  * 3. Repeat step 2 until there are no more edges in the list.
@@ -42,26 +42,27 @@ import java.util.*
 class KruskalGenerator : Generator() {
 
     override fun generate(maze: Maze) {
-        maze.reset(false)
+        super.generate(maze)
+        maze.fillAll()
 
-        // Get all edges and create a tree for every cell
+        // Get all edges and create a tree node for every cell
         val edgesSet = mutableSetOf<Edge>()
-        val treesMap = mutableMapOf<Cell, Tree>()
+        val nodesMap = mutableMapOf<Cell, Node>()
         for (cell in maze.getAllCells()) {
             for (neighbor in cell.getNeighbors()) {
                 edgesSet.add(Edge(cell, neighbor))
             }
-            treesMap[cell] = Tree(cell)
+            nodesMap[cell] = Node()
         }
         val edges = edgesSet.toMutableList()
         edges.shuffle()
 
         while (edges.isNotEmpty()) {
             val edge = edges.removeAt(edges.size - 1)
-            val tree1 = treesMap[edge.cell1]!!
-            val tree2 = treesMap[edge.cell2]!!
-            if (!tree1.connectedTo(tree2)) {
-                tree1.connect(tree2)
+            val node1 = nodesMap[edge.cell1]!!
+            val node2 = nodesMap[edge.cell2]!!
+            if (!node1.connectedTo(node2)) {
+                node1.connect(node2)
                 edge.cell1.connectWith(edge.cell2)
             }
         }
@@ -72,7 +73,7 @@ class KruskalGenerator : Generator() {
      * A edge for a maze, between two cells, [cell1] and [cell2].
      * Edges are equal to each other if they have the two same cells.
      */
-    private data class Edge(val cell1: Cell, val cell2: Cell) {
+    private class Edge(val cell1: Cell, val cell2: Cell) {
 
         override fun equals(other: Any?): Boolean {
             if (other === this) return true
@@ -89,20 +90,20 @@ class KruskalGenerator : Generator() {
 
     }
 
-    private data class Tree(var cell: Cell) {
+    private class Node {
 
-        var parent: Tree? = null
+        var parent: Node? = null
 
-        fun root(): Tree = if (parent != null) {
+        fun root(): Node = if (parent != null) {
             parent!!.root()
         } else {
             this
         }
 
-        fun connectedTo(tree: Tree) = (root() === tree.root())
+        fun connectedTo(node: Node) = (root() === node.root())
 
-        fun connect(tree: Tree) {
-            tree.root().parent = this
+        fun connect(node: Node) {
+            node.root().parent = this
         }
 
     }

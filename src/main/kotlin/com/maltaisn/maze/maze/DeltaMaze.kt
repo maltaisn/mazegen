@@ -27,17 +27,23 @@ package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.maze.DeltaCell.Side
 import com.maltaisn.maze.render.Canvas
+import com.maltaisn.maze.render.Point
+import java.awt.BasicStroke
+import java.awt.Color
+import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 
 
 /**
  * Class for a triangle-tiled maze represented by 2D grid of [DeltaCell].
+ * @param[width] number of rows
+ * @param[height] number of columns
+ * @param[arrangement] cell arrangement
  */
-class DeltaMaze : Maze {
+class DeltaMaze(val width: Int, height: Int,
+                private val arrangement: Arrangement) : Maze() {
 
-    val width: Int
     val height: Int
-    val arrangement: Arrangement
 
     private val grid: Array<Array<DeltaCell>>
 
@@ -47,17 +53,10 @@ class DeltaMaze : Maze {
      */
     private val rowOffsets: IntArray
 
-    /**
-     * Create an empty delta maze with [width] columns and [height] rows shaped in [arrangement].
-     */
-    constructor(width: Int, height: Int, arrangement: Arrangement) {
+    init {
         if (width < 1 || height < 1) {
             throw IllegalArgumentException("Dimensions must be at least 1.")
         }
-
-        this.width = width
-        this.arrangement = arrangement
-
         if (arrangement == Arrangement.TRIANGLE
                 || arrangement == Arrangement.HEXAGON) {
             // Hexagon and triangle mazes have only one dimension parameter.
@@ -65,8 +64,6 @@ class DeltaMaze : Maze {
         } else {
             this.height = height
         }
-
-        // Create maze grid
         var gridWith = width * 2 - 1
         val rowsForColumn: (column: Int) -> Int
         val rowOffset: (column: Int) -> Int
@@ -111,12 +108,11 @@ class DeltaMaze : Maze {
                 rowOffset = { Math.max(0, height - gridWith + it) }
             }
         }
-
         rowOffsets = IntArray(gridWith)
         grid = Array(gridWith) { x ->
             rowOffsets[x] = rowOffset(x)
             Array(rowsForColumn(x)) { y ->
-                DeltaCell(this, PositionXY(x, y + rowOffsets[x]), Side.NONE.value)
+                DeltaCell(this, PositionXY(x, y + rowOffsets[x]))
             }
         }
     }
@@ -127,16 +123,6 @@ class DeltaMaze : Maze {
      */
     constructor(dimension: Int, arrangement: Arrangement) :
             this(dimension, dimension, arrangement)
-
-    private constructor(maze: DeltaMaze) : super(maze) {
-        width = maze.width
-        height = maze.height
-        arrangement = maze.arrangement
-        grid = Array(maze.grid.size) { x ->
-            Array(maze.grid[x].size) { y -> maze.grid[x][y].copy(this) }
-        }
-        rowOffsets = maze.rowOffsets.clone()
-    }
 
 
     override fun cellAt(pos: Position): DeltaCell = if (pos is PositionXY) {
@@ -181,49 +167,35 @@ class DeltaMaze : Maze {
         return set
     }
 
-    override fun createOpenings(vararg openings: Opening) {
-        for (opening in openings) {
-            val x = when (val pos = opening.position[0]) {
-                Opening.POS_START -> 0
-                Opening.POS_CENTER -> grid.size / 2
-                Opening.POS_END -> grid.size - 1
-                else -> pos
-            }
-            val y = when (val pos = opening.position[1]) {
-                Opening.POS_START -> 0
-                Opening.POS_CENTER -> grid[x].size / 2
-                Opening.POS_END -> grid[x].size - 1
-                else -> pos
-            } + rowOffsets[x]
-
-            val cell = optionalCellAt(PositionXY(x, y))
-            if (cell != null) {
-                for (side in cell.getAllSides()) {
-                    if (cell.getCellOnSide(side) == null) {
-                        cell.openSide(side)
-                        break
-                    }
-                }
-            } else {
-                throw IllegalArgumentException("Opening describes no cell in the maze.")
-            }
-        }
-    }
-
-    override fun reset(empty: Boolean) {
-        val value = if (empty) Side.NONE.value else Side.ALL.value
+    override fun forEachCell(action: (Cell) -> Unit) {
         for (x in 0 until grid.size) {
             for (y in 0 until grid[x].size) {
-                val cell = grid[x][y]
-                cell.visited = false
-                cell.value = value
+                action(grid[x][y])
             }
         }
     }
 
-    override fun copy(): Maze = DeltaMaze(this)
+    override fun getOpeningCell(opening: Opening): Cell? {
+        val x = when (val pos = opening.position[0]) {
+            Opening.POS_START -> 0
+            Opening.POS_CENTER -> grid.size / 2
+            Opening.POS_END -> grid.size - 1
+            else -> pos
+        }
+        val y = when (val pos = opening.position[1]) {
+            Opening.POS_START -> 0
+            Opening.POS_CENTER -> grid[x].size / 2
+            Opening.POS_END -> grid[x].size - 1
+            else -> pos
+        } + rowOffsets[x]
 
-    override fun drawTo(canvas: Canvas, cellSize: Double) {
+        return optionalCellAt(PositionXY(x, y))
+    }
+
+    override fun drawTo(canvas: Canvas,
+                        cellSize: Double, backgroundColor: Color?,
+                        color: Color, stroke: BasicStroke,
+                        solutionColor: Color, solutionStroke: BasicStroke) {
         var maxHeight = 0
         for (x in 0 until grid.size) {
             val height = grid[x].size + rowOffsets[x]
@@ -231,9 +203,20 @@ class DeltaMaze : Maze {
         }
 
         val cellHeight = Math.sqrt(3.0) / 2 * cellSize
-        canvas.width = (grid.size / 2.0 + 0.5) * cellSize
-        canvas.height = maxHeight * cellHeight
+        canvas.init((grid.size / 2.0 + 0.5) * cellSize + stroke.lineWidth,
+                maxHeight * cellHeight + stroke.lineWidth)
 
+        // Draw the background
+        if (backgroundColor != null) {
+            canvas.color = backgroundColor
+            canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
+        }
+
+        // Draw the maze
+        val offset = stroke.lineWidth / 2.0
+        canvas.translate(offset, offset)
+        canvas.color = color
+        canvas.stroke = stroke
         for (x in 0 until grid.size) {
             for (y in 0 until grid[x].size) {
                 val cell = grid[x][y]
@@ -268,7 +251,24 @@ class DeltaMaze : Maze {
                 }
             }
         }
+
+        // Draw the solution
+        if (solution != null) {
+            canvas.color = solutionColor
+            canvas.stroke = solutionStroke
+
+            val points = LinkedList<Point>()
+            for (cell in solution!!) {
+                val pos = cell.position as PositionXY
+                val flatTopped = (pos.x + pos.y) % 2 == 0
+                val px = (pos.x + 1.0) * cellSize / 2.0
+                val py = (pos.y + (if (flatTopped) 1 else 2) / 3.0) * cellHeight
+                points.add(Point(px, py))
+            }
+            canvas.drawPolyline(points)
+        }
     }
+
 
     override fun toString(): String {
         return "[arrangement: $arrangement, ${if (arrangement == Arrangement.TRIANGLE

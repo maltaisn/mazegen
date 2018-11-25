@@ -27,17 +27,23 @@ package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.maze.HexCell.Side
 import com.maltaisn.maze.render.Canvas
+import com.maltaisn.maze.render.Point
+import java.awt.BasicStroke
+import java.awt.Color
+import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 
 
 /**
  * Class for a hexagon-tiled maze represented by 2D grid of [HexCell].
+ * @param[width] number of rows
+ * @param[height] number of columns
+ * @param[arrangement] cell arrangement
  */
-class HexMaze : Maze {
+class HexMaze(val width: Int, height: Int,
+              private val arrangement: Arrangement) : Maze() {
 
-    val width: Int
     val height: Int
-    val arrangement: Arrangement
 
     /**
      * Hexagonal maze grid. There number of columns is the same as the maze width, except for
@@ -52,17 +58,10 @@ class HexMaze : Maze {
      */
     private val rowOffsets: IntArray
 
-    /**
-     * Create an empty delta maze with [width] columns and [height] rows shaped in [arrangement].
-     */
-    constructor(width: Int, height: Int, arrangement: Arrangement) {
+    init {
         if (width < 1 || height < 1) {
             throw IllegalArgumentException("Dimensions must be at least 1.")
         }
-
-        this.width = width
-        this.arrangement = arrangement
-
         if (arrangement == Arrangement.TRIANGLE
                 || arrangement == Arrangement.HEXAGON) {
             // Hexagon and triangle mazes have only one dimension parameter.
@@ -70,8 +69,6 @@ class HexMaze : Maze {
         } else {
             this.height = height
         }
-
-        // Create maze grid
         var gridWith = width
         val rowsForColumn: (column: Int) -> Int
         val rowOffset: (column: Int) -> Int
@@ -94,32 +91,22 @@ class HexMaze : Maze {
                 rowOffset = { 0 }
             }
         }
-
         rowOffsets = IntArray(gridWith)
         grid = Array(gridWith) { x ->
             rowOffsets[x] = rowOffset(x)
             Array(rowsForColumn(x)) { y ->
-                HexCell(this, PositionXY(x, y + rowOffsets[x]), Side.NONE.value)
+                HexCell(this, PositionXY(x, y + rowOffsets[x]))
             }
         }
     }
 
     /**
-     * Create a new hexagonal maze with the same width and height, equal to [dimension]
+     * Create a new maze with the same width and height, equal to [dimension]
      * Hexagon and triangle mazes should be created with this constructor.
      */
     constructor(dimension: Int, arrangement: Arrangement) :
             this(dimension, dimension, arrangement)
 
-    private constructor(maze: HexMaze) : super(maze) {
-        width = maze.width
-        height = maze.height
-        arrangement = maze.arrangement
-        grid = Array(maze.grid.size) { x ->
-            Array(maze.grid[x].size) { y -> maze.grid[x][y].copy(this) }
-        }
-        rowOffsets = maze.rowOffsets.clone()
-    }
 
     override fun cellAt(pos: Position): HexCell = if (pos is PositionXY) {
         grid[pos.x][pos.y - rowOffsets[pos.x]]
@@ -161,54 +148,34 @@ class HexMaze : Maze {
         return set
     }
 
-    override fun createOpenings(vararg openings: Opening) {
-        for (opening in openings) {
-            val x = when (val pos = opening.position[0]) {
-                Opening.POS_START -> 0
-                Opening.POS_CENTER -> grid.size / 2
-                Opening.POS_END -> grid.size - 1
-                else -> pos
-            }
-            val y = when (val pos = opening.position[1]) {
-                Opening.POS_START -> 0
-                Opening.POS_CENTER -> grid[x].size / 2
-                Opening.POS_END -> grid[x].size - 1
-                else -> pos
-            } + rowOffsets[x]
-
-            val cell = optionalCellAt(PositionXY(x, y))
-            if (cell != null) {
-                for (side in cell.getAllSides()) {
-                    if (cell.getCellOnSide(side) == null) {
-                        cell.openSide(side)
-                        break
-                    }
-                }
-            } else {
-                throw IllegalArgumentException("Opening describes no cell in the maze.")
-            }
-        }
-    }
-
-    override fun reset(empty: Boolean) {
-        val value = if (empty) Side.NONE.value else Side.ALL.value
+    override fun forEachCell(action: (Cell) -> Unit) {
         for (x in 0 until grid.size) {
             for (y in 0 until grid[x].size) {
-                val cell = grid[x][y]
-                cell.visited = false
-                cell.value = value
+                action(grid[x][y])
             }
         }
     }
 
-    override fun copy(): Maze = HexMaze(this)
+    override fun getOpeningCell(opening: Opening): Cell? {
+        val x = when (val pos = opening.position[0]) {
+            Opening.POS_START -> 0
+            Opening.POS_CENTER -> grid.size / 2
+            Opening.POS_END -> grid.size - 1
+            else -> pos
+        }
+        val y = when (val pos = opening.position[1]) {
+            Opening.POS_START -> 0
+            Opening.POS_CENTER -> grid[x].size / 2
+            Opening.POS_END -> grid[x].size - 1
+            else -> pos
+        } + rowOffsets[x]
+        return optionalCellAt(PositionXY(x, y))
+    }
 
-    /**
-     * Render the maze to a canvas.
-     * Without going into details, only half the sides are drawn
-     * for each cell except the bottommost and rightmost cells.
-     */
-    override fun drawTo(canvas: Canvas, cellSize: Double) {
+    override fun drawTo(canvas: Canvas,
+                        cellSize: Double, backgroundColor: Color?,
+                        color: Color, stroke: BasicStroke,
+                        solutionColor: Color, solutionStroke: BasicStroke) {
         // Find the empty top padding (minTop) and maximum column rows
         var maxRow = 0.0
         var minTop = Double.MAX_VALUE
@@ -221,9 +188,22 @@ class HexMaze : Maze {
         maxRow -= minTop
 
         val cellHeight = Math.sqrt(3.0) * cellSize
-        canvas.width = (1.5 * (grid.size - 1) + 2) * cellSize
-        canvas.height = cellHeight * maxRow
+        canvas.init((1.5 * (grid.size - 1) + 2) * cellSize + stroke.lineWidth,
+                cellHeight * maxRow + stroke.lineWidth)
 
+        // Draw the background
+        if (backgroundColor != null) {
+            canvas.color = backgroundColor
+            canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
+        }
+
+        // Draw the maze
+        // Without going into details, only half the sides are drawn
+        // for each cell except the bottommost and rightmost cells.
+        val offset = stroke.lineWidth / 2.0
+        canvas.translate(offset, offset)
+        canvas.color = color
+        canvas.stroke = stroke
         for (x in 0 until grid.size) {
             val cx = (1.5 * x + 1) * cellSize
             for (y in 0 until grid[x].size) {
@@ -262,7 +242,23 @@ class HexMaze : Maze {
                 }
             }
         }
+
+        // Draw the solution
+        if (solution != null) {
+            canvas.color = solutionColor
+            canvas.stroke = solutionStroke
+
+            val points = LinkedList<Point>()
+            for (cell in solution!!) {
+                val pos = cell.position as PositionXY
+                val px = (1.5 * pos.x + 1) * cellSize
+                val py = (pos.y - minTop + (grid.size - pos.x - 1) / 2.0 + 0.5) * cellHeight
+                points.add(Point(px, py))
+            }
+            canvas.drawPolyline(points)
+        }
     }
+
 
     override fun toString(): String {
         return "[arrangement: $arrangement, ${if (arrangement == Arrangement.TRIANGLE

@@ -23,45 +23,37 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.maltaisn.maze.maze
+package com.maltaisn.maze.render
 
 
 /**
- * A square cell for [RectCell].
- * Has north, east, south and east sides.
+ * 2D point with double coordinates.
  */
-class RectCell(maze: RectMaze, position: PositionXY) : Cell(maze, position) {
+data class Point(val x: Double, val y: Double) {
 
-    override fun getAllSides(): List<Side> = ALL_SIDES
+    private var hash = 0
 
-    override fun getAllSideValue(): Side = Side.ALL
+    operator fun plus(point: Point): Point = Point(x + point.x, y + point.y)
 
-    /**
-     * Enum class for the side a rectangular cell
-     */
-    enum class Side(override val value: Int,
-                    override val relativePos: PositionXY?,
-                    override val symbol: String?) : Cell.Side {
-        NONE(0, null, null),
-        NORTH(1, PositionXY(0, -1), "N"),
-        EAST(2, PositionXY(1, 0), "E"),
-        SOUTH(4, PositionXY(0, 1), "S"),
-        WEST(8, PositionXY(-1, 0), "W"),
-        ALL(15, null, null);
+    operator fun minus(point: Point): Point = Point(x - point.x, y - point.y)
 
-        override fun opposite(): Side = when (this) {
-            NONE -> NONE
-            NORTH -> SOUTH
-            SOUTH -> NORTH
-            EAST -> WEST
-            WEST -> EAST
-            ALL -> ALL
-        }
-
+    override fun equals(other: Any?): Boolean {
+        if (other === this) return true
+        if (other !is Point) return false
+        return x == other.x && y == other.y
     }
 
-    companion object {
-        private val ALL_SIDES = listOf(Side.NORTH, Side.SOUTH, Side.WEST, Side.EAST)
+    /**
+     * Hash function taken from [javafx.geometry.Point2D].
+     */
+    override fun hashCode(): Int {
+        if (hash == 0) {
+            var bits = 7L
+            bits = 31L * bits + x.toBits()
+            bits = 31L * bits + y.toBits()
+            hash = (bits xor (bits shr 32)).toInt()
+        }
+        return hash
     }
 
 }

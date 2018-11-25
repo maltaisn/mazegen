@@ -28,8 +28,15 @@ package com.maltaisn.maze.maze
 
 /**
  * Interface for a cell position in the maze.
+ * @param[P] Position type
  */
 interface Position {
+
+    /**
+     * Return the distance from this position to [pos].
+     * Used by the maze solver as an arbritrary cost heuristic.
+     */
+    fun distanceTo(pos: Position): Int
 
     /**
      * Return a new position corresponding to the sum of this position and [pos].

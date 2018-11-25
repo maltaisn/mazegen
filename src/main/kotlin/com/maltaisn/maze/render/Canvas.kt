@@ -25,27 +25,54 @@
 
 package com.maltaisn.maze.render
 
+import java.awt.BasicStroke
 import java.awt.Color
 import java.io.File
+import java.util.*
 
 
 /**
- * Interface for a class to draw a maze and output it to a file.
- * The canvas uses a positive Y down, positive X right coordinate system.
+ * Interface for a class that draws graphics and output it to a file.
  */
 abstract class Canvas {
 
-    var width = SIZE_NONE
-    var height = SIZE_NONE
+    var width = SIZE_UNSET
+        private set
+    var height = SIZE_UNSET
+        private set
 
-    var strokeWidth = 1.0
-    var strokeColor = Color.BLACK!!
-    var backgroundColor = parseColor("#00FFFFFF")
+    open var stroke: BasicStroke = BasicStroke(1f)
+    open var color: Color = Color.BLACK
+
+    /**
+     * Initialize the canvas with a width and height.
+     * Should only be called once.
+     */
+    open fun init(width: Double, height: Double) {
+        this.width = width
+        this.height = height
+    }
 
     /**
      * Draw a line from ([x1], [y1]) to ([x2], [y2]).
      */
     abstract fun drawLine(x1: Double, y1: Double, x2: Double, y2: Double)
+
+    /**
+     * Draw a polyline with [points], a list of points.
+     */
+    abstract fun drawPolyline(points: LinkedList<Point>)
+
+    /**
+     * Draw a rectangle with its top left corner at ([x]; [y]) and with dimensions [width] x [height].
+     * @param[filled] whether to draw a filled rect or just the outline.
+     */
+    abstract fun drawRect(x: Double, y: Double, width: Double, height: Double, filled: Boolean)
+
+    /**
+     * Translate the canvas by [x] horizontally and [y] vertically.
+     */
+    abstract fun translate(x: Double, y: Double)
 
     /**
      * Export the canvas image to [file].
@@ -54,8 +81,11 @@ abstract class Canvas {
 
 
     companion object {
-        const val SIZE_NONE = -1.0
+        const val SIZE_UNSET = -1.0
 
+        /**
+         * Parse a hex color string like `#RRGGBB` or `#AARRGGBB` to a [Color].
+         */
         fun parseColor(color: String): Color {
             if (color.startsWith('#')) {
                 val value = color.substring(1).toInt(16)

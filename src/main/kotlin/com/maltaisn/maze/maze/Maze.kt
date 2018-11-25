@@ -26,20 +26,39 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.render.Canvas
+import java.awt.BasicStroke
+import java.awt.Color
+import java.util.*
 
 
 /**
- * Interface for a maze.
+ * Base class for a maze.
  */
 abstract class Maze {
 
+    /**
+     * The name of the maze, can be null for none.
+     */
     var name: String? = null
 
-    constructor()
+    /**
+     * Whether this maze has been generated yet or not.
+     * A maze can only be generated once.
+     */
+    var generated = false
 
-    constructor(maze: Maze) {
-        name = maze.name
-    }
+    /**
+     * The list of cell with openings in the maze.
+     */
+    private val openings = ArrayList<Cell>()
+
+    /**
+     * The maze solution, a list of the path's cells starting from the first
+     * opening and ending on the second. Null if no solution was found yet.
+     */
+    var solution: LinkedList<Cell>? = null
+        private set
+
 
     /**
      * Returns the cell at [pos].
@@ -67,25 +86,130 @@ abstract class Maze {
     abstract fun getAllCells(): LinkedHashSet<out Cell>
 
     /**
-     * Create openings [openings] in the maze.
-     * An exception is thrown if the opening position doesn't match any cell.
+     * Call [action] on every cell
      */
-    abstract fun createOpenings(vararg openings: Opening)
+    abstract fun forEachCell(action: (Cell) -> (Unit))
 
     /**
-     * Clears all the sides of all cells in the maze if [empty] is true,
-     * otherwise sets all sides on all the cells. All cells are set as unvisited.
+     * Clear all sides of all cells in the maze.
      */
-    abstract fun reset(empty: Boolean)
+    fun resetAll() {
+        forEachCell { it.value = 0 }
+    }
 
     /**
-     * Creates a deep copy of this maze.
+     * Set all sides of all cells in the maze.
      */
-    abstract fun copy(): Maze
+    fun fillAll() {
+        forEachCell { it.value = it.getAllSideValue().value }
+    }
 
     /**
-     * Draw the maze to a [canvas], with an arbitrarey cell size parameter of [cellSize].
+     * Create an [opening] in the maze. An exception is thrown if the opening position
+     * doesn't match any cell or if the opening already exists.
      */
-    abstract fun drawTo(canvas: Canvas, cellSize: Double)
+    fun createOpening(opening: Opening) {
+        val cell = getOpeningCell(opening)
+        if (cell != null) {
+            if (openings.contains(cell)) {
+                throw IllegalArgumentException("Duplicate opening.")
+            }
+
+            for (side in cell.getAllSides()) {
+                if (cell.getCellOnSide(side) == null) {
+                    cell.openSide(side)
+                    break
+                }
+            }
+
+            openings.add(cell)
+        } else {
+            throw IllegalArgumentException("Opening describes no cell in the maze.")
+        }
+    }
+
+    /**
+     * Get the cell described by the [opening] position.
+     */
+    abstract fun getOpeningCell(opening: Opening): Cell?
+
+    /**
+     * Find the solution of the maze, starting from the first opening and ending
+     * on the second opening. The solution is a list of cells in the path, starting
+     * from the start cell, or null if there's no solution.
+     */
+    fun solve() {
+        if (!generated) {
+            throw IllegalStateException("Maze must be generated before being solved.")
+        } else if (openings.size < 2) {
+            throw IllegalStateException("Not enough openings to solve this maze.")
+        }
+
+        forEachCell { it.visited = false }
+
+        val start = openings[0]
+        val end = openings[1]
+
+        val set = LinkedHashSet<Node>()
+
+        // Add the start cell as the initial node
+        set.add(Node(null, start, 0,
+                start.position.distanceTo(end.position)))
+
+        while (set.isNotEmpty()) {
+            // Find the frontier cell with the lowest cost and remove it from set.
+            val node = set.minBy { it.costFromStart + it.costToEnd }!!
+            set.remove(node)
+
+            val cell = node.cell
+            cell.visited = true
+            for (neighbor in cell.getNeighbors()) {
+                if (!neighbor.visited && !neighbor.hasSide(neighbor.findSideOfCell(cell)!!)) {
+                    if (neighbor === end) {
+                        // Found path to the end cell
+                        val path = LinkedList<Cell>()
+                        path.addFirst(end)
+                        var currentNode: Node? = node
+                        while (currentNode != null) {
+                            path.addFirst(currentNode.cell)
+                            currentNode = currentNode.parent
+                        }
+                        solution = path
+                        return
+                    }
+
+                    // Add all unvisited neighbors to the frontier set
+                    set.add(Node(node, neighbor, node.costFromStart + 1,
+                            neighbor.position.distanceTo(end.position)))
+                    neighbor.visited = true
+                }
+            }
+        }
+
+        // All cells were visited, no path was found.
+        solution = null
+    }
+
+    private data class Node(val parent: Node?, val cell: Cell,
+                            val costFromStart: Int, val costToEnd: Int) {
+
+        override fun equals(other: Any?): Boolean {
+            if (other === this) return true
+            if (other !is Node) return false
+            return cell === other.cell
+        }
+
+        override fun hashCode(): Int = cell.hashCode()
+
+    }
+
+
+    /**
+     * Draw the maze to a [canvas], with an arbritrary [cellSize] and other styling settings.
+     */
+    abstract fun drawTo(canvas: Canvas,
+                        cellSize: Double, backgroundColor: Color?,
+                        color: Color, stroke: BasicStroke,
+                        solutionColor: Color, solutionStroke: BasicStroke)
 
 }

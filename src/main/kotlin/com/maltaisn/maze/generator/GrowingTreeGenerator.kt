@@ -63,7 +63,8 @@ class GrowingTreeGenerator : Generator() {
     }
 
     override fun generate(maze: Maze) {
-        maze.reset(false)
+        super.generate(maze)
+        maze.fillAll()
 
         val initialCell = maze.getRandomCell()
         initialCell.visited = true

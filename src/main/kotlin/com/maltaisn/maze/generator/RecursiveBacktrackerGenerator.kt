@@ -46,7 +46,8 @@ import com.maltaisn.maze.maze.Maze
 class RecursiveBacktrackerGenerator : Generator() {
 
     override fun generate(maze: Maze) {
-        maze.reset(false)
+        super.generate(maze)
+        maze.fillAll()
 
         // Get cell on a random starting location
         var currentCell = maze.getRandomCell()

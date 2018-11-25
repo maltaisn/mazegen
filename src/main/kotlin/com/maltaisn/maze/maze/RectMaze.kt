@@ -27,41 +27,29 @@ package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.maze.RectCell.Side
 import com.maltaisn.maze.render.Canvas
+import com.maltaisn.maze.render.Point
+import java.awt.BasicStroke
+import java.awt.Color
+import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 
 
 /**
  * Class for a square-tiled maze represented by 2D grid of [RectCell].
+ * Create an empty maze with [width] columns and [height] rows.
  */
-class RectMaze : Maze {
-
-    val width: Int
-    val height: Int
+class RectMaze(val width: Int, val height: Int) : Maze() {
 
     private val grid: Array<Array<RectCell>>
 
-    /**
-     * Create an empty maze with [width] columns and [height] rows.
-     */
-    constructor(width: Int, height: Int) {
+    init {
         if (width < 1 || height < 1) {
             throw IllegalArgumentException("Dimensions must be at least 1.")
         }
-
-        this.width = width
-        this.height = height
         grid = Array(width) { x ->
             Array(height) { y ->
-                RectCell(this, PositionXY(x, y), Side.NONE.value)
+                RectCell(this, PositionXY(x, y))
             }
-        }
-    }
-
-    private constructor(maze: RectMaze) : super(maze) {
-        width = maze.width
-        height = maze.height
-        grid = Array(maze.grid.size) { x ->
-            Array(maze.grid[x].size) { y -> maze.grid[x][y].copy(this) }
         }
     }
 
@@ -82,7 +70,7 @@ class RectMaze : Maze {
 
     override fun getRandomCell(): RectCell {
         val random = ThreadLocalRandom.current()
-        return cellAt(PositionXY(random.nextInt(width), random.nextInt(height)))
+        return grid[random.nextInt(width)][random.nextInt(height)]
     }
 
     override fun getCellCount(): Int = width * height
@@ -97,73 +85,82 @@ class RectMaze : Maze {
         return set
     }
 
-    override fun createOpenings(vararg openings: Opening) {
-        for (opening in openings) {
-            val x = when (val pos = opening.position[0]) {
-                Opening.POS_START -> 0
-                Opening.POS_CENTER -> width / 2
-                Opening.POS_END -> width - 1
-                else -> pos
-            }
-            val y = when (val pos = opening.position[1]) {
-                Opening.POS_START -> 0
-                Opening.POS_CENTER -> height / 2
-                Opening.POS_END -> height - 1
-                else -> pos
-            }
-
-            val cell = optionalCellAt(PositionXY(x, y))
-            if (cell != null) {
-                for (side in cell.getAllSides()) {
-                    if (cell.getCellOnSide(side) == null) {
-                        cell.openSide(side)
-                        break
-                    }
-                }
-            } else {
-                throw IllegalArgumentException("Opening describes no cell in the maze.")
-            }
-        }
-    }
-
-    override fun reset(empty: Boolean) {
-        val value = if (empty) Side.NONE.value else Side.ALL.value
+    override fun forEachCell(action: (Cell) -> Unit) {
         for (x in 0 until width) {
             for (y in 0 until height) {
-                val cell = grid[x][y]
-                cell.visited = false
-                cell.value = value
+                action(grid[x][y])
             }
         }
     }
 
-    override fun copy(): Maze = RectMaze(this)
+    override fun getOpeningCell(opening: Opening): Cell? {
+        val x = when (val pos = opening.position[0]) {
+            Opening.POS_START -> 0
+            Opening.POS_CENTER -> width / 2
+            Opening.POS_END -> width - 1
+            else -> pos
+        }
+        val y = when (val pos = opening.position[1]) {
+            Opening.POS_START -> 0
+            Opening.POS_CENTER -> height / 2
+            Opening.POS_END -> height - 1
+            else -> pos
+        }
+        return optionalCellAt(PositionXY(x, y))
+    }
 
-    /**
-     * Draw the maze to a canvas.
-     * For each cell, only the north and east sides are drawn if they are set,
-     * except for the last row and column where to south and east side are also drawn.
-     */
-    override fun drawTo(canvas: Canvas, cellSize: Double) {
-        canvas.width = width * cellSize
-        canvas.height = height * cellSize
+    override fun drawTo(canvas: Canvas,
+                        cellSize: Double, backgroundColor: Color?,
+                        color: Color, stroke: BasicStroke,
+                        solutionColor: Color, solutionStroke: BasicStroke) {
+        canvas.init(width * cellSize + stroke.lineWidth,
+                height * cellSize + stroke.lineWidth)
 
+        // Draw the background
+        if (backgroundColor != null) {
+            canvas.color = backgroundColor
+            canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
+        }
+
+        // Draw the maze
+        // For each cell, only the north and east sides are drawn if they are set,
+        // except for the last row and column where to south and east side are also drawn.
+        val offset = stroke.lineWidth / 2.0
+        canvas.translate(offset, offset)
+        canvas.color = color
+        canvas.stroke = stroke
         for (x in 0..width) {
             val px = x * cellSize
             for (y in 0..height) {
                 val py = y * cellSize
                 val cell = optionalCellAt(PositionXY(x, y))
                 if (cell != null && cell.hasSide(Side.NORTH) || cell == null
-                        && optionalCellAt(PositionXY(x, y - 1))?.hasSide(Side.SOUTH) != null) {
+                        && optionalCellAt(PositionXY(x, y - 1))?.hasSide(Side.SOUTH) == true) {
                     canvas.drawLine(px, py, px + cellSize, py)
                 }
                 if (cell != null && cell.hasSide(Side.WEST) || cell == null
-                        && optionalCellAt(PositionXY(x - 1, y))?.hasSide(Side.EAST) != null) {
+                        && optionalCellAt(PositionXY(x - 1, y))?.hasSide(Side.EAST) == true) {
                     canvas.drawLine(px, py, px, py + cellSize)
                 }
             }
         }
+
+        // Draw the solution
+        if (solution != null) {
+            canvas.color = solutionColor
+            canvas.stroke = solutionStroke
+
+            val points = LinkedList<Point>()
+            for (cell in solution!!) {
+                val pos = cell.position as PositionXY
+                val px = (pos.x + 0.5) * cellSize
+                val py = (pos.y + 0.5) * cellSize
+                points.add(Point(px, py))
+            }
+            canvas.drawPolyline(points)
+        }
     }
+
 
     override fun toString(): String {
         return "[width: $width, height: $height]"
