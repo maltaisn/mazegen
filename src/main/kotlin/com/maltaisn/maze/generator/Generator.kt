@@ -26,16 +26,13 @@
 package com.maltaisn.maze.generator
 
 import com.maltaisn.maze.maze.Maze
-import java.util.concurrent.ThreadLocalRandom
 
 
 /**
- * Base class for a maze generator
- * Generates a maze into [maze], reseting its previous state.
+ * Base class for a maze generator. Comparison of generator algorithms can be found
+ * [here](http://people.cs.ksu.edu/~ashley78/wiki.ashleycoleman.me/index.php/Perfect_Maze_Generators.html).
  */
 abstract class Generator {
-
-    protected val random = ThreadLocalRandom.current()!!
 
     /**
      * Generate a maze into [maze].

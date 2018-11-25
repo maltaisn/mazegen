@@ -31,7 +31,7 @@ import com.maltaisn.maze.render.Point
 import java.awt.BasicStroke
 import java.awt.Color
 import java.util.*
-import java.util.concurrent.ThreadLocalRandom
+import kotlin.random.Random
 
 
 /**
@@ -125,9 +125,8 @@ class HexMaze(val width: Int, height: Int,
     }
 
     override fun getRandomCell(): HexCell {
-        val random = ThreadLocalRandom.current()
-        val x = random.nextInt(grid.size)
-        return grid[x][random.nextInt(grid[x].size)]
+        val x = Random.nextInt(grid.size)
+        return grid[x][Random.nextInt(grid[x].size)]
     }
 
     override fun getCellCount(): Int {
@@ -204,10 +203,10 @@ class HexMaze(val width: Int, height: Int,
         canvas.translate(offset, offset)
         canvas.color = color
         canvas.stroke = stroke
+        var cx = cellSize
         for (x in 0 until grid.size) {
-            val cx = (1.5 * x + 1) * cellSize
+            var cy = (rowOffsets[x] - minTop + (grid.size - x - 1) / 2.0 + 0.5) * cellHeight
             for (y in 0 until grid[x].size) {
-                val cy = (y + rowOffsets[x] - minTop + (grid.size - x - 1) / 2.0 + 0.5) * cellHeight
                 val cell = grid[x][y]
 
                 // Draw north, northwest and southwest for every cell
@@ -240,7 +239,10 @@ class HexMaze(val width: Int, height: Int,
                     canvas.drawLine(cx + cellSize, cy,
                             cx + cellSize / 2, cy - cellHeight / 2)
                 }
+
+                cy += cellHeight
             }
+            cx += 1.5 * cellSize
         }
 
         // Draw the solution

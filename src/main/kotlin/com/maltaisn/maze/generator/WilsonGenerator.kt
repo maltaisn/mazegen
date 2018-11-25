@@ -44,6 +44,8 @@ import com.maltaisn.maze.maze.Maze
  * which is very low, because each cell can be visited many times and the
  * algorithm has to find all the unvisited cells by walking randomly.
  * The algorithm is still more efficient than [AldousBroderGenerator].
+ *
+ * Runtime complexity is O(n) at best and O(∞) at worst. Memory space is O(n).
  */
 class WilsonGenerator : Generator() {
 

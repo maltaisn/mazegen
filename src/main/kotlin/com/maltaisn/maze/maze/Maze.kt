@@ -137,6 +137,22 @@ abstract class Maze {
      * Find the solution of the maze, starting from the first opening and ending
      * on the second opening. The solution is a list of cells in the path, starting
      * from the start cell, or null if there's no solution.
+     *
+     * This uses the A* star algorithm as described
+     * [here](https://en.wikipedia.org/wiki/A*_search_algorithm#Description).
+     *
+     * 1. Make the starting cell the root node and add it to a set.
+     * 2. Find the node in the set with the lowest "cost". Cost is the sum of the
+     *    cost from the start and the lowest possible cost to the end. The cost from
+     *    the start is the number of cells travelled to get to the node's cell. The
+     *    lowest cost to the end is the minimum number of cells that have to be
+     *    travelled to get to the end cell. Remove this node from the set.
+     * 3. Add nodes of all unvisited neighbor of this node's cell
+     *    to the set and mark them as visited.
+     * 4. Repeat step 2 and 3 until the set is empty, hence there is no solution, or
+     *    when the cell of the node selected at step 2 is the end cell.
+     *
+     * Runtime complexity is O(n) and memory space is O(n).
      */
     fun solve() {
         if (!generated) {
@@ -163,25 +179,29 @@ abstract class Maze {
 
             val cell = node.cell
             cell.visited = true
-            for (neighbor in cell.getNeighbors()) {
-                if (!neighbor.visited && !neighbor.hasSide(neighbor.findSideOfCell(cell)!!)) {
-                    if (neighbor === end) {
-                        // Found path to the end cell
-                        val path = LinkedList<Cell>()
-                        path.addFirst(end)
-                        var currentNode: Node? = node
-                        while (currentNode != null) {
-                            path.addFirst(currentNode.cell)
-                            currentNode = currentNode.parent
-                        }
-                        solution = path
-                        return
-                    }
 
-                    // Add all unvisited neighbors to the frontier set
-                    set.add(Node(node, neighbor, node.costFromStart + 1,
-                            neighbor.position.distanceTo(end.position)))
-                    neighbor.visited = true
+            if (cell === end) {
+                // Found path to the end cell
+                val path = LinkedList<Cell>()
+                path.addFirst(end)
+                var currentNode: Node? = node
+                while (currentNode != null) {
+                    path.addFirst(currentNode.cell)
+                    currentNode = currentNode.parent
+                }
+                solution = path
+                return
+            }
+
+            for (side in cell.getAllSides()) {
+                if (!cell.hasSide(side)) {
+                    val neighbor = cell.getCellOnSide(side)
+                    if (neighbor != null && !neighbor.visited) {
+                        // Add all unvisited neighbors to the frontier set
+                        set.add(Node(node, neighbor, node.costFromStart + 1,
+                                neighbor.position.distanceTo(end.position)))
+                        neighbor.visited = true
+                    }
                 }
             }
         }

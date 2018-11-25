@@ -49,6 +49,10 @@ abstract class Canvas {
      * Should only be called once.
      */
     open fun init(width: Double, height: Double) {
+        if (width == SIZE_UNSET) {
+            throw IllegalArgumentException("This canvas was already initialized.")
+        }
+
         this.width = width
         this.height = height
     }
@@ -88,7 +92,7 @@ abstract class Canvas {
          */
         fun parseColor(color: String): Color {
             if (color.startsWith('#')) {
-                val value = color.substring(1).toInt(16)
+                val value = color.substring(1).toLong(16).toInt()
                 if (color.length == 7) {
                     return Color(value)
                 } else if (color.length == 9) {

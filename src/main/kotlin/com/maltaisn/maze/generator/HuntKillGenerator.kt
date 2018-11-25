@@ -27,6 +27,7 @@ package com.maltaisn.maze.generator
 
 import com.maltaisn.maze.maze.Cell
 import com.maltaisn.maze.maze.Maze
+import kotlin.random.Random
 
 
 /**
@@ -47,6 +48,9 @@ import com.maltaisn.maze.maze.Maze
  * because instead of finding an unvisited cell next to a visited cells, it does the
  * opposite, and randomly. As a result, it's faster but also produces results more
  * similar to the recursive backtracker.
+ *
+ * Runtime complexity is O(n) and memory space is O(n).
+ * A traditional implementation would have complexity of O(n²) and memory space of O(1).
  */
 class HuntKillGenerator : Generator() {
 
@@ -83,7 +87,7 @@ class HuntKillGenerator : Generator() {
             // Hunt: find a visited cell with an unvisited neighbor
             var found = false
             while (visitedCells.size > 0) {
-                val index = random.nextInt(visitedCells.size)
+                val index = Random.nextInt(visitedCells.size)
                 val cell = visitedCells[index]
                 if (cell.getNeighbors().find { !it.visited } != null) {
                     // Found one

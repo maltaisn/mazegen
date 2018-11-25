@@ -31,7 +31,7 @@ import com.maltaisn.maze.render.Point
 import java.awt.BasicStroke
 import java.awt.Color
 import java.util.*
-import java.util.concurrent.ThreadLocalRandom
+import kotlin.random.Random
 
 
 /**
@@ -144,9 +144,8 @@ class DeltaMaze(val width: Int, height: Int,
     }
 
     override fun getRandomCell(): DeltaCell {
-        val random = ThreadLocalRandom.current()
-        val x = random.nextInt(grid.size)
-        return grid[x][random.nextInt(grid[x].size)]
+        val x = Random.nextInt(grid.size)
+        return grid[x][Random.nextInt(grid[x].size)]
     }
 
     override fun getCellCount(): Int {

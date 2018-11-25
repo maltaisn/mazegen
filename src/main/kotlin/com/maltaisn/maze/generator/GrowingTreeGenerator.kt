@@ -27,6 +27,7 @@ package com.maltaisn.maze.generator
 
 import com.maltaisn.maze.maze.Cell
 import com.maltaisn.maze.maze.Maze
+import kotlin.random.Random
 
 
 /**
@@ -49,6 +50,8 @@ import com.maltaisn.maze.maze.Maze
  * [setChooseByWeight] can be used to assign weights to a random choice between
  * choosing a random cell, the newest cell and the oldest cell.
  * [cellChooser] can also be set directly for customized behavior.
+ *
+ * Runtime complexity is O(n) and memory space is O(n).
  */
 class GrowingTreeGenerator : Generator() {
 
@@ -56,7 +59,7 @@ class GrowingTreeGenerator : Generator() {
      * The function used for choosing a cell instead of weights.
      * [setChooseByWeight] can be used for auto generating a function.
      */
-    lateinit var cellChooser: ((List<Cell>) -> Cell)
+    lateinit var cellChooser: ((List<Cell>) -> Int)
 
     init {
         setChooseByWeight(1, 1, 0)
@@ -71,7 +74,8 @@ class GrowingTreeGenerator : Generator() {
         val list = mutableListOf(initialCell)
         do {
             // Choose a cell from list
-            val currentCell = cellChooser(list)
+            val index = cellChooser(list)
+            val currentCell = list[index]
 
             var connected = false
             for (neighbor in currentCell.getNeighbors().shuffled()) {
@@ -88,7 +92,7 @@ class GrowingTreeGenerator : Generator() {
             }
             if (!connected) {
                 // Cell has no unvisited neighbor: remove it from list
-                list.remove(currentCell)
+                list.removeAt(index)
             }
         } while (list.isNotEmpty())
     }
@@ -104,9 +108,9 @@ class GrowingTreeGenerator : Generator() {
         cellChooser = { list ->
             val choice = (0 until weightSum).random()
             when {
-                choice < random -> list.random()
-                choice < random + newest -> list.last()
-                else -> list.first()
+                choice < random -> Random.nextInt(list.size)
+                choice < random + newest -> list.size - 1
+                else -> 0
             }
         }
     }

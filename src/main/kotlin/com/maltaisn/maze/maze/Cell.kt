@@ -135,6 +135,11 @@ abstract class Cell(val maze: Maze, val position: Position) {
     }
 
     /**
+     * Return the number of sides set on this cell.
+     */
+    fun countSides(): Int = Integer.bitCount(value)
+
+    /**
      * Returns the enum value representing all sides.
      */
     abstract fun getAllSideValue(): Side
@@ -183,9 +188,9 @@ abstract class Cell(val maze: Maze, val position: Position) {
     override fun hashCode(): Int = position.hashCode()
 
     override fun equals(other: Any?): Boolean {
-        if (other === this) return true
-        if (other !is Cell) return false
-        return maze == other.maze && position == other.position
+        // A cell cannot be equal to another, there is exactly
+        // one cell for each position of every maze.
+        return other === this
     }
 
     /**

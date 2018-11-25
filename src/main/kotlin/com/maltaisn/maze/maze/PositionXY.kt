@@ -55,6 +55,12 @@ data class PositionXY(val x: Int, val y: Int) : Position {
         }
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (other === this) return true
+        if (other !is PositionXY) return false
+        return x == other.x && y == other.y
+    }
+
     override fun hashCode(): Int {
         // Unique hashcodes up to 65536
         return (x shl 16) and y

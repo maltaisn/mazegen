@@ -38,6 +38,8 @@ import java.util.*
  * 2. Pop a random edge from the list and if the trees of its cells are not connected,
  *    connect them and connect their trees' root
  * 3. Repeat step 2 until there are no more edges in the list.
+ *
+ * Runtime complexity is O(n) and memory space is O(n).
  */
 class KruskalGenerator : Generator() {
 

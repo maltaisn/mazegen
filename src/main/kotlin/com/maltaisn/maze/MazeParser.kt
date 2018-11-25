@@ -29,6 +29,7 @@ import com.maltaisn.maze.generator.*
 import com.maltaisn.maze.maze.*
 import org.json.JSONArray
 import org.json.JSONObject
+import kotlin.system.measureTimeMillis
 
 
 /**
@@ -44,19 +45,35 @@ class MazeParser {
             throw IllegalArgumentException("Wrong value '$count' for count, must be at least 1.")
         }
 
-        val generator = if (config.has(KEY_ALGORITHM)) {
-            when (val algStr = config.getString(KEY_ALGORITHM)) {
-                "ab", "aldous-broder" -> AldousBroderGenerator()
-                "gt", "growing-tree" -> GrowingTreeGenerator()
-                "hk", "hunt-kill" -> HuntKillGenerator()
-                "kr", "kruskal" -> KruskalGenerator()
-                "pr", "prim" -> PrimGenerator()
-                "rb", "recursive-backtracker" -> RecursiveBacktrackerGenerator()
-                "wi", "wilson" -> WilsonGenerator()
-                else -> throw IllegalArgumentException("Invalid algorithm '$algStr'.")
+        // Generator
+        val algorithmJson = if (config.has(KEY_ALGORITHM)) config.get(KEY_ALGORITHM) else null
+
+        var algorithm = "rb"
+        if (algorithmJson is String) {
+            algorithm = algorithmJson
+        } else if (algorithmJson is JSONObject) {
+            if (algorithmJson.has(KEY_ALGORITHM_NAME)) {
+                algorithm = algorithmJson.getString(KEY_ALGORITHM_NAME)
             }
-        } else {
-            RecursiveBacktrackerGenerator()
+        }
+        val generator = when (algorithm) {
+            "ab", "aldous-broder" -> AldousBroderGenerator()
+            "gt", "growing-tree" -> GrowingTreeGenerator()
+            "hk", "hunt-kill" -> HuntKillGenerator()
+            "kr", "kruskal" -> KruskalGenerator()
+            "pr", "prim" -> PrimGenerator()
+            "rb", "recursive-backtracker" -> RecursiveBacktrackerGenerator()
+            "wi", "wilson" -> WilsonGenerator()
+            else -> throw IllegalArgumentException("Invalid algorithm '$algorithm'.")
+        }
+
+        // Generactor-specific settings
+        if (generator is GrowingTreeGenerator && algorithmJson is JSONObject) {
+            if (algorithmJson.has(KEY_ALGORITHM_GT_WEIGHTS)) {
+                val weights = algorithmJson.getJSONArray(KEY_ALGORITHM_GT_WEIGHTS)
+                generator.setChooseByWeight(weights[0] as Int,
+                        weights[1] as Int, weights[2] as Int)
+            }
         }
 
         val type = if (config.has(KEY_TYPE)) {
@@ -135,8 +152,6 @@ class MazeParser {
 
         val generated = ArrayList<Maze>(count)
         for (i in 0 until count) {
-            var startTime = System.currentTimeMillis()
-
             val maze = when (type) {
                 MazeType.RECT -> RectMaze(width!!, height!!)
                 MazeType.HEX -> HexMaze(width!!, height!!, arrangement)
@@ -145,22 +160,42 @@ class MazeParser {
             maze.name = name
 
             // Generate the maze
-            generator.generate(maze)
+            val genTime = measureTimeMillis {
+                generator.generate(maze)
 
-            // Add the openings
-            for (opening in openings) {
-                maze.createOpening(opening)
+                // Add the openings
+                for (opening in openings) {
+                    maze.createOpening(opening)
+                }
             }
-            var time = System.currentTimeMillis()
-            println("Generated '${maze.name}' ${i + 1} / $count in ${time - startTime} ms.")
+            println("Generated '${maze.name}' ${i + 1} / $count in $genTime ms.")
 
-            // Solve the maze if needed
-            startTime = time
+            val braidTime = measureTimeMillis {
+                // Braiding
+                if (algorithmJson is JSONObject) {
+                    if (algorithmJson.has(KEY_ALGORITHM_BRAID)) {
+                        val braider = MazeBraider()
+                        val braid = algorithmJson.get(KEY_ALGORITHM_BRAID)
+                        if (braid is Int) {
+                            braider.braidByCount(maze, braid)
+                        } else if (braid is String) {
+                            if (braid.endsWith('%')) {
+                                val percent = braid.substring(0, braid.length - 1).toDouble() / 100
+                                braider.braidByPercentage(maze, percent)
+                            } else {
+                                braider.braidByCount(maze, braid.toInt())
+                            }
+                        }
+                    }
+                }
+            }
+            println("Braided '${maze.name}' ${i + 1} / $count in $braidTime ms.")
+
+            // Solve the maze
             if (solve) {
-                maze.solve()
+                val solveTime = measureTimeMillis { maze.solve() }
+                println("Solved '${maze.name}' ${i + 1} / $count in $solveTime ms.")
             }
-            time = System.currentTimeMillis()
-            println("Solved '${maze.name}' ${i + 1} / $count in ${time - startTime} ms.")
 
             generated.add(maze)
         }
@@ -180,9 +215,13 @@ class MazeParser {
         private const val KEY_HEIGHT = "height"
         private const val KEY_DIMENSION = "dimension"
         private const val KEY_ARRANGEMENT = "arrangement"
-        private const val KEY_ALGORITHM = "algorithm"
         private const val KEY_OPENINGS = "openings"
         private const val KEY_SOLVE = "solve"
+
+        private const val KEY_ALGORITHM = "algorithm"
+        private const val KEY_ALGORITHM_NAME = "name"
+        private const val KEY_ALGORITHM_GT_WEIGHTS = "gt_weights"
+        private const val KEY_ALGORITHM_BRAID = "braid"
     }
 
 

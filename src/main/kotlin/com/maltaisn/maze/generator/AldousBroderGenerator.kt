@@ -40,14 +40,17 @@ import com.maltaisn.maze.maze.Maze
  * 3. Repeat step 2 until set is empty.
  *
  * Generated mazes are bias-free, meaning all possible mazes are generated
- * with equal probability. However this comes to the cost of efficiency,
- * which is very low, because each cell can be visited many times and the
- * algorithm has to find all the unvisited cells by walking randomly.
+ * with equal probability. However this comes at the cost of efficiency,
+ * which is very low, because each cell can be visited many times.
+ * The algorithm has to find all the unvisited cells by walking randomly.
+ *
+ * Runtime complexity is O(n) at best and O(∞) at worst. Memory space is O(1).
  */
 class AldousBroderGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         super.generate(maze)
+        maze.fillAll()
 
         var currentCell = maze.getRandomCell()
         currentCell.visited = true

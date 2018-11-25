@@ -42,6 +42,8 @@ import com.maltaisn.maze.maze.Maze
  *
  * Generated mazes have a lot more deadends than those generated with the recursive
  * backtracker for example, there are also very few long passages.
+ *
+ * Runtime complexity is O(n) and memory space is O(n).
  */
 class PrimGenerator : Generator() {
 

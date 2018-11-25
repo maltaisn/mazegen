@@ -31,7 +31,7 @@ import com.maltaisn.maze.render.Point
 import java.awt.BasicStroke
 import java.awt.Color
 import java.util.*
-import java.util.concurrent.ThreadLocalRandom
+import kotlin.random.Random
 
 
 /**
@@ -69,8 +69,7 @@ class RectMaze(val width: Int, val height: Int) : Maze() {
     }
 
     override fun getRandomCell(): RectCell {
-        val random = ThreadLocalRandom.current()
-        return grid[random.nextInt(width)][random.nextInt(height)]
+        return grid[Random.nextInt(width)][Random.nextInt(height)]
     }
 
     override fun getCellCount(): Int = width * height
