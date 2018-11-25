@@ -216,35 +216,28 @@ class SVGCanvas : Canvas() {
         abstract fun appendPathData(svg: StringBuilder, numberFormat: DecimalFormat)
 
         /**
-         * Add [point] to the path data in [path]. Path data is optimized with relative
-         * commands considering [lastPoint]. Added point is connected to last point.
+         * Add [point] to the path data in [path].
+         * Added point is connected with the last point if [isFirst] is false.
          */
         protected fun addPointToPathData(path: StringBuilder, numberFormat: DecimalFormat,
                                          point: Point, lastPoint: Point?, isFirst: Boolean) {
-            if (lastPoint != null) {
-                val relative = point - lastPoint
+            if (lastPoint != null && !isFirst) {
                 when {
-                    isFirst -> {
-                        path.append('m')
-                        path.append(numberFormat.format(relative.x))
-                        path.append(',')
-                        path.append(numberFormat.format(relative.y))
-                    }
                     point.y == lastPoint.y -> {
                         // Same Y as last point: horizontal line
-                        path.append('h')
-                        path.append(numberFormat.format(relative.x))
+                        path.append('H')
+                        path.append(numberFormat.format(point.x))
                     }
                     point.x == lastPoint.x -> {
                         // Same X as last point: vertical line
-                        path.append('v')
-                        path.append(numberFormat.format(relative.y))
+                        path.append('V')
+                        path.append(numberFormat.format(point.y))
                     }
                     else -> {
-                        path.append('l')
-                        path.append(numberFormat.format(relative.x))
+                        path.append('L')
+                        path.append(numberFormat.format(point.x))
                         path.append(',')
-                        path.append(numberFormat.format(relative.y))
+                        path.append(numberFormat.format(point.y))
                     }
                 }
             } else {
@@ -409,20 +402,23 @@ class SVGCanvas : Canvas() {
          * If new point creates a segment that extends last segment, merge them into one segment.
          */
         fun extendWith(with: Point, first: Boolean) {
-            val index = if (first) 0 else points.size - 1
-            val last = if (points.isEmpty()) null else points[index]
+            val lastIndex = if (first) 0 else points.size - 1
+            val last = if (points.isEmpty()) null else points[lastIndex]
             val beforeLast = if (points.size < 2) null else points[if (first) 1 else points.size - 2]
-            if (beforeLast != null && last != null
-                    && (beforeLast.x == last.x && last.x == with.x
-                    || beforeLast.y == last.y && last.y == with.y)) {
-                // New point extends the last segment in the polyline, merge them.
-                points[index] = with
-            } else if (last != with) {
-                if (first) {
-                    points.addFirst(with)
-                } else {
-                    points.addLast(with)
+            if (beforeLast != null && last != null) {
+                val lastSlope = (last.y - beforeLast.y) / (last.x - beforeLast.x)
+                val newSlope = (with.y - last.y) / (with.x - last.x)
+                if (newSlope == lastSlope) {
+                    // New point extends the last segment in the polyline, merge them.
+                    points[lastIndex] = with
+                    return
                 }
+            }
+
+            if (first) {
+                points.addFirst(with)
+            } else {
+                points.addLast(with)
             }
         }
 

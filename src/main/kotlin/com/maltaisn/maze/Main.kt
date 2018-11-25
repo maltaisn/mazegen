@@ -32,8 +32,6 @@ import java.io.FileInputStream
 
 
 fun main(args: Array<String>) {
-    Thread.sleep(12000)
-
     if (args.isNotEmpty()) {
         val file = File(args[0])
         if (file.exists()) {

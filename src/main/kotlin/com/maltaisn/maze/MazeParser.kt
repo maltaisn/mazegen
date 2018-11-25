@@ -167,10 +167,7 @@ class MazeParser {
                 for (opening in openings) {
                     maze.createOpening(opening)
                 }
-            }
-            println("Generated '${maze.name}' ${i + 1} / $count in $genTime ms.")
 
-            val braidTime = measureTimeMillis {
                 // Braiding
                 if (algorithmJson is JSONObject) {
                     if (algorithmJson.has(KEY_ALGORITHM_BRAID)) {
@@ -189,7 +186,7 @@ class MazeParser {
                     }
                 }
             }
-            println("Braided '${maze.name}' ${i + 1} / $count in $braidTime ms.")
+            println("Generated '${maze.name}' ${i + 1} / $count in $genTime ms.")
 
             // Solve the maze
             if (solve) {

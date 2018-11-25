@@ -49,7 +49,7 @@ class CanvasWriter(config: JSONObject?) {
     private var svgPrecision = 2
 
     // Styling settings
-    private var cellSize = 10.0
+    private var cellSize = 30.0
     private var backgroundColor = Canvas.parseColor("#00FFFFFF")
     private var stroke: BasicStroke
     private var color: Color = Color.BLACK
@@ -57,8 +57,8 @@ class CanvasWriter(config: JSONObject?) {
     private var solutionColor: Color = Color.BLUE
 
     init {
-        var strokeWidth = 1f
-        var solutionStrokeWidth = 1f
+        var strokeWidth = 3f
+        var solutionStrokeWidth = 3f
 
         if (config != null) {
             if (config.has(KEY_PATH)) {
