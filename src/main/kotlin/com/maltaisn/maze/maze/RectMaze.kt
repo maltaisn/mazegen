@@ -74,8 +74,8 @@ class RectMaze(val width: Int, val height: Int) : Maze() {
 
     override fun getCellCount(): Int = width * height
 
-    override fun getAllCells(): LinkedHashSet<RectCell> {
-        val set = LinkedHashSet<RectCell>(width * height)
+    override fun getAllCells(): MutableList<RectCell> {
+        val set = ArrayList<RectCell>(width * height)
         for (x in 0 until width) {
             for (y in 0 until height) {
                 set.add(grid[x][y])

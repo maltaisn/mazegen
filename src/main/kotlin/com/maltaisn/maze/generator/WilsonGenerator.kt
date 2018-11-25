@@ -26,6 +26,7 @@
 package com.maltaisn.maze.generator
 
 import com.maltaisn.maze.maze.Maze
+import kotlin.random.Random
 
 
 /**
@@ -56,9 +57,8 @@ class WilsonGenerator : Generator() {
         val unvisitedCells = maze.getAllCells()
 
         // Make the initial cell visited
-        val initialCell = maze.getRandomCell()
+        val initialCell = unvisitedCells.removeAt(Random.nextInt(unvisitedCells.size))
         initialCell.visited = true
-        unvisitedCells.remove(initialCell)
 
         while (unvisitedCells.isNotEmpty()) {
             // Perform a random walk from an unvisited cell until it meets with a visited cell

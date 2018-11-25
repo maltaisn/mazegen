@@ -156,8 +156,8 @@ class DeltaMaze(val width: Int, height: Int,
         return count
     }
 
-    override fun getAllCells(): LinkedHashSet<DeltaCell> {
-        val set = LinkedHashSet<DeltaCell>(getCellCount())
+    override fun getAllCells(): MutableList<DeltaCell> {
+        val set = ArrayList<DeltaCell>(getCellCount())
         for (x in 0 until grid.size) {
             for (y in 0 until grid[x].size) {
                 set.add(grid[x][y])

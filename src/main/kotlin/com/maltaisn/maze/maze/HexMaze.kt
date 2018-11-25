@@ -137,8 +137,8 @@ class HexMaze(val width: Int, height: Int,
         return count
     }
 
-    override fun getAllCells(): LinkedHashSet<HexCell> {
-        val set = LinkedHashSet<HexCell>(getCellCount())
+    override fun getAllCells(): MutableList<HexCell> {
+        val set = ArrayList<HexCell>(getCellCount())
         for (x in 0 until grid.size) {
             for (y in 0 until grid[x].size) {
                 set.add(grid[x][y])

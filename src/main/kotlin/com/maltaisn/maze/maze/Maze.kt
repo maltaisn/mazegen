@@ -83,25 +83,31 @@ abstract class Maze {
     /**
      * Returns a set containing all the cells in this maze.
      */
-    abstract fun getAllCells(): LinkedHashSet<out Cell>
+    abstract fun getAllCells(): MutableList<out Cell>
 
     /**
-     * Call [action] on every cell
+     * Call [action] on every cell.
      */
-    abstract fun forEachCell(action: (Cell) -> (Unit))
+    abstract fun forEachCell(action: (Cell) -> Unit)
 
     /**
      * Clear all sides of all cells in the maze.
      */
     fun resetAll() {
-        forEachCell { it.value = 0 }
+        forEachCell {
+            it.value = 0
+            it.visited = false
+        }
     }
 
     /**
      * Set all sides of all cells in the maze.
      */
     fun fillAll() {
-        forEachCell { it.value = it.getAllSideValue().value }
+        forEachCell {
+            it.value = it.getAllSideValue().value
+            it.visited = false
+        }
     }
 
     /**
@@ -141,15 +147,15 @@ abstract class Maze {
      * This uses the A* star algorithm as described
      * [here](https://en.wikipedia.org/wiki/A*_search_algorithm#Description).
      *
-     * 1. Make the starting cell the root node and add it to a set.
-     * 2. Find the node in the set with the lowest "cost". Cost is the sum of the
+     * 1. Make the starting cell the root node and add it to a list.
+     * 2. Find the node in the list with the lowest "cost". Cost is the sum of the
      *    cost from the start and the lowest possible cost to the end. The cost from
      *    the start is the number of cells travelled to get to the node's cell. The
      *    lowest cost to the end is the minimum number of cells that have to be
-     *    travelled to get to the end cell. Remove this node from the set.
+     *    travelled to get to the end cell. Remove this node from the list.
      * 3. Add nodes of all unvisited neighbor of this node's cell
-     *    to the set and mark them as visited.
-     * 4. Repeat step 2 and 3 until the set is empty, hence there is no solution, or
+     *    to the list and mark them as visited.
+     * 4. Repeat step 2 and 3 until the list is empty, hence there is no solution, or
      *    when the cell of the node selected at step 2 is the end cell.
      *
      * Runtime complexity is O(n) and memory space is O(n).
@@ -166,17 +172,25 @@ abstract class Maze {
         val start = openings[0]
         val end = openings[1]
 
-        val set = LinkedHashSet<Node>()
+        val nodes = ArrayList<Node>()
 
         // Add the start cell as the initial node
-        set.add(Node(null, start, 0,
+        nodes.add(Node(null, start, 0,
                 start.position.distanceTo(end.position)))
 
-        while (set.isNotEmpty()) {
-            // Find the frontier cell with the lowest cost and remove it from set.
-            val node = set.minBy { it.costFromStart + it.costToEnd }!!
-            set.remove(node)
-
+        while (nodes.isNotEmpty()) {
+            // Find the node with the lowest cost and remove it from list.
+            var lowestCost = Int.MAX_VALUE
+            var lowestIndex = -1
+            for (i in 0 until nodes.size) {
+                val node = nodes[i]
+                val cost = node.costFromStart + node.costToEnd
+                if (cost < lowestCost) {
+                    lowestCost = cost
+                    lowestIndex = i
+                }
+            }
+            val node = nodes.removeAt(lowestIndex)
             val cell = node.cell
             cell.visited = true
 
@@ -197,8 +211,8 @@ abstract class Maze {
                 if (!cell.hasSide(side)) {
                     val neighbor = cell.getCellOnSide(side)
                     if (neighbor != null && !neighbor.visited) {
-                        // Add all unvisited neighbors to the frontier set
-                        set.add(Node(node, neighbor, node.costFromStart + 1,
+                        // Add all unvisited neighbors to the nodes list
+                        nodes.add(Node(node, neighbor, node.costFromStart + 1,
                                 neighbor.position.distanceTo(end.position)))
                         neighbor.visited = true
                     }

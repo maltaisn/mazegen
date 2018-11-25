@@ -8,9 +8,8 @@
       "height": 1000,
       "arrangement": "hexagon",
       "algorithm": {
-        "name": "ab",
-        "gt_weights": [0, 1, 0],
-        "braid": "100%"
+        "name": "pr",
+        "gt_weights": [0, 1, 0]
       },
       "openings": [["S", "S"], ["E", "E"]],
       "solve": true
@@ -26,8 +25,8 @@
       "background_color": "#00FFFFFF",
       "color": "#000000",
       "stroke_width": 1,
-      "solution_color": "#FFFF00",
-      "solution_stroke_width": 2
+      "solution_color": "#0000FF",
+      "solution_stroke_width": 1
     }
   }
 }
