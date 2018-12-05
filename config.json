@@ -2,23 +2,22 @@
   "mazes": [
     {
       "name": "maze",
-      "type": "delta",
+      "type": "polar",
       "count": 1,
-      "width": 50,
-      "height": 50,
-      "arrangement": "rect",
-      "algorithm": {
-        "name": "rb",
-        "gt_weights": [0, 1, 0]
+      "size": {
+        "radius": 10,
+        "centerRadius": 0.1,
+        "subdivision": 1.5
       },
-      "openings": [],
-      "solve": false
+      "algorithm": "rb",
+      "openings": [["C", "E"], ["S", "E"]],
+      "solve": true
     }
   ],
   "output": {
-    "format": "svg",
+    "format": "png",
     "path": "mazes/new/",
-    "svg_optimize": true,
+    "svg_optimize": false,
     "svg_precision": 2,
     "style": {
       "cell_size": 30,
@@ -26,7 +25,7 @@
       "color": "#000000",
       "stroke_width": 3,
       "solution_color": "#0000FF",
-      "solution_stroke_width": 2
+      "solution_stroke_width": 3
     }
   }
 }

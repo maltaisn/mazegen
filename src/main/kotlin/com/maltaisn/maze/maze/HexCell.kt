@@ -30,7 +30,7 @@ package com.maltaisn.maze.maze
  * A hexagonal cell for [HexMaze].
  * Has north, northeast, southeast, south, southwest and northwest sides.
  */
-class HexCell(maze: HexMaze, position: PositionXY) : Cell(maze, position) {
+class HexCell(maze: HexMaze, position: Position2D) : Cell(maze, position) {
 
     override fun getAllSides(): List<Side> = ALL_SIDES
 
@@ -46,20 +46,18 @@ class HexCell(maze: HexMaze, position: PositionXY) : Cell(maze, position) {
      * ```
      */
     enum class Side(override val value: Int,
-                    override val relativePos: Position?,
+                    override val relativePos: Position2D?,
                     override val symbol: String?) : Cell.Side {
 
-        NONE(0, null, null),
-        NORTH(1, PositionXY(0, -1), "N"),
-        NORTHEAST(2, PositionXY(1, 0), "NE"),
-        SOUTHEAST(4, PositionXY(1, 1), "SE"),
-        SOUTH(8, PositionXY(0, 1), "S"),
-        SOUTHWEST(16, PositionXY(-1, 0), "SW"),
-        NORTHWEST(32, PositionXY(-1, -1), "NW"),
+        NORTH(1, Position2D(0, -1), "N"),
+        NORTHEAST(2, Position2D(1, 0), "NE"),
+        SOUTHEAST(4, Position2D(1, 1), "SE"),
+        SOUTH(8, Position2D(0, 1), "S"),
+        SOUTHWEST(16, Position2D(-1, 0), "SW"),
+        NORTHWEST(32, Position2D(-1, -1), "NW"),
         ALL(63, null, null);
 
         override fun opposite(): Side = when (this) {
-            NONE -> NONE
             NORTH -> SOUTH
             NORTHEAST -> SOUTHWEST
             SOUTHEAST -> NORTHWEST

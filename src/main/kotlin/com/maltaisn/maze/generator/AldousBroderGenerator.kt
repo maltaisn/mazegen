@@ -57,7 +57,7 @@ class AldousBroderGenerator : Generator() {
         var remaining = maze.getCellCount() - 1
         do {
             // Choose a random neighbor
-            val neighbor = currentCell.getNeighbors().random()
+            val neighbor = currentCell.neighbors.random()
             if (!neighbor.visited) {
                 // Neighbor isn't visited, connect it
                 currentCell.connectWith(neighbor)

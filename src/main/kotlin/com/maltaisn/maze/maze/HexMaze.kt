@@ -95,7 +95,7 @@ class HexMaze(val width: Int, height: Int,
         grid = Array(gridWith) { x ->
             rowOffsets[x] = rowOffset(x)
             Array(rowsForColumn(x)) { y ->
-                HexCell(this, PositionXY(x, y + rowOffsets[x]))
+                HexCell(this, Position2D(x, y + rowOffsets[x]))
             }
         }
     }
@@ -108,14 +108,8 @@ class HexMaze(val width: Int, height: Int,
             this(dimension, dimension, arrangement)
 
 
-    override fun cellAt(pos: Position): HexCell = if (pos is PositionXY) {
-        grid[pos.x][pos.y - rowOffsets[pos.x]]
-    } else {
-        throw IllegalArgumentException("Position has wrong type.")
-    }
-
-    override fun optionalCellAt(pos: Position): HexCell? {
-        if (pos is PositionXY) {
+    override fun cellAt(pos: Position): HexCell? {
+        if (pos is Position2D) {
             if (pos.x < 0 || pos.x >= grid.size) return null
             val actualY = pos.y - rowOffsets[pos.x]
             if (actualY < 0 || actualY >= grid[pos.x].size) return null
@@ -138,13 +132,13 @@ class HexMaze(val width: Int, height: Int,
     }
 
     override fun getAllCells(): MutableList<HexCell> {
-        val set = ArrayList<HexCell>(getCellCount())
+        val list = ArrayList<HexCell>(getCellCount())
         for (x in 0 until grid.size) {
             for (y in 0 until grid[x].size) {
-                set.add(grid[x][y])
+                list.add(grid[x][y])
             }
         }
-        return set
+        return list
     }
 
     override fun forEachCell(action: (Cell) -> Unit) {
@@ -168,44 +162,44 @@ class HexMaze(val width: Int, height: Int,
             Opening.POS_END -> grid[x].size - 1
             else -> pos
         } + rowOffsets[x]
-        return optionalCellAt(PositionXY(x, y))
+        return cellAt(Position2D(x, y))
     }
 
     override fun drawTo(canvas: Canvas,
-                        cellSize: Double, backgroundColor: Color?,
+                        cellSize: Float, backgroundColor: Color?,
                         color: Color, stroke: BasicStroke,
                         solutionColor: Color, solutionStroke: BasicStroke) {
         // Find the empty top padding (minTop) and maximum column rows
-        var maxRow = 0.0
-        var minTop = Double.MAX_VALUE
+        var maxRow = 0f
+        var minTop = Float.MAX_VALUE
         for (x in 0 until grid.size) {
-            val top = rowOffsets[x] + (grid.size - x - 1) / 2.0
+            val top = rowOffsets[x] + (grid.size - x - 1) / 2f
             if (top < minTop) minTop = top
             val row = grid[x].size + top
             if (row > maxRow) maxRow = row
         }
         maxRow -= minTop
 
-        val cellHeight = Math.sqrt(3.0) * cellSize
-        canvas.init((1.5 * (grid.size - 1) + 2) * cellSize + stroke.lineWidth,
+        val cellHeight = (Math.sqrt(3.0) * cellSize).toFloat()
+        canvas.init((1.5f * (grid.size - 1) + 2) * cellSize + stroke.lineWidth,
                 cellHeight * maxRow + stroke.lineWidth)
 
         // Draw the background
         if (backgroundColor != null) {
             canvas.color = backgroundColor
-            canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
+            canvas.drawRect(0f, 0f, canvas.width, canvas.height, true)
         }
 
         // Draw the maze
         // Without going into details, only half the sides are drawn
         // for each cell except the bottommost and rightmost cells.
-        val offset = stroke.lineWidth / 2.0
-        canvas.translate(offset, offset)
+        val offset = stroke.lineWidth / 2
+        canvas.translate = Point(offset, offset)
         canvas.color = color
         canvas.stroke = stroke
         var cx = cellSize
         for (x in 0 until grid.size) {
-            var cy = (rowOffsets[x] - minTop + (grid.size - x - 1) / 2.0 + 0.5) * cellHeight
+            var cy = (rowOffsets[x] - minTop + (grid.size - x - 1) / 2f + 0.5f) * cellHeight
             for (y in 0 until grid[x].size) {
                 val cell = grid[x][y]
 
@@ -242,7 +236,7 @@ class HexMaze(val width: Int, height: Int,
 
                 cy += cellHeight
             }
-            cx += 1.5 * cellSize
+            cx += 1.5f * cellSize
         }
 
         // Draw the solution
@@ -252,9 +246,9 @@ class HexMaze(val width: Int, height: Int,
 
             val points = LinkedList<Point>()
             for (cell in solution!!) {
-                val pos = cell.position as PositionXY
-                val px = (1.5 * pos.x + 1) * cellSize
-                val py = (pos.y - minTop + (grid.size - pos.x - 1) / 2.0 + 0.5) * cellHeight
+                val pos = cell.position as Position2D
+                val px = (1.5f * pos.x + 1f) * cellSize
+                val py = (pos.y - minTop + (grid.size - pos.x - 1) / 2f + 0.5f) * cellHeight
                 points.add(Point(px, py))
             }
             canvas.drawPolyline(points)
@@ -265,7 +259,7 @@ class HexMaze(val width: Int, height: Int,
     override fun toString(): String {
         return "[arrangement: $arrangement, ${if (arrangement == Arrangement.TRIANGLE
                 || arrangement == Arrangement.HEXAGON)
-            "dimension : $width" else "width: $width, height: $height"}"
+            "dimension : $width" else "width: $width, height: $height"}]"
     }
 
 }

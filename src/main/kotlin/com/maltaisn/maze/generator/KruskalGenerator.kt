@@ -51,7 +51,7 @@ class KruskalGenerator : Generator() {
         val edgesSet = mutableSetOf<Edge>()
         val nodesMap = mutableMapOf<Cell, Node>()
         for (cell in maze.getAllCells()) {
-            for (neighbor in cell.getNeighbors()) {
+            for (neighbor in cell.neighbors) {
                 edgesSet.add(Edge(cell, neighbor))
             }
             nodesMap[cell] = Node()

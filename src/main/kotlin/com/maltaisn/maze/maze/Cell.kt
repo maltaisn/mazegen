@@ -30,9 +30,9 @@ package com.maltaisn.maze.maze
  * Base class for the cell of a flat maze.
  * Each cell has a value, a bit field encoding which sides are set.
  * They also have a reference to the maze containing them as well as their position in that maze.
- * Subclasses have define sides and their values, in a enum implementing [Side].
- * @property[maze] The maze containing this cell.
- * @property[position] The position of the cell in [maze].
+ * Subclasses have to define sides and their values, in a enum implementing [Side].
+ * @property maze The maze containing this cell.
+ * @property position The position of the cell in [maze].
  */
 abstract class Cell(val maze: Maze, val position: Position) {
 
@@ -41,9 +41,24 @@ abstract class Cell(val maze: Maze, val position: Position) {
      */
     var visited: Boolean = false
 
+    /**
+     * The cell value encoding which sides are set. Bit field of [Side] values.
+     */
     var value: Int = 0
 
-    private var neighborList: List<Cell>? = null
+    /**
+     * The list of cells adjacent to this cell, but not necessarily connected.
+     */
+    open val neighbors: List<Cell> by lazy {
+        val list = mutableListOf<Cell>()
+        for (side in getAllSides()) {
+            val cell = getCellOnSide(side)
+            if (cell != null) {
+                list.add(cell)
+            }
+        }
+        list.toList()
+    }
 
     /**
      * Returns the neighbor cell on the [side] of the cell.
@@ -51,30 +66,30 @@ abstract class Cell(val maze: Maze, val position: Position) {
      */
     open fun getCellOnSide(side: Side): Cell? {
         if (side.relativePos == null) return null
-        return maze.optionalCellAt(position + side.relativePos!!)
+        return maze.cellAt(position + side.relativePos!!)
     }
 
     /**
-     * Get the list of all non-null neighbor cells of this cell.
+     * Returns a list of neighbor cells than are accessible from this cell,
+     * meaning the side they share with this cell is not set.
      */
-    open fun getNeighbors(): List<Cell> {
-        if (neighborList == null) {
-            val list = mutableListOf<Cell>()
-            for (side in getAllSides()) {
-                val cell = getCellOnSide(side)
-                if (cell != null) {
-                    list.add(cell)
+    open fun getAccessibleNeighbors(): MutableList<Cell> {
+        val list = ArrayList<Cell>()
+        for (side in getAllSides()) {
+            if (!hasSide(side)) {
+                val neighbor = getCellOnSide(side)
+                if (neighbor != null) {
+                    list.add(neighbor)
                 }
             }
-            neighborList = list.toList()
         }
-        return neighborList!!.toList()
+        return list
     }
 
     /**
      * Returns true if [side] is set.
      */
-    fun hasSide(side: Side): Boolean {
+    open fun hasSide(side: Side): Boolean {
         if (side.value == 0) return value == 0
         return (value and side.value) == side.value
     }
@@ -83,43 +98,11 @@ abstract class Cell(val maze: Maze, val position: Position) {
      * Opens (removes) [side] of the cell.
      */
     fun openSide(side: Side) {
-        changeSide(side) { v, s -> v and s.inv() }
-    }
-
-    /**
-     * Closes (adds) [side] of the cell.
-     */
-    fun closeSide(side: Side) {
-        changeSide(side, Int::or)
-    }
-
-    /**
-     * Toggles [side] of the cell.
-     */
-    fun toggleSide(side: Side) {
-        changeSide(side, Int::xor)
-    }
-
-    /**
-     * Do [operation] on the cell on [side]'s value
-     */
-    private fun changeSide(side: Side, operation: (v: Int, s: Int) -> Int) {
-        if (side.value == 0) {
-            return
-        } else if (side === getAllSideValue()) {
-            for (s in getAllSides()) {
-                val cell = getCellOnSide(s)
-                if (cell != null) {
-                    cell.value = operation(cell.value, s.opposite().value)
-                }
-            }
-        } else {
-            val cell = getCellOnSide(side)
-            if (cell != null) {
-                cell.value = operation(cell.value, side.opposite().value)
-            }
+        val cell = getCellOnSide(side)
+        if (cell != null) {
+            cell.value = cell.value and side.opposite().value.inv()
         }
-        value = operation(value, side.value)
+        value = value and side.value.inv()
     }
 
     /**
@@ -135,9 +118,24 @@ abstract class Cell(val maze: Maze, val position: Position) {
     }
 
     /**
+     * Return the side of this cell on which [cell] is placed, if they are
+     * neighbors in the same maze. Returns null otherwise.
+     */
+    open fun findSideOfCell(cell: Cell): Side? {
+        if (cell.maze === maze) {
+            for (side in getAllSides()) {
+                if (getCellOnSide(side) == cell) {
+                    return side
+                }
+            }
+        }
+        return null
+    }
+
+    /**
      * Return the number of sides set on this cell.
      */
-    fun countSides(): Int = Integer.bitCount(value)
+    open fun countSides(): Int = Integer.bitCount(value)
 
     /**
      * Returns the enum value representing all sides.
@@ -149,20 +147,6 @@ abstract class Cell(val maze: Maze, val position: Position) {
      */
     abstract fun getAllSides(): List<Side>
 
-    /**
-     * Return the side of this cell on which [cell] is placed, if they are
-     * neighbors in the same maze. Returns null otherwise.
-     */
-    fun findSideOfCell(cell: Cell): Side? {
-        if (cell.maze === maze) {
-            for (side in getAllSides()) {
-                if (getCellOnSide(side) == cell) {
-                    return side
-                }
-            }
-        }
-        return null
-    }
 
     override fun toString(): String {
         val sb = StringBuilder()
@@ -197,18 +181,26 @@ abstract class Cell(val maze: Maze, val position: Position) {
      * Interface for a cell side enum.
      */
     interface Side {
-
+        /**
+         * Side value, a single bit different for each side.
+         */
         val value: Int
 
+        /**
+         * Relative position of a cell on this side.
+         * Can be null if not always the same or not applicable.
+         */
         val relativePos: Position?
 
+        /**
+         * The symbol for this side, used by [Cell.toString].
+         */
         val symbol: String?
 
         /**
          * Get the side opposite to this side.
          */
         fun opposite(): Side
-
     }
 
 }

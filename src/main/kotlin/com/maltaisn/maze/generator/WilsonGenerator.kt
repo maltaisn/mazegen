@@ -67,7 +67,7 @@ class WilsonGenerator : Generator() {
                 val current = walk.last()
 
                 // Get a random neighbor
-                val neighbors = current.getNeighbors().toMutableList()
+                val neighbors = current.neighbors.toMutableList()
                 if (walk.size > 1) {
                     // Can't go back where it came from
                     neighbors.remove(walk[walk.size - 2])

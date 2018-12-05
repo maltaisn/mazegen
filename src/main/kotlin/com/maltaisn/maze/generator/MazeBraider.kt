@@ -87,9 +87,10 @@ class MazeBraider {
             for (side in deadend.getAllSides()) {
                 if (!deadend.hasSide(side)) {
                     val deadside = side.opposite()
-                    if (deadend.getCellOnSide(deadside) != null) {
+                    val other = deadend.getCellOnSide(deadside)
+                    if (other != null) {
                         // If the deadside is not a border, open it.
-                        deadend.openSide(deadside)
+                        deadend.connectWith(other)
                     }
                     break
                 }

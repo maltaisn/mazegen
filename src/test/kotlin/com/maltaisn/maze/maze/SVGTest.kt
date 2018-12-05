@@ -25,41 +25,29 @@
 
 package com.maltaisn.maze.maze
 
+import com.maltaisn.maze.render.SVGCanvas
+import org.junit.jupiter.api.Test
+import java.awt.BasicStroke
+import java.io.File
 
-/**
- * A square cell for [RectMaze].
- * Has north, east, south and east sides.
- */
-class RectCell(maze: RectMaze, position: Position2D) : Cell(maze, position) {
 
-    override fun getAllSides(): List<Side> = ALL_SIDES
+class SVGTest {
 
-    override fun getAllSideValue(): Side = Side.ALL
+    @Test
+    fun myTest() {
+        val canvas = SVGCanvas()
+        canvas.init(100f, 100f)
+        canvas.stroke = BasicStroke(3f)
 
-    /**
-     * Enum class for the side a rectangular cell
-     */
-    enum class Side(override val value: Int,
-                    override val relativePos: Position2D?,
-                    override val symbol: String?) : Cell.Side {
-        NORTH(1, Position2D(0, -1), "N"),
-        EAST(2, Position2D(1, 0), "E"),
-        SOUTH(4, Position2D(0, 1), "S"),
-        WEST(8, Position2D(-1, 0), "W"),
-        ALL(15, null, null);
+        canvas.drawArc(50f, 50f, 25f, 25f, 0.0, Math.PI * 0.5)
+        canvas.drawArc(25f, 25f, 25f, 25f, Math.PI * 1.5, Math.PI * 0.5)
+        canvas.drawArc(50f, 50f, 25f, 25f, Math.PI * 1.0, Math.PI * 0.5)
+        canvas.drawArc(75f, 75f, 25f, 25f, Math.PI * 0.5, Math.PI * 0.5)
 
-        override fun opposite(): Side = when (this) {
-            NORTH -> SOUTH
-            SOUTH -> NORTH
-            EAST -> WEST
-            WEST -> EAST
-            ALL -> ALL
-        }
+        canvas.optimize()
 
-    }
-
-    companion object {
-        private val ALL_SIDES = listOf(Side.NORTH, Side.SOUTH, Side.WEST, Side.EAST)
+        canvas.exportTo(File("D:\\Documents\\nicolas\\code\\kotlin" +
+                "\\maze\\mazes\\test.${canvas.format.extension}"))
     }
 
 }

@@ -28,6 +28,11 @@ package com.maltaisn.maze.render
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
+import java.awt.RenderingHints
+import java.awt.geom.AffineTransform
+import java.awt.geom.Arc2D
+import java.awt.geom.Line2D
+import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
 import java.io.File
 import java.util.*
@@ -37,42 +42,58 @@ import javax.imageio.ImageIO
 /**
  * Canvas for exporting raster image files (PNG, JPG, BMP, GIF).
  */
-class RasterCanvas(private val format: OutputFormat) : Canvas() {
+class RasterCanvas(format: OutputFormat) : Canvas(format) {
 
     private lateinit var graphics: Graphics2D
     private lateinit var buffImage: BufferedImage
 
     override var color: Color = Color.BLACK
         set(value) {
-            if (format != OutputFormat.PNG && value.alpha != 255) {
+            field = if (format != OutputFormat.PNG && value.alpha != 255) {
                 // If format is not PNG, can't allow colors with an alpha channel
-                field = Color(value.rgb and 0xFFFFFF)
+                Color(value.rgb and 0xFFFFFF)
             } else {
-                field = value
+                value
             }
-            if (this::graphics.isInitialized) {
-                graphics.color = color
-            }
+            graphics.color = color
         }
 
     override var stroke: BasicStroke = BasicStroke(1f)
         set(value) {
             field = value
-            if (this::graphics.isInitialized) {
-                graphics.stroke = stroke
+            graphics.stroke = stroke
+        }
+
+    /** Default transform saved to reset it when needed */
+    private lateinit var transform: AffineTransform
+
+    override var translate: Point? = null
+        set(value) {
+            super.translate = value
+            graphics.transform = transform
+            if (value != null) {
+                graphics.translate(value.x.toDouble(), value.y.toDouble())
             }
         }
 
-    override fun init(width: Double, height: Double) {
+    override fun init(width: Float, height: Float) {
         super.init(width, height)
 
-        buffImage = BufferedImage(Math.ceil(width).toInt(), Math.ceil(height).toInt(),
+        buffImage = BufferedImage(Math.ceil(width.toDouble()).toInt(),
+                Math.ceil(height.toDouble()).toInt(),
                 if (format == OutputFormat.PNG) BufferedImage.TYPE_INT_ARGB else BufferedImage.TYPE_INT_RGB)
         graphics = buffImage.createGraphics()
+        graphics.color = color
+        graphics.stroke = stroke
+        graphics.setRenderingHints(RenderingHints(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON))
+
+        transform = graphics.transform
+        translate = translate
     }
 
-    override fun drawLine(x1: Double, y1: Double, x2: Double, y2: Double) {
-        graphics.drawLine(x1.toInt(), y1.toInt(), x2.toInt(), y2.toInt())
+    override fun drawLine(x1: Float, y1: Float, x2: Float, y2: Float) {
+        graphics.draw(Line2D.Float(x1, y1, x2, y2))
     }
 
     override fun drawPolyline(points: LinkedList<Point>) {
@@ -86,16 +107,19 @@ class RasterCanvas(private val format: OutputFormat) : Canvas() {
         graphics.drawPolyline(xPoints, yPoints, points.size)
     }
 
-    override fun drawRect(x: Double, y: Double, width: Double, height: Double, filled: Boolean) {
-        if (filled) {
-            graphics.fillRect(x.toInt(), y.toInt(), width.toInt(), height.toInt())
-        } else {
-            graphics.drawRect(x.toInt(), y.toInt(), width.toInt(), height.toInt())
-        }
+    override fun drawArc(x: Float, y: Float, rx: Float, ry: Float,
+                         start: Double, extent: Double) {
+        graphics.draw(Arc2D.Float(x - rx, y - ry, 2 * rx, 2 * ry,
+                Math.toDegrees(start).toFloat(), Math.toDegrees(extent).toFloat(), Arc2D.OPEN))
     }
 
-    override fun translate(x: Double, y: Double) {
-        graphics.translate(x.toInt(), y.toInt())
+    override fun drawRect(x: Float, y: Float, width: Float, height: Float, filled: Boolean) {
+        val rect = Rectangle2D.Float(x, y, width, height)
+        if (filled) {
+            graphics.draw(rect)
+        } else {
+            graphics.fill(rect)
+        }
     }
 
     override fun exportTo(file: File) {

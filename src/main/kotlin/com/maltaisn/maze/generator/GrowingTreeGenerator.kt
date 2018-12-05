@@ -78,7 +78,7 @@ class GrowingTreeGenerator : Generator() {
             val currentCell = list[index]
 
             var connected = false
-            for (neighbor in currentCell.getNeighbors().shuffled()) {
+            for (neighbor in currentCell.neighbors.shuffled()) {
                 if (!neighbor.visited) {
                     // Found unvisited neighbor, connect it to current cell
                     currentCell.connectWith(neighbor)

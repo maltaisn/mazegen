@@ -112,7 +112,7 @@ class DeltaMaze(val width: Int, height: Int,
         grid = Array(gridWith) { x ->
             rowOffsets[x] = rowOffset(x)
             Array(rowsForColumn(x)) { y ->
-                DeltaCell(this, PositionXY(x, y + rowOffsets[x]))
+                DeltaCell(this, Position2D(x, y + rowOffsets[x]))
             }
         }
     }
@@ -125,16 +125,8 @@ class DeltaMaze(val width: Int, height: Int,
             this(dimension, dimension, arrangement)
 
 
-    override fun cellAt(pos: Position): DeltaCell = if (pos is PositionXY) {
-        cellAt(pos.x, pos.y)
-    } else {
-        throw IllegalArgumentException("Position has wrong type.")
-    }
-
-    private fun cellAt(x: Int, y: Int) = grid[x][y - rowOffsets[x]]
-
-    override fun optionalCellAt(pos: Position): DeltaCell? {
-        if (pos is PositionXY) {
+    override fun cellAt(pos: Position): DeltaCell? {
+        if (pos is Position2D) {
             if (pos.x < 0 || pos.x >= grid.size) return null
             val actualY = pos.y - rowOffsets[pos.x]
             if (actualY < 0 || actualY >= grid[pos.x].size) return null
@@ -157,13 +149,13 @@ class DeltaMaze(val width: Int, height: Int,
     }
 
     override fun getAllCells(): MutableList<DeltaCell> {
-        val set = ArrayList<DeltaCell>(getCellCount())
+        val list = ArrayList<DeltaCell>(getCellCount())
         for (x in 0 until grid.size) {
             for (y in 0 until grid[x].size) {
-                set.add(grid[x][y])
+                list.add(grid[x][y])
             }
         }
-        return set
+        return list
     }
 
     override fun forEachCell(action: (Cell) -> Unit) {
@@ -188,11 +180,11 @@ class DeltaMaze(val width: Int, height: Int,
             else -> pos
         } + rowOffsets[x]
 
-        return optionalCellAt(PositionXY(x, y))
+        return cellAt(Position2D(x, y))
     }
 
     override fun drawTo(canvas: Canvas,
-                        cellSize: Double, backgroundColor: Color?,
+                        cellSize: Float, backgroundColor: Color?,
                         color: Color, stroke: BasicStroke,
                         solutionColor: Color, solutionStroke: BasicStroke) {
         var maxHeight = 0
@@ -201,19 +193,19 @@ class DeltaMaze(val width: Int, height: Int,
             if (height > maxHeight) maxHeight = height
         }
 
-        val cellHeight = Math.sqrt(3.0) / 2 * cellSize
-        canvas.init((grid.size / 2.0 + 0.5) * cellSize + stroke.lineWidth,
+        val cellHeight = (Math.sqrt(3.0) / 2 * cellSize).toFloat()
+        canvas.init((grid.size / 2f + 0f) * cellSize + stroke.lineWidth,
                 maxHeight * cellHeight + stroke.lineWidth)
 
         // Draw the background
         if (backgroundColor != null) {
             canvas.color = backgroundColor
-            canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
+            canvas.drawRect(0f, 0f, canvas.width, canvas.height, true)
         }
 
         // Draw the maze
-        val offset = stroke.lineWidth / 2.0
-        canvas.translate(offset, offset)
+        val offset = stroke.lineWidth / 2
+        canvas.translate = Point(offset, offset)
         canvas.color = color
         canvas.stroke = stroke
         for (x in 0 until grid.size) {
@@ -223,29 +215,29 @@ class DeltaMaze(val width: Int, height: Int,
                 val flatTopped = (x + actualY) % 2 == 0
                 if (cell.hasSide(Side.BASE)) {
                     if (flatTopped) {
-                        canvas.drawLine(x * cellSize / 2.0, actualY * cellHeight,
-                                (x + 2) * cellSize / 2.0, actualY * cellHeight)
+                        canvas.drawLine(x * cellSize / 2, actualY * cellHeight,
+                                (x + 2) * cellSize / 2, actualY * cellHeight)
                     } else if (cell.getCellOnSide(Side.BASE) == null) {
-                        canvas.drawLine(x * cellSize / 2.0, (actualY + 1) * cellHeight,
-                                (x + 2) * cellSize / 2.0, (actualY + 1) * cellHeight)
+                        canvas.drawLine(x * cellSize / 2, (actualY + 1) * cellHeight,
+                                (x + 2) * cellSize / 2, (actualY + 1) * cellHeight)
                     }
                 }
                 if (cell.hasSide(Side.EAST)) {
                     if (flatTopped) {
-                        canvas.drawLine((x + 2) * cellSize / 2.0, actualY * cellHeight,
-                                (x + 1) * cellSize / 2.0, (actualY + 1) * cellHeight)
+                        canvas.drawLine((x + 2) * cellSize / 2, actualY * cellHeight,
+                                (x + 1) * cellSize / 2, (actualY + 1) * cellHeight)
                     } else if (cell.getCellOnSide(Side.EAST) == null) {
-                        canvas.drawLine((x + 1) * cellSize / 2.0, actualY * cellHeight,
-                                (x + 2) * cellSize / 2.0, (actualY + 1) * cellHeight)
+                        canvas.drawLine((x + 1) * cellSize / 2, actualY * cellHeight,
+                                (x + 2) * cellSize / 2, (actualY + 1) * cellHeight)
                     }
                 }
                 if (cell.hasSide(Side.WEST)) {
                     if (flatTopped) {
-                        canvas.drawLine(x * cellSize / 2.0, actualY * cellHeight,
-                                (x + 1) * cellSize / 2.0, (actualY + 1) * cellHeight)
+                        canvas.drawLine(x * cellSize / 2, actualY * cellHeight,
+                                (x + 1) * cellSize / 2, (actualY + 1) * cellHeight)
                     } else if (cell.getCellOnSide(Side.WEST) == null) {
-                        canvas.drawLine((x + 1) * cellSize / 2.0, actualY * cellHeight,
-                                x * cellSize / 2.0, (actualY + 1) * cellHeight)
+                        canvas.drawLine((x + 1) * cellSize / 2, actualY * cellHeight,
+                                x * cellSize / 2, (actualY + 1) * cellHeight)
                     }
                 }
             }
@@ -258,10 +250,10 @@ class DeltaMaze(val width: Int, height: Int,
 
             val points = LinkedList<Point>()
             for (cell in solution!!) {
-                val pos = cell.position as PositionXY
+                val pos = cell.position as Position2D
                 val flatTopped = (pos.x + pos.y) % 2 == 0
-                val px = (pos.x + 1.0) * cellSize / 2.0
-                val py = (pos.y + (if (flatTopped) 1 else 2) / 3.0) * cellHeight
+                val px = (pos.x + 1f) * cellSize / 2f
+                val py = (pos.y + (if (flatTopped) 1 else 2) / 3f) * cellHeight
                 points.add(Point(px, py))
             }
             canvas.drawPolyline(points)
@@ -272,7 +264,7 @@ class DeltaMaze(val width: Int, height: Int,
     override fun toString(): String {
         return "[arrangement: $arrangement, ${if (arrangement == Arrangement.TRIANGLE
                 || arrangement == Arrangement.HEXAGON)
-            "dimension : $width" else "width: $width, height: $height"}"
+            "dimension : $width" else "width: $width, height: $height"}]"
     }
 
 }

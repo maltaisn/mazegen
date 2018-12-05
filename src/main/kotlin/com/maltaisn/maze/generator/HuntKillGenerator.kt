@@ -69,7 +69,7 @@ class HuntKillGenerator : Generator() {
             // Kill: perform random walk until cell has no unvisited neighbors
             while (true) {
                 // Find an unvisited neighbor cell
-                val neighbor = currentCell.getNeighbors().shuffled().find { !it.visited }
+                val neighbor = currentCell.neighbors.shuffled().find { !it.visited }
                 if (neighbor != null) {
                     // Connect with current cell
                     currentCell.connectWith(neighbor)
@@ -89,7 +89,7 @@ class HuntKillGenerator : Generator() {
             while (visitedCells.size > 0) {
                 val index = Random.nextInt(visitedCells.size)
                 val cell = visitedCells[index]
-                if (cell.getNeighbors().find { !it.visited } != null) {
+                if (cell.neighbors.find { !it.visited } != null) {
                     // Found one
                     currentCell = cell
                     found = true

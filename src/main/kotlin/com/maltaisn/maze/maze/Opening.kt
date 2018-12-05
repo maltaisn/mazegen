@@ -31,18 +31,16 @@ import org.json.JSONArray
 /**
  * Class defining an opening position in a maze.
  */
-class Opening(from: JSONArray) {
+class Opening(val position: IntArray) {
 
-    val position: IntArray = IntArray(from.length())
-
-    init {
+    constructor(from: JSONArray): this(IntArray(from.length())) {
         for (i in 0 until from.length()) {
             val pos = from[i]
             when (pos) {
-                is String -> position[i] = when (pos[0]) {
-                    in CHAR_START -> POS_START
-                    in CHAR_CENTER -> POS_CENTER
-                    in CHAR_END -> POS_END
+                is String -> position[i] = when (pos[0].toUpperCase()) {
+                    CHAR_START -> POS_START
+                    CHAR_CENTER -> POS_CENTER
+                    CHAR_END -> POS_END
                     else -> throw IllegalArgumentException("Wrong opening position character '$pos'.")
                 }
                 is Int -> position[i] = pos
@@ -56,9 +54,9 @@ class Opening(from: JSONArray) {
         const val POS_CENTER = -2
         const val POS_END = -1
 
-        const val CHAR_START = "Ss"
-        const val CHAR_CENTER = "Cc"
-        const val CHAR_END = "Ee"
+        private const val CHAR_START = 'S'
+        private const val CHAR_CENTER = 'C'
+        private const val CHAR_END = 'E'
     }
 
 }

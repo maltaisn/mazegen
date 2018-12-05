@@ -49,7 +49,7 @@ class CanvasWriter(config: JSONObject?) {
     private var svgPrecision = 2
 
     // Styling settings
-    private var cellSize = 30.0
+    private var cellSize = 30f
     private var backgroundColor = Canvas.parseColor("#00FFFFFF")
     private var stroke: BasicStroke
     private var color: Color = Color.BLACK
@@ -92,7 +92,7 @@ class CanvasWriter(config: JSONObject?) {
             if (config.has(KEY_STYLE)) {
                 val styleConfig = config.getJSONObject(KEY_STYLE)
                 if (styleConfig.has(KEY_STYLE_CELL_SIZE)) {
-                    cellSize = styleConfig.getDouble(KEY_STYLE_CELL_SIZE)
+                    cellSize = styleConfig.getFloat(KEY_STYLE_CELL_SIZE)
                 }
                 if (styleConfig.has(KEY_STYLE_BACKGROUND_COLOR)) {
                     backgroundColor = Canvas.parseColor(

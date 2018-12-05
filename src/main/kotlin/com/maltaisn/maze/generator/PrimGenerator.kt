@@ -57,7 +57,7 @@ class PrimGenerator : Generator() {
         do {
             val currentCell = set.random()
             var connected = false
-            for (neighbor in currentCell.getNeighbors().shuffled()) {
+            for (neighbor in currentCell.neighbors.shuffled()) {
                 if (!connected && neighbor.visited) {
                     currentCell.connectWith(neighbor)
                     connected = true

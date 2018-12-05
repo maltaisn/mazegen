@@ -27,28 +27,28 @@ package com.maltaisn.maze.maze
 
 
 /**
- * Class defining an orthogonal 2D position.
+ * A 2D position.
  */
-data class PositionXY(val x: Int, val y: Int) : Position {
+open class Position2D(val x: Int, val y: Int) : Position {
 
     /**
      * Compute the Manhattan distance between this position and [pos].
      */
     override fun distanceTo(pos: Position): Int {
-        val posXY = pos as PositionXY
-        return Math.abs(posXY.x - x) + Math.abs(posXY.y - y)
+        val pos2D = pos as Position2D
+        return Math.abs(pos2D.x - x) + Math.abs(pos2D.y - y)
     }
 
-    override operator fun plus(pos: Position): Position {
-        val posXY = pos as PositionXY
-        return PositionXY(x + posXY.x, y + posXY.y)
+    override operator fun plus(pos: Position): Position2D {
+        val pos2D = pos as Position2D
+        return Position2D(x + pos2D.x, y + pos2D.y)
     }
 
     override fun compareTo(pos: Position): Int {
-        val posXY = pos as PositionXY
-        return if (x == posXY.x && y == posXY.y) {
+        val pos2D = pos as Position2D
+        return if (x == pos2D.x && y == pos2D.y) {
             0
-        } else if (x > posXY.x || x == posXY.x && y > posXY.y) {
+        } else if (x > pos2D.x || x == pos2D.x && y > pos2D.y) {
             1
         } else {
             -1
@@ -57,7 +57,7 @@ data class PositionXY(val x: Int, val y: Int) : Position {
 
     override fun equals(other: Any?): Boolean {
         if (other === this) return true
-        if (other !is PositionXY) return false
+        if (other !is Position2D) return false
         return x == other.x && y == other.y
     }
 
@@ -66,8 +66,6 @@ data class PositionXY(val x: Int, val y: Int) : Position {
         return (x shl 16) and y
     }
 
-    override fun toString(): String {
-        return "[x: $x, y: $y]"
-    }
+    override fun toString(): String = "[x: $x, y: $y]"
 
 }

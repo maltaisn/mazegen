@@ -32,20 +32,41 @@ import java.io.PrintWriter
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 
 /**
  * Canvas for exporting SVG files.
  * SVG path data can be optimized with [optimize] to reduce the file size.
+ *
+ * FIXME: BROKEN ON THIS COMMIT
  */
-class SVGCanvas : Canvas() {
+class SVGCanvas : Canvas(OutputFormat.SVG) {
 
-    /**
-     * The maximum number of decimal digits used for all values.
-     */
-    var precision = 0
+    private val shapes = LinkedList<Shape>()
+
+    private lateinit var currentStyle: Style
+
+    override var color: Color = Color.BLACK
+        set(value) {
+            field = value
+            updateStyle()
+        }
+
+    override var stroke: BasicStroke = BasicStroke(1f)
+        set(value) {
+            field = value
+            updateStyle()
+        }
+
+    override var translate: Point? = null
+        set(value) {
+            super.translate = value
+            updateStyle()
+        }
+
+    /** The maximum number of decimal digits used for all values. */
+    var precision: Int = 0
         set(value) {
             field = value
 
@@ -59,64 +80,59 @@ class SVGCanvas : Canvas() {
     private val numberFormat = DecimalFormat.getNumberInstance() as DecimalFormat
 
 
-    /**
-     * List of shapes drawn to this canvas.
-     */
-    private val shapes = ArrayList<Shape>()
-
-    /**
-     * The current translate transform applied to the canvas, null if none.
-     */
-    private var translate: Point? = null
-
-
     init {
         precision = 2
+        updateStyle()
     }
 
-    override fun drawLine(x1: Double, y1: Double, x2: Double, y2: Double) {
-        val last = shapes.lastOrNull()
-        val lines: Lines
-        if (last is Lines && last.color === color
-                && last.stroke === stroke
-                && last.translate === translate) {
-            lines = last
-        } else {
-            lines = Lines(stroke, color, translate)
-            shapes.add(lines)
-        }
+    private fun updateStyle() {
+        currentStyle = Style(stroke, color, if (translate != null) SvgPoint(translate!!) else null)
+    }
 
-        lines.points.add(Point(x1, y1))
-        lines.points.add(Point(x2, y2))
+
+    override fun drawLine(x1: Float, y1: Float, x2: Float, y2: Float) {
+        getLastPath().elements.add(Path.Element.Line(SvgPoint(x1, y1), SvgPoint(x2, y2)))
+    }
+
+    override fun drawArc(x: Float, y: Float, rx: Float, ry: Float,
+                         start: Double, extent: Double) {
+        getLastPath().elements.add(Path.Element.Arc(
+                x, y, rx, ry, start, Math.min(ArcPoint.PI2, extent)))
     }
 
     override fun drawPolyline(points: LinkedList<Point>) {
-        shapes.add(Polyline(stroke, color, translate, points))
+        val polypoint = Path.Element.Polypoint()
+        for (point in points) {
+            polypoint.points.add(SvgPoint(point))
+        }
+        getLastPath().elements.add(polypoint)
     }
 
-    override fun drawRect(x: Double, y: Double, width: Double, height: Double, filled: Boolean) {
-        shapes.add(Rectangle(stroke, color, translate, x, y, width, height, filled))
+    override fun drawRect(x: Float, y: Float, width: Float, height: Float, filled: Boolean) {
+        shapes.add(Rectangle(currentStyle, x, y, width, height, filled))
     }
 
-    override fun translate(x: Double, y: Double) {
-        translate = if (x == 0.0 && y == 0.0) {
-            null
+    private fun getLastPath(): Path {
+        val last = shapes.lastOrNull()
+        return if (last is Path && last.style === currentStyle) {
+            last
         } else {
-            Point(x, y)
+            val path = Path(currentStyle)
+            shapes.add(path)
+            path
         }
     }
 
     override fun exportTo(file: File) {
-        val svg = StringBuilder(4096)
+        // Create SVG text
+        val svg = StringBuilder(8192)
         svg.append("<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\" ")
         svg.append("width=\"${numberFormat.format(width)}\" ")
         val heightStr = numberFormat.format(height)
         svg.append("height=\"$heightStr\">")
-
         for (shape in shapes) {
-            shape.toSvg(svg, numberFormat)
+            shape.appendTo(svg, numberFormat)
         }
-
         svg.append("</svg>")
 
         // Export it to the file
@@ -124,36 +140,427 @@ class SVGCanvas : Canvas() {
     }
 
     /**
-     * Optimize lines shapes to polylines.
+     * Optimize path shapes by connecting their individual elements together into polypoints.
      */
     fun optimize() {
-        for (i in 0 until shapes.size) {
-            val shape = shapes[i]
-            if (shape is Lines) {
-                val polylines = shape.optimizeToPolines()
-                shapes[i] = polylines
-            } else if (shape is Polyline) {
+        for (shape in shapes) {
+            if (shape is Path) {
                 shape.optimize()
             }
         }
     }
 
     /**
-     * Base class for a shape with a [stroke] style and a [color].
-     * @param[filled] whether this shape is filled or not.
+     * SVG element that with a string representation.
      */
-    private abstract class Shape(val stroke: BasicStroke, val color: Color, val filled: Boolean,
-                                 val translate: Point?) {
+    private interface SvgElement {
+        /**
+         * Append this SVG element to [svg] StringBuilder.
+         */
+        fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat)
+    }
+
+    /**
+     * SVG shape with a [style].
+     */
+    private abstract class Shape(val style: Style) : SvgElement
+
+    /**
+     * SVG point in a path element.
+     */
+    private open class SvgPoint(x: Float, y: Float) : Point(x, y), SvgElement {
+
+        constructor(x: Double, y: Double) : this(x.toFloat(), y.toFloat())
+
+        constructor(point: Point) : this(point.x, point.y)
+
+        override fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat) {
+            svg.append(numberFormat.format(this.x))
+            svg.append(',')
+            svg.append(numberFormat.format(this.y))
+        }
+
+    }
+
+    /**
+     * Arc point in a polypoint. The point defines where the arc ends.
+     * Where the arc start is defined by the previous point in the polypoint.
+     */
+    private class ArcPoint(val cx: Float, val cy: Float,
+                           val end: SvgPoint, val radius: SvgPoint,
+                           val startAngle: Double, extent: Double) :
+            SvgPoint(end.x, end.y) {
+
+        val extent = Math.min(PI2, extent)
+
+        override fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat) {
+            val radiusSb = StringBuilder()
+            radius.appendTo(radiusSb, numberFormat)
+            val radiusStr = radiusSb.toString()
+
+            if (extent == PI2) {
+                // Arc is a whole circle, but SVG can't draw that as a single arc.
+                // So draw two connected half circles.
+                val halfAngle = startAngle + Math.PI
+                svg.append('A')
+                svg.append(radiusStr)
+                svg.append(",0,0,0,")
+                SvgPoint(cx + Math.cos(halfAngle).toFloat() * radius.x,
+                        cy - Math.sin(halfAngle).toFloat() * radius.y).appendTo(svg, numberFormat)
+                svg.append('A')
+                svg.append(radiusStr)
+                svg.append(",0,0,0,")
+                end.appendTo(svg, numberFormat)
+            } else {
+                svg.append('A')
+                svg.append(radiusStr)
+                svg.append(",0,")
+                svg.append(if (extent > Math.PI) '1' else '0')
+                svg.append(',')
+                svg.append(if (extent < 0) '1' else '0')
+                svg.append(',')
+                end.appendTo(svg, numberFormat)
+            }
+        }
+
+        companion object {
+            const val PI2 = Math.PI * 2
+        }
+
+    }
+
+    /**
+     * Path shape that can contain lines and arcs.
+     */
+    private class Path(style: Style) : Shape(style) {
+
+        val elements = LinkedList<Element>()
 
         /**
-         * Append the SVG representation of this shape to [svg].
+         * Optimize the elements data:
+         * - Segments that share a point are connected together to make polypoints.
+         * - Segments that together form a longer segment are merged.
+         *
+         * For each segment drawn, if one of its point matches the head or the tail of
+         * an existing polypoint, the segment is added to it. If not, a new polypoint is created.
+         * If the line connects two polypoints together, they are merged into one.
+         *
+         * Should not be used with over 40k points, performance is not good.
+         *
+         * FIXME BROKEN!!!
+         * line and arc should both be segments, just with different point types.
+         * two connected arc points should define an unique arc just like two line points do.
+         * that should also make them easily reversible.
          */
-        abstract fun toSvg(svg: StringBuilder, numberFormat: DecimalFormat)
+        fun optimize() {
+            val newElements = LinkedList<Element>()
+
+            val heads = HashMap<Point, Element.Polypoint>()
+            val tails = HashMap<Point, Element.Polypoint>()
+            for (element in elements) {
+                when (element) {
+                    is Element.Polypoint -> {
+                        element.optimize()
+                        newElements.add(element)
+                    }
+                    is Element.Segment -> {
+                        var start = element.start
+                        var end = element.end
+
+                        // Check if one of the polylines head is the same as one of the points.
+                        var polypoint = heads[start]
+                        if (polypoint == null) {
+                            polypoint = heads[end]
+                            if (polypoint != null) {
+                                val reversed = element.reverse()
+                                start = reversed.start
+                                end = reversed.end
+                            }
+                        }
+                        if (polypoint != null) {
+                            // Found a polyline with a head at p2.
+                            polypoint.extendWith(end, true)
+                            heads.remove(start)
+
+                            // Check if there's already a polyline with a head or a tail at p2.
+                            var headFound = true
+                            var prev = heads[end]
+                            if (prev == null) {
+                                prev = tails[end]
+                                headFound = false
+                            }
+                            if (prev != null) {
+                                // Found another polyline adjacent to this one, connect them.
+                                heads.remove(prev.points.first)
+                                tails.remove(prev.points.last)
+                                prev.removeAtEnd(headFound)
+                                polypoint.extendWith(prev.removeAtEnd(headFound), true)
+                                for (point in (if (headFound) prev.points.iterator() else prev.points.descendingIterator())) {
+                                    polypoint.points.addFirst(point)
+                                }
+                            }
+                            heads[polypoint.points.first] = polypoint
+
+                        } else {
+                            // Check if one of the point is the same as a polyline tail.
+                            polypoint = tails[start]
+                            if (polypoint == null) {
+                                polypoint = tails[end]
+                                if (polypoint != null) {
+                                    val reversed = element.reverse()
+                                    start = reversed.start
+                                    end = reversed.end
+                                }
+                            }
+                            if (polypoint != null) {
+                                // Found a polyline with a tail at p2.
+                                polypoint.extendWith(end, false)
+                                tails.remove(start)
+
+                                // Check if there's already a polyline with a head or a tail at p2.
+                                var headFound = false
+                                var prev = tails[end]
+                                if (prev == null) {
+                                    prev = heads[end]
+                                    headFound = true
+                                }
+                                if (prev != null) {
+                                    // Found another polyline adjacent to this one, connect them.
+                                    heads.remove(prev.points.first)
+                                    tails.remove(prev.points.last)
+                                    prev.removeAtEnd(headFound)
+                                    polypoint.extendWith(prev.removeAtEnd(headFound), false)
+                                    for (point in (if (headFound) prev.points.iterator() else prev.points.descendingIterator())) {
+                                        polypoint.points.addLast(point)
+                                    }
+                                }
+                                tails[polypoint.points.last] = polypoint
+
+                            } else {
+                                // No polyline head or tail matches one of the points: create a new polyline.
+                                polypoint = Element.Polypoint()
+                                polypoint.points.add(start)
+                                polypoint.points.add(end)
+                                heads[start] = polypoint
+                                tails[end] = polypoint
+                            }
+                        }
+                    }
+                }
+            }
+
+            newElements.addAll(heads.values)
+            elements.clear()
+            elements.addAll(newElements)
+        }
+
+        override fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat) {
+            svg.append("<path ")
+            style.appendTo(svg, numberFormat, false)
+            svg.append(" d=\"")
+            for (element in elements) {
+                element.appendTo(svg, numberFormat)
+            }
+            svg.append("\"/>")
+        }
 
         /**
-         * Append the SVG style attribute of this shape to [svg].
+         * A path element.
          */
-        protected fun appendAttributes(svg: StringBuilder, numberFormat: DecimalFormat): String {
+        sealed class Element : SvgElement {
+
+            abstract class Segment : Element() {
+                abstract val start: SvgPoint
+                abstract val end: SvgPoint
+
+                /**
+                 * Return the segment inverse to this one.
+                 */
+                abstract fun reverse(): Segment
+            }
+
+            /**
+             * A line in a path from [start] to [end].
+             */
+            class Line(override val start: SvgPoint, override val end: SvgPoint) : Segment() {
+
+                override fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat) {
+                    svg.append('M')
+                    start.appendTo(svg, numberFormat)
+                    svg.append('L')
+                    end.appendTo(svg, numberFormat)
+                }
+
+                override fun reverse(): Line = Line(end, start)
+
+            }
+
+            /**
+             * An arc in a path. Angles are in radians.
+             */
+            class Arc : Segment {
+
+                override val start: SvgPoint
+                override val end: ArcPoint
+
+                constructor(cx: Float, cy: Float,
+                            rx: Float, ry: Float,
+                            startAngle: Double, extent: Double) {
+                    // Find the starting and ending point of this arc.
+                    val endAngle = startAngle + extent
+                    val radius = SvgPoint(rx, ry)
+                    start = SvgPoint(cx + rx * Math.cos(startAngle),
+                            cy - ry * Math.sin(startAngle))
+                    end = ArcPoint(cx, cy, SvgPoint(cx + rx * Math.cos(endAngle),
+                            cy - ry * Math.sin(endAngle)),
+                            radius, startAngle, extent)
+                }
+
+                private constructor(start: SvgPoint, end: ArcPoint) {
+                    this.start = start
+                    this.end = end
+                }
+
+                override fun reverse(): Segment = Arc(end.end,
+                        ArcPoint(end.cx, end.cy, start, end.radius,
+                                end.startAngle + end.extent, -end.extent))
+
+                override fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat) {
+                    svg.append('M')
+                    start.appendTo(svg, numberFormat)
+                    end.appendTo(svg, numberFormat)
+                }
+            }
+
+            /**
+             * A path element made of a points all connected together.
+             * Like a polyline but supporting arcs.
+             */
+            class Polypoint : Element() {
+
+                val points = LinkedList<SvgPoint>()
+
+                fun removeAtEnd(head: Boolean): SvgPoint = if (head) {
+                    points.removeFirst()
+                } else {
+                    points.removeLast()
+                }
+
+                /**
+                 * Optimize polylines to connect colinear segments together.
+                 */
+                fun optimize() {
+                    val oldPoints = LinkedList(points)
+                    points.clear()
+                    for (point in oldPoints) {
+                        extendWith(point, false)
+                    }
+                }
+
+                /**
+                 * If [first] is true, add [with] point to the start of the polyline, otherwise to the end.
+                 * If new point creates a segment that extends last segment, merge them into one segment.
+                 */
+                fun extendWith(with: SvgPoint, first: Boolean) {
+                    val lastIndex = if (first) 0 else points.size - 1
+                    val last = if (points.isEmpty()) null else points[lastIndex]
+                    if (with is ArcPoint) {
+                        // Extending with arc point: last must be arc too and have same radii.
+                        if (last is ArcPoint && with.radius == last.radius
+                                && with.cx == last.cx && with.cy == last.cy) {
+                            // New arc point has same radii as last one, merge them.
+                            points[lastIndex] = ArcPoint(with.cx, with.cy, with.end,
+                                    with.radius, last.startAngle, last.extent + with.extent)
+                            return
+                        }
+
+                    } else if (last is SvgPoint) {
+                        // Extending with point: slope between the last and before last point
+                        // must be the same as the slope between the last and the new point.
+                        val beforeLast = if (points.size < 2) null else points[if (first) 1 else points.size - 2]
+                        if (beforeLast != null) {
+                            val lastSlope = (last.y - beforeLast.y) / (last.x - beforeLast.x)
+                            val newSlope = (with.y - last.y) / (with.x - last.x)
+                            if (newSlope == lastSlope) {
+                                // New point extends the last segment in the polyline, merge them.
+                                points[lastIndex] = with
+                                return
+                            }
+                        }
+                    }
+
+                    // Can't extend, just add the new point.
+                    if (first) {
+                        points.addFirst(with)
+                    } else {
+                        points.addLast(with)
+                    }
+                }
+
+                override fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat) {
+                    var lastPoint: SvgPoint? = null
+                    for (point in points) {
+                        when {
+                            lastPoint == null -> {
+                                svg.append('M')
+                                point.appendTo(svg, numberFormat)
+                            }
+                            point is ArcPoint -> {
+                                point.appendTo(svg, numberFormat)
+                            }
+                            point.y == lastPoint.y -> {
+                                // Same Y as last point: horizontal line
+                                svg.append('H')
+                                svg.append(numberFormat.format(point.x))
+                            }
+                            point.x == lastPoint.x -> {
+                                // Same X as last point: vertical line
+                                svg.append('V')
+                                svg.append(numberFormat.format(point.y))
+                            }
+                            else -> {
+                                svg.append('L')
+                                point.appendTo(svg, numberFormat)
+                            }
+                        }
+                        lastPoint = point
+                    }
+                }
+
+            }
+        }
+    }
+
+    /**
+     * Shape for a rectangle with a top left corner
+     * at ([x] ; [y]) and dimensions [width] by [height].
+     */
+    private class Rectangle(style: Style,
+                            val x: Float, val y: Float,
+                            val width: Float, val height: Float,
+                            val filled: Boolean) : Shape(style) {
+
+        override fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat) {
+            svg.append("<rect ")
+            svg.append("x=\"${numberFormat.format(x)}\" ")
+            svg.append("y=\"${numberFormat.format(y)}\" ")
+            svg.append("width=\"${numberFormat.format(width)}\" ")
+            svg.append("height=\"${numberFormat.format(height)}\" ")
+            style.appendTo(svg, numberFormat, filled)
+            svg.append("/>")
+        }
+    }
+
+    /**
+     * Class defining a shape style.
+     */
+    private data class Style(val stroke: BasicStroke, val color: Color, val translate: SvgPoint?) {
+
+        /**
+         * Append the style to [svg] as attributes.
+         * @param[filled] Whether style is for a filled shape or not.
+         */
+        fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat, filled: Boolean) {
             svg.append("style=\"")
 
             // Style attribute
@@ -185,291 +592,9 @@ class SVGCanvas : Canvas() {
             // Translate attribute
             if (translate != null) {
                 svg.append(" transform=\"translate(")
-                svg.append(numberFormat.format(translate.x))
-                svg.append(',')
-                svg.append(numberFormat.format(translate.y))
+                translate.appendTo(svg, numberFormat)
                 svg.append(")\"")
             }
-
-            return svg.toString()
-        }
-
-    }
-
-    /**
-     * Base class for a shape represented with a `<path>` tag in SVG.
-     */
-    private abstract class PathShape(stroke: BasicStroke, color: Color, translate: Point?) :
-            Shape(stroke, color, false, translate) {
-
-        final override fun toSvg(svg: StringBuilder, numberFormat: DecimalFormat) {
-            svg.append("<path ")
-            appendAttributes(svg, numberFormat)
-            svg.append(" d=\"")
-            appendPathData(svg, numberFormat)
-            svg.append("\"/>")
-        }
-
-        /**
-         * Append the path data of this shape to [svg].
-         */
-        abstract fun appendPathData(svg: StringBuilder, numberFormat: DecimalFormat)
-
-        /**
-         * Add [point] to the path data in [path].
-         * Added point is connected with the last point if [isFirst] is false.
-         */
-        protected fun addPointToPathData(path: StringBuilder, numberFormat: DecimalFormat,
-                                         point: Point, lastPoint: Point?, isFirst: Boolean) {
-            if (lastPoint != null && !isFirst) {
-                when {
-                    point.y == lastPoint.y -> {
-                        // Same Y as last point: horizontal line
-                        path.append('H')
-                        path.append(numberFormat.format(point.x))
-                    }
-                    point.x == lastPoint.x -> {
-                        // Same X as last point: vertical line
-                        path.append('V')
-                        path.append(numberFormat.format(point.y))
-                    }
-                    else -> {
-                        path.append('L')
-                        path.append(numberFormat.format(point.x))
-                        path.append(',')
-                        path.append(numberFormat.format(point.y))
-                    }
-                }
-            } else {
-                path.append('M')
-                path.append(numberFormat.format(point.x))
-                path.append(',')
-                path.append(numberFormat.format(point.y))
-            }
-        }
-
-    }
-
-    /**
-     * Path shape for a list of lines with only 2 points each.
-     * This shape can be optimized to a [Polylines] shape.
-     */
-    private class Lines(stroke: BasicStroke, color: Color, translate: Point?) :
-            PathShape(stroke, color, translate) {
-
-        val points = LinkedList<Point>()
-
-        /**
-         * Optimize the lines data:
-         * - Lines that share a point are connected together to make polylines.
-         * - Lines that form a longer line become a single line.
-         *
-         * For each line drawn, if a point of the line matches the head or the tail of
-         * an existing polyline, add the line to it. If not, create a new polyline.
-         * If the line connects two polylines, merge them into one.
-         *
-         * Should not be used with over 40k points, performance is not good.
-         */
-        fun optimizeToPolines(): Polylines {
-            val polylineHeads = HashMap<Point, Polyline>()
-            val polylineTails = HashMap<Point, Polyline>()
-            for (i in 0 until points.size step 2) {
-                var p1 = points[i]
-                var p2 = points[i + 1]
-
-                // Check if one of the polylines head is the same as one of the points.
-                var polyline = polylineHeads[p1]
-                if (polyline == null) {
-                    polyline = polylineHeads[p2]
-                    if (polyline != null) {
-                        val temp = p1
-                        p1 = p2
-                        p2 = temp
-                    }
-                }
-                if (polyline != null) {
-                    // Found a polyline with a head at p2.
-                    polyline.extendWith(p2, true)
-                    polylineHeads.remove(p1)
-
-                    // Check if there's already a polyline with a head or a tail at p2.
-                    var headFound = true
-                    var prev = polylineHeads[p2]
-                    if (prev == null) {
-                        prev = polylineTails[p2]
-                        headFound = false
-                    }
-                    if (prev != null) {
-                        // Found another polyline adjacent to this one, connect them.
-                        polylineHeads.remove(prev.points.first)
-                        polylineTails.remove(prev.points.last)
-                        prev.removeAtEnd(headFound)
-                        polyline.extendWith(prev.removeAtEnd(headFound), true)
-                        for (point in (if (headFound) prev.points.iterator() else prev.points.descendingIterator())) {
-                            polyline.points.addFirst(point)
-                        }
-                    }
-                    polylineHeads[polyline.points.first] = polyline
-
-                } else {
-                    // Check if one of the point is the same as a polyline tail.
-                    polyline = polylineTails[p1]
-                    if (polyline == null) {
-                        polyline = polylineTails[p2]
-                        if (polyline != null) {
-                            val temp = p1
-                            p1 = p2
-                            p2 = temp
-                        }
-                    }
-                    if (polyline != null) {
-                        // Found a polyline with a tail at p2.
-                        polyline.extendWith(p2, false)
-                        polylineTails.remove(p1)
-
-                        // Check if there's already a polyline with a head or a tail at p2.
-                        var headFound = false
-                        var prev = polylineTails[p2]
-                        if (prev == null) {
-                            prev = polylineHeads[p2]
-                            headFound = true
-                        }
-                        if (prev != null) {
-                            // Found another polyline adjacent to this one, connect them.
-                            polylineHeads.remove(prev.points.first)
-                            polylineTails.remove(prev.points.last)
-                            prev.removeAtEnd(headFound)
-                            polyline.extendWith(prev.removeAtEnd(headFound), false)
-                            for (point in (if (headFound) prev.points.iterator() else prev.points.descendingIterator())) {
-                                polyline.points.addLast(point)
-                            }
-                        }
-                        polylineTails[polyline.points.last] = polyline
-
-                    } else {
-                        // No polyline head or tail matches one of the points: create a new polyline.
-                        polyline = Polyline(stroke, color, translate)
-                        polyline.points.add(p1)
-                        polyline.points.add(p2)
-                        polylineHeads[p1] = polyline
-                        polylineTails[p2] = polyline
-                    }
-                }
-            }
-
-            return Polylines(stroke, color, translate, polylineHeads.values.toList())
-        }
-
-        override fun appendPathData(svg: StringBuilder, numberFormat: DecimalFormat) {
-            var lastPoint: Point? = null
-            for (i in 0 until points.size step 2) {
-                val p1 = points[i]
-                val p2 = points[i + 1]
-                addPointToPathData(svg, numberFormat, p1, lastPoint, true)
-                addPointToPathData(svg, numberFormat, p2, p1, false)
-                lastPoint = p2
-            }
-        }
-
-    }
-
-    /**
-     * Path shape for a list of points that are all connected together.
-     */
-    private class Polyline(stroke: BasicStroke, color: Color, translate: Point?,
-                           val points: LinkedList<Point> = LinkedList()) :
-            PathShape(stroke, color, translate) {
-
-        fun removeAtEnd(head: Boolean): Point = if (head) {
-            points.removeFirst()
-        } else {
-            points.removeLast()
-        }
-
-        /**
-         * Optimize polylines to connect colinear segments together.
-         */
-        fun optimize() {
-            val oldPoints = LinkedList(points)
-            points.clear()
-            for (point in oldPoints) {
-                extendWith(point, false)
-            }
-        }
-
-        /**
-         * If [first] is true, add [with] point to the start of the polyline, otherwise to the end.
-         * If new point creates a segment that extends last segment, merge them into one segment.
-         */
-        fun extendWith(with: Point, first: Boolean) {
-            val lastIndex = if (first) 0 else points.size - 1
-            val last = if (points.isEmpty()) null else points[lastIndex]
-            val beforeLast = if (points.size < 2) null else points[if (first) 1 else points.size - 2]
-            if (beforeLast != null && last != null) {
-                val lastSlope = (last.y - beforeLast.y) / (last.x - beforeLast.x)
-                val newSlope = (with.y - last.y) / (with.x - last.x)
-                if (newSlope == lastSlope) {
-                    // New point extends the last segment in the polyline, merge them.
-                    points[lastIndex] = with
-                    return
-                }
-            }
-
-            if (first) {
-                points.addFirst(with)
-            } else {
-                points.addLast(with)
-            }
-        }
-
-        override fun appendPathData(svg: StringBuilder, numberFormat: DecimalFormat) {
-            var lastPoint: Point? = null
-            for (i in 0 until points.size) {
-                val point = points[i]
-                addPointToPathData(svg, numberFormat, point, lastPoint, i == 0)
-                lastPoint = point
-            }
-        }
-
-    }
-
-    /**
-     * Path shape for a list of [Polyline].
-     */
-    private class Polylines(stroke: BasicStroke, color: Color, translate: Point?,
-                            val polylines: List<Polyline> = LinkedList()) :
-            PathShape(stroke, color, translate) {
-
-        override fun appendPathData(svg: StringBuilder, numberFormat: DecimalFormat) {
-            var lastPoint: Point? = null
-            for (polyline in polylines) {
-                for (i in 0 until polyline.points.size) {
-                    val point = polyline.points[i]
-                    addPointToPathData(svg, numberFormat, point, lastPoint, i == 0)
-                    lastPoint = point
-                }
-            }
-        }
-
-    }
-
-    /**
-     * Shape for a rectangle with a top left corner at ([x] ; [y]) and dimensions [width] x [height].
-     * @param[filled] whether the rectangle is filled or not.
-     */
-    private class Rectangle(stroke: BasicStroke, color: Color, translate: Point?,
-                            val x: Double, val y: Double, val width: Double,
-                            val height: Double, filled: Boolean) :
-            Shape(stroke, color, filled, translate) {
-
-        override fun toSvg(svg: StringBuilder, numberFormat: DecimalFormat) {
-            svg.append("<rect ")
-            svg.append("x=\"${numberFormat.format(x)}\" ")
-            svg.append("y=\"${numberFormat.format(y)}\" ")
-            svg.append("width=\"${numberFormat.format(width)}\" ")
-            svg.append("height=\"${numberFormat.format(height)}\" ")
-            appendAttributes(svg, numberFormat)
-            svg.append("/>")
         }
 
     }

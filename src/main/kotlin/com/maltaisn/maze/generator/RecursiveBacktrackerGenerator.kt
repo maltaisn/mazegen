@@ -60,7 +60,7 @@ class RecursiveBacktrackerGenerator : Generator() {
         val stack = LinkedList<Cell>()
         while (true) {
             // Find an unvisited neighbor cell
-            val unvisitedNeighbor = currentCell.getNeighbors().shuffled().find { !it.visited }
+            val unvisitedNeighbor = currentCell.neighbors.shuffled().find { !it.visited }
             if (unvisitedNeighbor != null) {
                 // Connect with current cell
                 currentCell.connectWith(unvisitedNeighbor)

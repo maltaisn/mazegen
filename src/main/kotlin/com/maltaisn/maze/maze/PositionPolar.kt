@@ -27,39 +27,28 @@ package com.maltaisn.maze.maze
 
 
 /**
- * A square cell for [RectMaze].
- * Has north, east, south and east sides.
+ * A position in a 2D polar coordinate system.
+ * @param x the index in the row array.
+ * @param r the radial distance of this position from the center.
+ * @param rowWidth the length of the row array, optional.
  */
-class RectCell(maze: RectMaze, position: Position2D) : Cell(maze, position) {
-
-    override fun getAllSides(): List<Side> = ALL_SIDES
-
-    override fun getAllSideValue(): Side = Side.ALL
+class PositionPolar(x: Int, r: Int, val rowWidth: Int = 0) : Position2D(x, r) {
 
     /**
-     * Enum class for the side a rectangular cell
+     * The super method wouldn't work because a polar system wraps around on the theta axis.
+     * For example the distance between a cell at 0 degrees and 359 degrees is 1 not 359.
      */
-    enum class Side(override val value: Int,
-                    override val relativePos: Position2D?,
-                    override val symbol: String?) : Cell.Side {
-        NORTH(1, Position2D(0, -1), "N"),
-        EAST(2, Position2D(1, 0), "E"),
-        SOUTH(4, Position2D(0, 1), "S"),
-        WEST(8, Position2D(-1, 0), "W"),
-        ALL(15, null, null);
-
-        override fun opposite(): Side = when (this) {
-            NORTH -> SOUTH
-            SOUTH -> NORTH
-            EAST -> WEST
-            WEST -> EAST
-            ALL -> ALL
-        }
-
+    override fun distanceTo(pos: Position): Int {
+        val pp = pos as PositionPolar
+        val dx = Math.abs(x - pos.x)
+        return Math.abs(y - pp.y) + Math.min(dx, rowWidth - dx)
     }
 
-    companion object {
-        private val ALL_SIDES = listOf(Side.NORTH, Side.SOUTH, Side.WEST, Side.EAST)
+    override operator fun plus(pos: Position): PositionPolar {
+        val pp = pos as PositionPolar
+        return PositionPolar(x + pp.x, y + pp.y)
     }
+
+    override fun toString(): String = "[x: $x, r: $y]"
 
 }

@@ -81,15 +81,18 @@ class MazeParser {
                 "rect", "orth" -> MazeType.RECT
                 "hex", "sigma" -> MazeType.HEX
                 "triangle", "delta" -> MazeType.DELTA
+                "polar", "circle", "theta" -> MazeType.POLAR
                 else -> throw IllegalArgumentException("Invalid maze type '$typeStr'.")
             }
         } else {
             MazeType.RECT
         }
 
-        var width = if (config.has(KEY_WIDTH)) config.getInt(KEY_WIDTH) else null
-        var height = if (config.has(KEY_HEIGHT)) config.getInt(KEY_HEIGHT) else null
-        val dimension = if (config.has(KEY_DIMENSION)) config.getInt(KEY_DIMENSION) else null
+        val size = if (config.has(KEY_SIZE)) {
+            config.get(KEY_SIZE)
+        } else {
+            throw IllegalArgumentException("A size must be specified for the maze.")
+        }
 
         val arrangement = if (config.has(KEY_ARRANGEMENT)) {
             when (val arrStr = config.getString(KEY_ARRANGEMENT)) {
@@ -103,40 +106,60 @@ class MazeParser {
             Arrangement.RECTANGLE
         }
 
-        when (type) {
+        val createMaze: () -> Maze = when (type) {
             MazeType.RECT -> {
-                if (dimension == null && (width == null || height == null)
-                        || dimension != null && (width != null || height != null)) {
-                    throw IllegalArgumentException("For orthogonal mazes, only 'dimension' " +
-                            "or both 'width' and 'height' must be defined.")
+                val width: Int
+                val height: Int
+                if (size is Int) {
+                    width = size
+                    height = size
+                } else {
+                    val sizeJson = size as JSONObject
+                    width = sizeJson.getInt(KEY_SIZE_WIDTH)
+                    height = sizeJson.getInt(KEY_SIZE_HEIGHT)
                 }
-                if (dimension != null) {
-                    width = dimension
-                    height = dimension
-                }
+                { RectMaze(width, height) }
             }
             MazeType.HEX, MazeType.DELTA -> {
-                when (arrangement) {
-                    Arrangement.HEXAGON, Arrangement.TRIANGLE -> {
-                        if (dimension == null || width != null || height != null) {
-                            throw IllegalArgumentException("For hexagon and triangle shaped delta and sigma " +
-                                    "mazes, only 'dimension' must be defined, but not 'width' nor 'height'.")
-                        }
-                        width = dimension
-                        height = dimension
+                val width: Int
+                val height: Int
+                if (size is Int) {
+                    width = size
+                    height = size
+                } else {
+                    if (arrangement == Arrangement.HEXAGON || arrangement == Arrangement.TRIANGLE) {
+                        throw IllegalArgumentException("For hexagon and triangle shaped " +
+                                "delta and sigma mazes, size must be an integer.")
                     }
-                    else -> {
-                        if (dimension == null && (width == null || height == null)
-                                || dimension != null && (width != null || height != null)) {
-                            throw IllegalArgumentException("For rectangle and rhombus shaped delta and sigma " +
-                                    "mazes, only 'dimension' or both 'width' and 'height' must be defined.")
-                        }
-                        if (dimension != null) {
-                            width = dimension
-                            height = dimension
-                        }
+                    val sizeJson = size as JSONObject
+                    width = sizeJson.getInt(KEY_SIZE_WIDTH)
+                    height = sizeJson.getInt(KEY_SIZE_HEIGHT)
+                }
+                {
+                    if (type == MazeType.HEX) {
+                        HexMaze(width, height, arrangement)
+                    } else {
+                        DeltaMaze(width, height, arrangement)
                     }
                 }
+            }
+            MazeType.POLAR -> {
+                val radius: Int
+                var centerRadius = 1f
+                var subdivision = 1.5f
+                if (size is Int) {
+                    radius = size
+                } else {
+                    val sizeJson = size as JSONObject
+                    radius = sizeJson.getInt(KEY_SIZE_RADIUS)
+                    if (sizeJson.has(KEY_SIZE_CENTER_RADIUS)) {
+                        centerRadius = sizeJson.getFloat(KEY_SIZE_CENTER_RADIUS)
+                    }
+                    if (sizeJson.has(KEY_SIZE_SUBDIVISION)) {
+                        subdivision = sizeJson.getFloat(KEY_SIZE_SUBDIVISION)
+                    }
+                }
+                { PolarMaze(radius, centerRadius, subdivision) }
             }
         }
 
@@ -152,11 +175,7 @@ class MazeParser {
 
         val generated = ArrayList<Maze>(count)
         for (i in 0 until count) {
-            val maze = when (type) {
-                MazeType.RECT -> RectMaze(width!!, height!!)
-                MazeType.HEX -> HexMaze(width!!, height!!, arrangement)
-                MazeType.DELTA -> DeltaMaze(width!!, height!!, arrangement)
-            }
+            val maze = createMaze()
             maze.name = name
 
             // Generate the maze
@@ -201,19 +220,23 @@ class MazeParser {
     }
 
     private enum class MazeType {
-        RECT, HEX, DELTA
+        RECT, HEX, DELTA, POLAR
     }
 
     companion object {
         private const val KEY_NAME = "name"
         private const val KEY_COUNT = "count"
         private const val KEY_TYPE = "type"
-        private const val KEY_WIDTH = "width"
-        private const val KEY_HEIGHT = "height"
-        private const val KEY_DIMENSION = "dimension"
+        private const val KEY_SIZE = "size"
         private const val KEY_ARRANGEMENT = "arrangement"
         private const val KEY_OPENINGS = "openings"
         private const val KEY_SOLVE = "solve"
+
+        private const val KEY_SIZE_WIDTH = "width"
+        private const val KEY_SIZE_HEIGHT = "height"
+        private const val KEY_SIZE_RADIUS = "radius"
+        private const val KEY_SIZE_CENTER_RADIUS = "centerRadius"
+        private const val KEY_SIZE_SUBDIVISION = "subdivision"
 
         private const val KEY_ALGORITHM = "algorithm"
         private const val KEY_ALGORITHM_NAME = "name"

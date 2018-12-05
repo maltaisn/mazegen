@@ -29,7 +29,7 @@ package com.maltaisn.maze.render
 /**
  * 2D point with double coordinates.
  */
-data class Point(val x: Double, val y: Double) {
+open class Point(val x: Float, val y: Float) {
 
     private var hash = 0
 
@@ -55,5 +55,7 @@ data class Point(val x: Double, val y: Double) {
         }
         return hash
     }
+
+    override fun toString(): String = "($x ; $y)"
 
 }

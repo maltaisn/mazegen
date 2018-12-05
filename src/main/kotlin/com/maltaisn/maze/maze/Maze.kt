@@ -28,7 +28,6 @@ package com.maltaisn.maze.maze
 import com.maltaisn.maze.render.Canvas
 import java.awt.BasicStroke
 import java.awt.Color
-import java.util.*
 
 
 /**
@@ -56,19 +55,13 @@ abstract class Maze {
      * The maze solution, a list of the path's cells starting from the first
      * opening and ending on the second. Null if no solution was found yet.
      */
-    var solution: LinkedList<Cell>? = null
+    protected var solution: ArrayList<Cell>? = null
         private set
-
-
-    /**
-     * Returns the cell at [pos].
-     */
-    abstract fun cellAt(pos: Position): Cell
 
     /**
      * Returns the cell at [pos] if it exists, otherwise returns null.
      */
-    abstract fun optionalCellAt(pos: Position): Cell?
+    abstract fun cellAt(pos: Position): Cell?
 
     /**
      * Returns a random cell in the maze.
@@ -196,26 +189,22 @@ abstract class Maze {
 
             if (cell === end) {
                 // Found path to the end cell
-                val path = LinkedList<Cell>()
-                path.addFirst(end)
+                val path = ArrayList<Cell>()
                 var currentNode: Node? = node
                 while (currentNode != null) {
-                    path.addFirst(currentNode.cell)
+                    path.add(0, currentNode.cell)
                     currentNode = currentNode.parent
                 }
                 solution = path
                 return
             }
 
-            for (side in cell.getAllSides()) {
-                if (!cell.hasSide(side)) {
-                    val neighbor = cell.getCellOnSide(side)
-                    if (neighbor != null && !neighbor.visited) {
-                        // Add all unvisited neighbors to the nodes list
-                        nodes.add(Node(node, neighbor, node.costFromStart + 1,
-                                neighbor.position.distanceTo(end.position)))
-                        neighbor.visited = true
-                    }
+            for (neighbor in cell.getAccessibleNeighbors()) {
+                if (!neighbor.visited) {
+                    // Add all unvisited neighbors to the nodes list
+                    nodes.add(Node(node, neighbor, node.costFromStart + 1,
+                            neighbor.position.distanceTo(end.position)))
+                    neighbor.visited = true
                 }
             }
         }
@@ -242,7 +231,7 @@ abstract class Maze {
      * Draw the maze to a [canvas], with an arbritrary [cellSize] and other styling settings.
      */
     abstract fun drawTo(canvas: Canvas,
-                        cellSize: Double, backgroundColor: Color?,
+                        cellSize: Float, backgroundColor: Color?,
                         color: Color, stroke: BasicStroke,
                         solutionColor: Color, solutionStroke: BasicStroke)
 
