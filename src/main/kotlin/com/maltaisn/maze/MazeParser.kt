@@ -57,13 +57,14 @@ class MazeParser {
             }
         }
         val generator = when (algorithm) {
-            "ab", "aldous-broder" -> AldousBroderGenerator()
-            "gt", "growing-tree" -> GrowingTreeGenerator()
-            "hk", "hunt-kill" -> HuntKillGenerator()
-            "kr", "kruskal" -> KruskalGenerator()
-            "pr", "prim" -> PrimGenerator()
-            "rb", "recursive-backtracker" -> RecursiveBacktrackerGenerator()
-            "wi", "wilson" -> WilsonGenerator()
+            "ab", "aldous-broder" -> AldousBroderGenerator
+            "gt", "growing-tree" -> GrowingTreeGenerator
+            "hk", "hunt-kill" -> HuntKillGenerator
+            "kr", "kruskal" -> KruskalGenerator
+            "pr", "prim" -> PrimGenerator
+            "rb", "recursive-backtracker" -> RecursiveBacktrackerGenerator
+            "wi", "wilson" -> WilsonGenerator
+            "rd", "recursive-division" -> RecursiveDivisionGenerator
             else -> throw IllegalArgumentException("Invalid algorithm '$algorithm'.")
         }
 

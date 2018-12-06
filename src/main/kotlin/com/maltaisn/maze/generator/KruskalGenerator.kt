@@ -41,7 +41,7 @@ import java.util.*
  *
  * Runtime complexity is O(n) and memory space is O(n).
  */
-class KruskalGenerator : Generator() {
+object KruskalGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         super.generate(maze)

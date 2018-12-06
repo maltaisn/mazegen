@@ -33,8 +33,8 @@ import java.util.*
 /**
  * Implementation of a recursive backtracking maze generator as described
  * [here](http://weblog.jamisbuck.org/2010/12/27/maze-generation-recursive-backtracking),
- * also known as randomized depth-first search. The implementation doesn't make use
- * of recursion at all to prevent stack overflow. (...although Kotlin has the tailrec optimization)
+ * also known as randomized depth-first search.
+ * The implementation doesn't actually make use of recursion to prevent stack overflow.
  *
  * 1. Make the initial cell the current cell and mark it as visited.
  * 2. Find unvisited neighbor to current cell and connect them.
@@ -47,7 +47,7 @@ import java.util.*
  *
  * Runtime complexity is O(n) and memory space is O(n).
  */
-class RecursiveBacktrackerGenerator : Generator() {
+object RecursiveBacktrackerGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         super.generate(maze)

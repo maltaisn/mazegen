@@ -2,15 +2,14 @@
   "mazes": [
     {
       "name": "maze",
-      "type": "polar",
+      "type": "rect",
       "count": 1,
       "size": {
-        "radius": 10,
-        "centerRadius": 1,
-        "subdivision": 1.5
+        "width": 1000,
+        "height": 1000
       },
-      "algorithm": "rb",
-      "openings": [["C", "E"], ["S", "E"]],
+      "algorithm": "rd",
+      "openings": [["S", "C"], ["E", "C"]],
       "solve": true
     }
   ],
@@ -20,12 +19,12 @@
     "svg_optimize": false,
     "svg_precision": 2,
     "style": {
-      "cell_size": 30,
+      "cell_size": 2,
       "background_color": "#00FFFFFF",
       "color": "#000000",
-      "stroke_width": 3,
+      "stroke_width": 1,
       "solution_color": "#0000FF",
-      "solution_stroke_width": 3,
+      "solution_stroke_width": 1,
       "antialiasing": true
     }
   }

@@ -55,11 +55,13 @@ class RectMaze(val width: Int, val height: Int) : Maze() {
 
 
     override fun cellAt(pos: Position): RectCell? {
-        if (pos is Position2D) {
-            if (pos.x < 0 || pos.x >= width || pos.y < 0 || pos.y >= height) return null
-            return grid[pos.x][pos.y]
-        }
-        return null
+        val pos2d = pos as Position2D
+        return cellAt(pos2d.x, pos2d.y)
+    }
+
+    fun cellAt(x: Int, y: Int): RectCell? {
+        if (x < 0 || x >= width || y < 0 || y >= height) return null
+        return grid[x][y]
     }
 
     override fun getRandomCell(): RectCell {
@@ -99,7 +101,7 @@ class RectMaze(val width: Int, val height: Int) : Maze() {
             Opening.POS_END -> height - 1
             else -> pos
         }
-        return grid[x][y]
+        return cellAt(x, y)
     }
 
     override fun drawTo(canvas: Canvas,
@@ -126,13 +128,13 @@ class RectMaze(val width: Int, val height: Int) : Maze() {
             val px = x * cellSize
             for (y in 0..height) {
                 val py = y * cellSize
-                val cell = cellAt(Position2D(x, y))
+                val cell = cellAt(x, y)
                 if (cell != null && cell.hasSide(Side.NORTH) || cell == null
-                        && cellAt(Position2D(x, y - 1))?.hasSide(Side.SOUTH) == true) {
+                        && cellAt(x, y - 1)?.hasSide(Side.SOUTH) == true) {
                     canvas.drawLine(px, py, px + cellSize, py)
                 }
                 if (cell != null && cell.hasSide(Side.WEST) || cell == null
-                        && cellAt(Position2D(x - 1, y))?.hasSide(Side.EAST) == true) {
+                        && cellAt(x - 1, y)?.hasSide(Side.EAST) == true) {
                     canvas.drawLine(px, py, px, py + cellSize)
                 }
             }

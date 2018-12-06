@@ -95,14 +95,28 @@ abstract class Cell(val maze: Maze, val position: Position) {
     }
 
     /**
-     * Opens (removes) [side] of the cell.
+     * Opens [side] of the cell. (Removes a wall)
      */
     fun openSide(side: Side) {
+        changeSide(side) { v, s -> v and s.inv() }
+    }
+
+    /**
+     * Closes [side] of the cell. (Adds a wall)
+     */
+    fun closeSide(side: Side) {
+        changeSide(side, Int::or)
+    }
+
+    /**
+     * Do [operation] on this cell's [side] wall and the cell on the other side.
+     */
+    private inline fun changeSide(side: Side, operation: (v: Int, s: Int) -> Int) {
         val cell = getCellOnSide(side)
         if (cell != null) {
-            cell.value = cell.value and side.opposite().value.inv()
+            cell.value = operation(cell.value, side.opposite().value)
         }
-        value = value and side.value.inv()
+        value = operation(value, side.value)
     }
 
     /**

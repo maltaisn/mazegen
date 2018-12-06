@@ -44,11 +44,12 @@ import kotlin.random.Random
  * with equal probability. However this comes to the cost of efficiency,
  * which is very low, because each cell can be visited many times and the
  * algorithm has to find all the unvisited cells by walking randomly.
- * The algorithm is still more efficient than [AldousBroderGenerator].
+ * The algorithm should be more efficient than [AldousBroderGenerator] on paper but this
+ * isn't actually the case, even for large mazes (1M+ cells), because of the implementation.
  *
  * Runtime complexity is O(n) at best and O(∞) at worst. Memory space is O(n).
  */
-class WilsonGenerator : Generator() {
+object WilsonGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         super.generate(maze)

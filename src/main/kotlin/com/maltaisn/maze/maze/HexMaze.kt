@@ -101,21 +101,23 @@ class HexMaze(val width: Int, height: Int,
     }
 
     /**
-     * Create a new maze with the same width and height, equal to [dimension]
+     * Create a new maze with the same width and height, equal to [size]
      * Hexagon and triangle mazes should be created with this constructor.
      */
-    constructor(dimension: Int, arrangement: Arrangement) :
-            this(dimension, dimension, arrangement)
+    constructor(size: Int, arrangement: Arrangement) :
+            this(size, size, arrangement)
 
 
     override fun cellAt(pos: Position): HexCell? {
-        if (pos is Position2D) {
-            if (pos.x < 0 || pos.x >= grid.size) return null
-            val actualY = pos.y - rowOffsets[pos.x]
-            if (actualY < 0 || actualY >= grid[pos.x].size) return null
-            return grid[pos.x][actualY]
-        }
-        throw IllegalArgumentException("Position has wrong type")
+        val pos2d = pos as Position2D
+        return cellAt(pos2d.x, pos2d.y)
+    }
+
+    fun cellAt(x: Int, y: Int): HexCell? {
+        if (x < 0 || x >= grid.size) return null
+        val actualY = y - rowOffsets[x]
+        if (actualY < 0 || actualY >= grid[x].size) return null
+        return grid[x][actualY]
     }
 
     override fun getRandomCell(): HexCell {
@@ -162,7 +164,7 @@ class HexMaze(val width: Int, height: Int,
             Opening.POS_END -> grid[x].size - 1
             else -> pos
         } + rowOffsets[x]
-        return cellAt(Position2D(x, y))
+        return cellAt(x, y)
     }
 
     override fun drawTo(canvas: Canvas,

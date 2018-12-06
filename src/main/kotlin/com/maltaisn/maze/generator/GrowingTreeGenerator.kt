@@ -25,6 +25,8 @@
 
 package com.maltaisn.maze.generator
 
+import com.maltaisn.maze.generator.GrowingTreeGenerator.cellChooser
+import com.maltaisn.maze.generator.GrowingTreeGenerator.setChooseByWeight
 import com.maltaisn.maze.maze.Cell
 import com.maltaisn.maze.maze.Maze
 import kotlin.random.Random
@@ -53,7 +55,7 @@ import kotlin.random.Random
  *
  * Runtime complexity is O(n) and memory space is O(n).
  */
-class GrowingTreeGenerator : Generator() {
+object GrowingTreeGenerator : Generator() {
 
     /**
      * The function used for choosing a cell instead of weights.
