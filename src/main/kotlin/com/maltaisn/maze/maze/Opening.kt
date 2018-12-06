@@ -25,38 +25,16 @@
 
 package com.maltaisn.maze.maze
 
-import org.json.JSONArray
-
 
 /**
- * Class defining an opening position in a maze.
+ * Opening position in a maze.
  */
 class Opening(val position: IntArray) {
-
-    constructor(from: JSONArray): this(IntArray(from.length())) {
-        for (i in 0 until from.length()) {
-            val pos = from[i]
-            when (pos) {
-                is String -> position[i] = when (pos[0].toUpperCase()) {
-                    CHAR_START -> POS_START
-                    CHAR_CENTER -> POS_CENTER
-                    CHAR_END -> POS_END
-                    else -> throw IllegalArgumentException("Wrong opening position character '$pos'.")
-                }
-                is Int -> position[i] = pos
-                else -> throw IllegalArgumentException("Wrong opening position argument '$pos'.")
-            }
-        }
-    }
 
     companion object {
         const val POS_START = -3
         const val POS_CENTER = -2
         const val POS_END = -1
-
-        private const val CHAR_START = 'S'
-        private const val CHAR_CENTER = 'C'
-        private const val CHAR_END = 'E'
     }
 
 }

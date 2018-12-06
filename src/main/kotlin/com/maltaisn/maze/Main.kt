@@ -32,48 +32,21 @@ import java.io.FileInputStream
 
 
 fun main(args: Array<String>) {
-    if (args.isNotEmpty()) {
-        val file = File(args[0])
-        if (file.exists()) {
-            val inputStream = FileInputStream(file)
-            val configJson = JSONObject(JSONTokener(inputStream))
-            inputStream.close()
-            Main().parseConfig(configJson)
-        } else {
-            throw IllegalArgumentException("Config file doesn't exists.")
-        }
-    } else {
-        throw IllegalArgumentException("No config file provided.")
-    }
-}
-
-private class Main {
-
-    fun parseConfig(config: JSONObject) {
-        val canvasWriter = CanvasWriter(if (config.has(KEY_OUTPUT))
-            config.getJSONObject(KEY_OUTPUT) else null)
-        val mazeParser = MazeParser()
-
-        // Parse mazes and export them
-        if (!config.has(KEY_MAZES)) {
-            println("No mazes to generate")
-            return
-        }
-        for (mazeConfig in config.getJSONArray(KEY_MAZES)) {
-            val mazes = mazeParser.parse(mazeConfig as JSONObject)
-            for (i in 0 until mazes.size) {
-                val maze = mazes[i]
-                val name = maze.name ?: DEFAULT_FILENAME
-                canvasWriter.write(maze, if (mazes.size == 1) name else "$name-${i + 1}")
+    try {
+        if (args.isNotEmpty()) {
+            val file = File(args[0])
+            if (file.exists()) {
+                val inputStream = FileInputStream(file)
+                val configJson = JSONObject(JSONTokener(inputStream))
+                inputStream.close()
+                MazeGenerator((ConfigurationParser().parse(configJson))).generate()
+            } else {
+                throw ParameterException("Config file doesn't exists.")
             }
+        } else {
+            throw ParameterException("No config file provided.")
         }
+    } catch (exception: ParameterException) {
+        println("ERROR: ${exception.message}")
     }
-
-    companion object {
-        private const val KEY_MAZES = "mazes"
-        private const val KEY_OUTPUT = "output"
-
-        private const val DEFAULT_FILENAME = "maze"
-    }
-
 }

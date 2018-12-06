@@ -23,7 +23,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.maltaisn.maze.render
+package com.maltaisn.maze
 
 /**
  * Output file formats.

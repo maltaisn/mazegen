@@ -25,28 +25,49 @@
 
 package com.maltaisn.maze.maze
 
-import com.maltaisn.maze.render.SvgCanvas
-import org.junit.jupiter.api.Test
-import java.awt.BasicStroke
-import java.io.File
+import com.maltaisn.maze.ParameterException
 
 
-class SVGTest {
+/**
+ * Braiding setting for a maze.
+ */
+class Braiding {
 
-    @Test
-    fun myTest() {
-        val canvas = SvgCanvas()
-        canvas.init(100f, 100f)
-        canvas.stroke = BasicStroke(3f)
-        canvas.optimize = true
+    private val value: Number
+    private val byCount: Boolean
 
-        canvas.drawArc(50f, 50f, 25f, 25f, 0.0, Math.PI * 0.5)
-        canvas.drawArc(25f, 25f, 25f, 25f, Math.PI * 1.5, Math.PI * 0.5)
-        canvas.drawArc(50f, 50f, 25f, 25f, Math.PI * 1.0, Math.PI * 0.5)
-        canvas.drawArc(75f, 75f, 25f, 25f, Math.PI * 0.5, Math.PI * 0.5)
+    /**
+     * Braiding setting to remove [count] deadends.
+     */
+    constructor(count: Int) {
+        if (count < 0) {
+            throw ParameterException("Braiding parameter must be a positive number.")
+        }
 
-        canvas.exportTo(File("D:\\Documents\\nicolas\\code\\kotlin" +
-                "\\maze\\mazes\\test.${canvas.format.extension}"))
+        value = count
+        byCount = true
+    }
+
+    /**
+     * Braiding setting to remove a percentage, [percent], of the total number of deadends.
+     */
+    constructor(percent: Double) {
+        if (percent < 0 || percent > 1) {
+            throw ParameterException("Braiding percentage must be between 0 and 1 inclusive.")
+        }
+
+        value = percent
+        byCount = false
+    }
+
+    /**
+     * Get the number of deadends to remove with this braiding
+     * setting out of the [total] number of deadends.
+     */
+    fun getNumberOfDeadendsToRemove(total: Int) = if (byCount) {
+        Math.min(value.toInt(), total)
+    } else {
+        Math.round(total * value.toDouble()).toInt()
     }
 
 }

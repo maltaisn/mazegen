@@ -28,6 +28,8 @@ package com.maltaisn.maze.generator
 import com.maltaisn.maze.maze.Cell
 import com.maltaisn.maze.maze.Maze
 import java.util.*
+import kotlin.collections.HashMap
+import kotlin.collections.LinkedHashSet
 
 
 /**
@@ -41,15 +43,15 @@ import java.util.*
  *
  * Runtime complexity is O(n) and memory space is O(n).
  */
-object KruskalGenerator : Generator() {
+class KruskalGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         super.generate(maze)
         maze.fillAll()
 
         // Get all edges and create a tree node for every cell
-        val edgesSet = mutableSetOf<Edge>()
-        val nodesMap = mutableMapOf<Cell, Node>()
+        val edgesSet = LinkedHashSet<Edge>()
+        val nodesMap = HashMap<Cell, Node>()
         for (cell in maze.getAllCells()) {
             for (neighbor in cell.neighbors) {
                 edgesSet.add(Edge(cell, neighbor))

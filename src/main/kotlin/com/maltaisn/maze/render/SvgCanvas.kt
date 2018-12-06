@@ -25,6 +25,7 @@
 
 package com.maltaisn.maze.render
 
+import com.maltaisn.maze.OutputFormat
 import java.awt.BasicStroke
 import java.awt.Color
 import java.io.File
@@ -41,7 +42,7 @@ import kotlin.collections.HashMap
  *
  * FIXME: OPTIMIZATION BROKEN ON THIS COMMIT
  */
-class SVGCanvas : Canvas(OutputFormat.SVG) {
+class SvgCanvas : Canvas(OutputFormat.SVG) {
 
     private val shapes = LinkedList<Shape>()
 
@@ -85,6 +86,12 @@ class SVGCanvas : Canvas(OutputFormat.SVG) {
         }
 
     private val numberFormat = DecimalFormat.getNumberInstance() as DecimalFormat
+
+    /**
+     * Whether or not to optimize the SVG document.
+     * Optimization is done at the same time as export.
+     */
+    var optimize = false
 
 
     init {
@@ -132,6 +139,9 @@ class SVGCanvas : Canvas(OutputFormat.SVG) {
     }
 
     override fun exportTo(file: File) {
+        // Optimize if needed
+        if (optimize) optimize()
+
         // Create SVG text
         val svg = StringBuilder(8192)
         svg.append("<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\" ")
@@ -150,7 +160,7 @@ class SVGCanvas : Canvas(OutputFormat.SVG) {
     /**
      * Optimize path shapes by connecting their individual elements together into polypoints.
      */
-    fun optimize() {
+    private fun optimize() {
         for (shape in shapes) {
             if (shape is Path) {
                 shape.optimize()
@@ -541,7 +551,7 @@ class SVGCanvas : Canvas(OutputFormat.SVG) {
 
     /**
      * Shape for a rectangle with a top left corner
-     * at ([x] ; [y]) and dimensions [width] by [height].
+     * at ([x] ; [y]) and size [width] by [height].
      */
     private class Rectangle(style: Style,
                             val x: Float, val y: Float,

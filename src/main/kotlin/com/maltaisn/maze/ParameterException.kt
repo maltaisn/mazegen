@@ -23,30 +23,10 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.maltaisn.maze.maze
-
-import com.maltaisn.maze.render.SvgCanvas
-import org.junit.jupiter.api.Test
-import java.awt.BasicStroke
-import java.io.File
+package com.maltaisn.maze
 
 
-class SVGTest {
-
-    @Test
-    fun myTest() {
-        val canvas = SvgCanvas()
-        canvas.init(100f, 100f)
-        canvas.stroke = BasicStroke(3f)
-        canvas.optimize = true
-
-        canvas.drawArc(50f, 50f, 25f, 25f, 0.0, Math.PI * 0.5)
-        canvas.drawArc(25f, 25f, 25f, 25f, Math.PI * 1.5, Math.PI * 0.5)
-        canvas.drawArc(50f, 50f, 25f, 25f, Math.PI * 1.0, Math.PI * 0.5)
-        canvas.drawArc(75f, 75f, 25f, 25f, Math.PI * 0.5, Math.PI * 0.5)
-
-        canvas.exportTo(File("D:\\Documents\\nicolas\\code\\kotlin" +
-                "\\maze\\mazes\\test.${canvas.format.extension}"))
-    }
-
-}
+/**
+ * An exception class for configuration file errors.
+ */
+class ParameterException(message: String) : IllegalArgumentException(message)

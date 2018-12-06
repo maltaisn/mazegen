@@ -49,7 +49,7 @@ import kotlin.random.Random
  *
  * Runtime complexity is O(n) at best and O(∞) at worst. Memory space is O(n).
  */
-object WilsonGenerator : Generator() {
+class WilsonGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         super.generate(maze)

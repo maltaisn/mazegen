@@ -25,9 +25,7 @@
 
 package com.maltaisn.maze.generator
 
-import com.maltaisn.maze.generator.GrowingTreeGenerator.cellChooser
-import com.maltaisn.maze.generator.GrowingTreeGenerator.setChooseByWeight
-import com.maltaisn.maze.maze.Cell
+import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.Maze
 import kotlin.random.Random
 
@@ -49,22 +47,56 @@ import kotlin.random.Random
  * the same mazes as [RecursiveBacktrackerGenerator]. If the cell is always
  * chosen at random, it will produce the same mazes as [PrimGenerator].
  *
- * [setChooseByWeight] can be used to assign weights to a random choice between
- * choosing a random cell, the newest cell and the oldest cell.
- * [cellChooser] can also be set directly for customized behavior.
- *
  * Runtime complexity is O(n) and memory space is O(n).
  */
-object GrowingTreeGenerator : Generator() {
+class GrowingTreeGenerator : Generator() {
 
     /**
-     * The function used for choosing a cell instead of weights.
-     * [setChooseByWeight] can be used for auto generating a function.
+     * Weight for choosing a random cell.
      */
-    lateinit var cellChooser: ((List<Cell>) -> Int)
+    var randomWeight = 1
+        set(value) {
+            field = value
+            computeWeightSum()
+        }
 
-    init {
-        setChooseByWeight(1, 1, 0)
+    /**
+     * Weight for choosing the last added cell.
+     */
+    var newestWeight = 1
+        set(value) {
+            field = value
+            computeWeightSum()
+        }
+
+    /**
+     * Weight for choosing the first added cell.
+     */
+    var oldestWeight = 0
+        set(value) {
+            field = value
+            computeWeightSum()
+        }
+
+    private var weightSum = 2
+
+    private fun computeWeightSum() {
+        if (randomWeight < 0 || newestWeight < 0 || oldestWeight < 0) {
+            throw ParameterException("Weights for the growing tree generator must be positive.")
+        }
+        weightSum = randomWeight + newestWeight + oldestWeight
+    }
+
+    /**
+     * Choose an index from a [list] according to weights set.
+     */
+    private fun chooseListIndex(list: List<*>): Int {
+        val choice = (0 until weightSum).random()
+        return when {
+            choice < randomWeight -> Random.nextInt(list.size)
+            choice < randomWeight + newestWeight -> list.size - 1
+            else -> 0
+        }
     }
 
     override fun generate(maze: Maze) {
@@ -76,7 +108,7 @@ object GrowingTreeGenerator : Generator() {
         val list = mutableListOf(initialCell)
         do {
             // Choose a cell from list
-            val index = cellChooser(list)
+            val index = chooseListIndex(list)
             val currentCell = list[index]
 
             var connected = false
@@ -97,24 +129,6 @@ object GrowingTreeGenerator : Generator() {
                 list.removeAt(index)
             }
         } while (list.isNotEmpty())
-    }
-
-    /**
-     * Set weights used to choose the next cell.
-     * @param[random] weight for choosing a random cell.
-     * @param[newest] weight for choosing the last added cell.
-     * @param[oldest] weight for choosing the first added cell.
-     */
-    fun setChooseByWeight(random: Int, newest: Int, oldest: Int) {
-        val weightSum = random + newest + oldest
-        cellChooser = { list ->
-            val choice = (0 until weightSum).random()
-            when {
-                choice < random -> Random.nextInt(list.size)
-                choice < random + newest -> list.size - 1
-                else -> 0
-            }
-        }
     }
 
 }

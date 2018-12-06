@@ -25,6 +25,7 @@
 
 package com.maltaisn.maze.maze
 
+import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.RectCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
@@ -44,7 +45,7 @@ class RectMaze(val width: Int, val height: Int) : Maze() {
 
     init {
         if (width < 1 || height < 1) {
-            throw IllegalArgumentException("Dimensions must be at least 1.")
+            throw ParameterException("Dimensions must be at least 1.")
         }
         grid = Array(width) { x ->
             Array(height) { y ->

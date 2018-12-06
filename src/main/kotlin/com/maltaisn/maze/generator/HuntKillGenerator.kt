@@ -52,7 +52,7 @@ import kotlin.random.Random
  * Runtime complexity is O(n) and memory space is O(n).
  * A traditional implementation would have complexity of O(n²) and memory space of O(1).
  */
-object HuntKillGenerator : Generator() {
+class HuntKillGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         super.generate(maze)

@@ -34,7 +34,7 @@ package com.maltaisn.maze.maze
 class PolarCell(maze: PolarMaze, position: PositionPolar) : Cell(maze, position) {
 
     override val neighbors: List<Cell> by lazy {
-        val list = mutableListOf<Cell>()
+        val list = ArrayList<Cell>()
         for (side in getAllSides()) {
             if (side == Side.OUT) {
                 list.addAll(outwardCells)

@@ -47,7 +47,7 @@ import java.util.*
  *
  * Runtime complexity is O(n) and memory space is O(n).
  */
-object RecursiveBacktrackerGenerator : Generator() {
+class RecursiveBacktrackerGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         super.generate(maze)

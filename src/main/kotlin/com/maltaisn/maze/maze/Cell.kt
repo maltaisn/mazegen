@@ -50,7 +50,7 @@ abstract class Cell(val maze: Maze, val position: Position) {
      * The list of cells adjacent to this cell, but not necessarily connected.
      */
     open val neighbors: List<Cell> by lazy {
-        val list = mutableListOf<Cell>()
+        val list = ArrayList<Cell>()
         for (side in getAllSides()) {
             val cell = getCellOnSide(side)
             if (cell != null) {

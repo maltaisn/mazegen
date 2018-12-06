@@ -25,6 +25,8 @@
 
 package com.maltaisn.maze.render
 
+import com.maltaisn.maze.OutputFormat
+import com.maltaisn.maze.ParameterException
 import java.awt.BasicStroke
 import java.awt.Color
 import java.io.File
@@ -72,7 +74,7 @@ abstract class Canvas(val format: OutputFormat) {
      */
     open fun init(width: Float, height: Float) {
         if (width == SIZE_UNSET) {
-            throw IllegalArgumentException("This canvas was already initialized.")
+            throw ParameterException("This canvas was already initialized.")
         }
 
         this.width = width
@@ -99,7 +101,7 @@ abstract class Canvas(val format: OutputFormat) {
                          start: Double, extent: Double)
 
     /**
-     * Draw a rectangle with its top left corner at ([x]; [y]) and with dimensions [width] x [height].
+     * Draw a rectangle with its top left corner at ([x]; [y]) and with size [width] x [height].
      * @param[filled] whether to draw a filled rect or just the outline.
      */
     abstract fun drawRect(x: Float, y: Float, width: Float, height: Float, filled: Boolean)
@@ -125,7 +127,7 @@ abstract class Canvas(val format: OutputFormat) {
                     return Color(value, true)
                 }
             }
-            throw IllegalArgumentException("Bad color string '$color'.")
+            throw ParameterException("Invalid color string '$color'.")
         }
     }
 

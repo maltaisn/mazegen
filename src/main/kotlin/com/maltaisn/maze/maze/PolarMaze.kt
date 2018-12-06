@@ -25,6 +25,7 @@
 
 package com.maltaisn.maze.maze
 
+import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.PolarCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
@@ -48,9 +49,9 @@ class PolarMaze(private val radius: Int, private val centerRadius: Float = 1f,
 
     init {
         when {
-            radius < 1 -> throw IllegalArgumentException("Radius must be at least 1.")
-            centerRadius <= 0 -> throw IllegalArgumentException("Center radius must be greater than 0.")
-            subdivisionFactor <= 0 -> throw IllegalArgumentException("Subdivision factor must be greater than 0.")
+            radius < 1 -> throw ParameterException("Radius must be at least 1.")
+            centerRadius <= 0 -> throw ParameterException("Center radius must be greater than 0.")
+            subdivisionFactor <= 0 -> throw ParameterException("Subdivision factor must be greater than 0.")
         }
 
         // Create the grid
@@ -175,8 +176,8 @@ class PolarMaze(private val radius: Int, private val centerRadius: Float = 1f,
                         color: Color, stroke: BasicStroke,
                         solutionColor: Color, solutionStroke: BasicStroke) {
         val center = (radius + centerRadius - 1) * cellSize
-        val dimension = 2 * center + stroke.lineWidth
-        canvas.init(dimension, dimension)
+        val size = 2 * center + stroke.lineWidth
+        canvas.init(size, size)
 
         // Draw the background
         if (backgroundColor != null) {

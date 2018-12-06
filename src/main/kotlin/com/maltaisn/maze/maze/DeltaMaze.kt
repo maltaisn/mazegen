@@ -25,6 +25,7 @@
 
 package com.maltaisn.maze.maze
 
+import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.DeltaCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
@@ -55,11 +56,11 @@ class DeltaMaze(val width: Int, height: Int,
 
     init {
         if (width < 1 || height < 1) {
-            throw IllegalArgumentException("Dimensions must be at least 1.")
+            throw ParameterException("Dimensions must be at least 1.")
         }
         if (arrangement == Arrangement.TRIANGLE
                 || arrangement == Arrangement.HEXAGON) {
-            // Hexagon and triangle mazes have only one dimension parameter.
+            // Hexagon and triangle mazes have only one size parameter.
             this.height = width
         } else {
             this.height = height
@@ -266,7 +267,7 @@ class DeltaMaze(val width: Int, height: Int,
     override fun toString(): String {
         return "[arrangement: $arrangement, ${if (arrangement == Arrangement.TRIANGLE
                 || arrangement == Arrangement.HEXAGON)
-            "dimension : $width" else "width: $width, height: $height"}]"
+            "size : $width" else "width: $width, height: $height"}]"
     }
 
 }

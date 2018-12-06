@@ -25,6 +25,7 @@
 
 package com.maltaisn.maze.render
 
+import com.maltaisn.maze.OutputFormat
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
@@ -95,9 +96,13 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
     override fun init(width: Float, height: Float) {
         super.init(width, height)
 
+        val type = if (format == OutputFormat.PNG) {
+            BufferedImage.TYPE_INT_ARGB
+        } else {
+            BufferedImage.TYPE_INT_RGB
+        }
         buffImage = BufferedImage(Math.ceil(width.toDouble()).toInt(),
-                Math.ceil(height.toDouble()).toInt(),
-                if (format == OutputFormat.PNG) BufferedImage.TYPE_INT_ARGB else BufferedImage.TYPE_INT_RGB)
+                Math.ceil(height.toDouble()).toInt(), type)
         graphics = buffImage.createGraphics()
         transform = graphics.transform
 

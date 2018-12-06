@@ -25,6 +25,7 @@
 
 package com.maltaisn.maze.maze
 
+import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.render.Canvas
 import java.awt.BasicStroke
 import java.awt.Color
@@ -35,11 +36,6 @@ import kotlin.random.Random
  * Base class for a maze.
  */
 abstract class Maze {
-
-    /**
-     * The name of the maze, can be null for none.
-     */
-    var name: String? = null
 
     /**
      * Whether this maze has been generated yet or not.
@@ -112,7 +108,7 @@ abstract class Maze {
         val cell = getOpeningCell(opening)
         if (cell != null) {
             if (openings.contains(cell)) {
-                throw IllegalArgumentException("Duplicate opening.")
+                throw ParameterException("Duplicate opening.")
             }
 
             for (side in cell.getAllSides()) {
@@ -124,7 +120,7 @@ abstract class Maze {
 
             openings.add(cell)
         } else {
-            throw IllegalArgumentException("Opening describes no cell in the maze.")
+            throw ParameterException("Opening describes no cell in the maze.")
         }
     }
 
@@ -227,32 +223,10 @@ abstract class Maze {
 
     }
 
-
     /**
-     * Remove [count] deadends from the maze.
+     * Open a number of deadends set by the braiding [setting].
      */
-    fun braidByCount(count: Int) {
-        if (count > 0) {
-            val deadends = getAllDeadends()
-            braid(deadends, count)
-        }
-    }
-
-    /**
-     * Remove a percentage of deadends from the maze.
-     * @param[percent] Percentage, from 0 to 1.
-     */
-    fun braidByPercentage(percent: Double) {
-        if (percent > 0) {
-            val deadends = getAllDeadends()
-            braid(deadends, (deadends.size * percent).toInt())
-        }
-    }
-
-    /**
-     * Get a list of all deadends in the maze.
-     */
-    private fun getAllDeadends(): MutableList<Cell> {
+    fun braid(setting: Braiding) {
         val deadends = java.util.ArrayList<Cell>()
         forEachCell {
             if (it.countSides() == it.getAllSides().size - 1) {
@@ -260,13 +234,9 @@ abstract class Maze {
                 deadends.add(it)
             }
         }
-        return deadends
-    }
 
-    /**
-     * Open [count] deadends from a list of deadends.
-     */
-    private fun braid(deadends: MutableList<Cell>, count: Int) {
+        val count = setting.getNumberOfDeadendsToRemove(deadends.size)
+
         var removed = 0
         while (deadends.isNotEmpty() && removed < count) {
             val index = Random.nextInt(deadends.size)

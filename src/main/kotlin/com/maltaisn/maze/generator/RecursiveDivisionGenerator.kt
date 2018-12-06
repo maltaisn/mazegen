@@ -25,6 +25,7 @@
 
 package com.maltaisn.maze.generator
 
+import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.Maze
 import com.maltaisn.maze.maze.RectCell.Side
 import com.maltaisn.maze.maze.RectMaze
@@ -45,11 +46,11 @@ import kotlin.random.Random
  * Runtime complexity is O(n) and memory space is O(n).
  * This is generally the fastest algorithm for orthogonal mazes.
  */
-object RecursiveDivisionGenerator : Generator() {
+class RecursiveDivisionGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         if (maze !is RectMaze) {
-            throw IllegalArgumentException("Recursive division generator only work on orthogonal mazes.")
+            throw ParameterException("Recursive division generator only work on orthogonal mazes.")
         }
 
         super.generate(maze)
