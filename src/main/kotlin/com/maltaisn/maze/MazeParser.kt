@@ -190,16 +190,15 @@ class MazeParser {
                 // Braiding
                 if (algorithmJson is JSONObject) {
                     if (algorithmJson.has(KEY_ALGORITHM_BRAID)) {
-                        val braider = MazeBraider()
                         val braid = algorithmJson.get(KEY_ALGORITHM_BRAID)
                         if (braid is Int) {
-                            braider.braidByCount(maze, braid)
+                            maze.braidByCount(braid)
                         } else if (braid is String) {
                             if (braid.endsWith('%')) {
                                 val percent = braid.substring(0, braid.length - 1).toDouble() / 100
-                                braider.braidByPercentage(maze, percent)
+                                maze.braidByPercentage(percent)
                             } else {
-                                braider.braidByCount(maze, braid.toInt())
+                                maze.braidByCount(braid.toInt())
                             }
                         }
                     }

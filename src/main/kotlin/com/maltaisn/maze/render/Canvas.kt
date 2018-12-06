@@ -44,12 +44,12 @@ abstract class Canvas(val format: OutputFormat) {
     /**
      * The stroke style used by the canvas.
      */
-    open var stroke: BasicStroke = BasicStroke(1f)
+    abstract var stroke: BasicStroke
 
     /**
      * The color used for the stroke and fill by the canvas.
      */
-    open var color: Color = Color.BLACK
+    abstract var color: Color
 
     /**
      * The translation applied to this canvas.
@@ -63,6 +63,8 @@ abstract class Canvas(val format: OutputFormat) {
                 value
             }
         }
+
+    abstract var antialiasing: Boolean
 
     /**
      * Initialize the canvas with a width and height.

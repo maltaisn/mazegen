@@ -26,7 +26,8 @@
 package com.maltaisn.maze.render
 
 /**
- * Output formats
+ * Output file formats.
+ * @property extension the extension for this output file format.
  */
 enum class OutputFormat(val extension: String) {
     PNG("png"),

@@ -55,6 +55,7 @@ class CanvasWriter(config: JSONObject?) {
     private var color: Color = Color.BLACK
     private var solutionStroke: BasicStroke
     private var solutionColor: Color = Color.BLUE
+    private var antialiasing = true
 
     init {
         var strokeWidth = 3f
@@ -110,6 +111,9 @@ class CanvasWriter(config: JSONObject?) {
                 if (styleConfig.has(KEY_STYLE_SOLUTION_COLOR)) {
                     solutionColor = Canvas.parseColor(styleConfig.getString(KEY_STYLE_SOLUTION_COLOR))
                 }
+                if (styleConfig.has(KEY_STYLE_ANTIALIASING)) {
+                    antialiasing = styleConfig.getBoolean(KEY_STYLE_ANTIALIASING)
+                }
             }
         }
 
@@ -124,6 +128,7 @@ class CanvasWriter(config: JSONObject?) {
         val startTime = System.currentTimeMillis()
 
         val canvas = if (format == OutputFormat.SVG) SVGCanvas() else RasterCanvas(format)
+        canvas.antialiasing = antialiasing
 
         // If background color is completely transparent and format is SVG or PNG, don't draw it.
         val bgColor = if (backgroundColor.alpha == 0
@@ -164,6 +169,7 @@ class CanvasWriter(config: JSONObject?) {
         private const val KEY_STYLE_STROKE_WIDTH = "stroke_width"
         private const val KEY_STYLE_SOLUTION_COLOR = "solution_color"
         private const val KEY_STYLE_SOLUTION_STROKE_WIDTH = "solution_stroke_width"
+        private const val KEY_STYLE_ANTIALIASING = "antialiasing"
     }
 
 

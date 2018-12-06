@@ -55,13 +55,17 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
             } else {
                 value
             }
-            graphics.color = color
+            if (this::graphics.isInitialized) {
+                graphics.color = color
+            }
         }
 
     override var stroke: BasicStroke = BasicStroke(1f)
         set(value) {
             field = value
-            graphics.stroke = stroke
+            if (this::graphics.isInitialized) {
+                graphics.stroke = stroke
+            }
         }
 
     /** Default transform saved to reset it when needed */
@@ -70,9 +74,21 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
     override var translate: Point? = null
         set(value) {
             super.translate = value
-            graphics.transform = transform
-            if (value != null) {
-                graphics.translate(value.x.toDouble(), value.y.toDouble())
+            field = super.translate
+            if (this::graphics.isInitialized) {
+                graphics.transform = transform
+                if (value != null) {
+                    graphics.translate(value.x.toDouble(), value.y.toDouble())
+                }
+            }
+        }
+
+    override var antialiasing = true
+        set(value) {
+            field = value
+            if (this::graphics.isInitialized) {
+                graphics.setRenderingHints(RenderingHints(RenderingHints.KEY_ANTIALIASING,
+                        if (value) RenderingHints.VALUE_ANTIALIAS_ON else RenderingHints.VALUE_ANTIALIAS_OFF))
             }
         }
 
@@ -83,12 +99,12 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
                 Math.ceil(height.toDouble()).toInt(),
                 if (format == OutputFormat.PNG) BufferedImage.TYPE_INT_ARGB else BufferedImage.TYPE_INT_RGB)
         graphics = buffImage.createGraphics()
-        graphics.color = color
-        graphics.stroke = stroke
-        graphics.setRenderingHints(RenderingHints(RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_ON))
-
         transform = graphics.transform
+
+        // Set all settings again now that graphics is created
+        color = color
+        stroke = stroke
+        antialiasing = antialiasing
         translate = translate
     }
 

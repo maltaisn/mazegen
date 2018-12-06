@@ -28,6 +28,7 @@ package com.maltaisn.maze.maze
 import com.maltaisn.maze.render.Canvas
 import java.awt.BasicStroke
 import java.awt.Color
+import kotlin.random.Random
 
 
 /**
@@ -226,6 +227,66 @@ abstract class Maze {
 
     }
 
+
+    /**
+     * Remove [count] deadends from the maze.
+     */
+    fun braidByCount(count: Int) {
+        if (count > 0) {
+            val deadends = getAllDeadends()
+            braid(deadends, count)
+        }
+    }
+
+    /**
+     * Remove a percentage of deadends from the maze.
+     * @param[percent] Percentage, from 0 to 1.
+     */
+    fun braidByPercentage(percent: Double) {
+        if (percent > 0) {
+            val deadends = getAllDeadends()
+            braid(deadends, (deadends.size * percent).toInt())
+        }
+    }
+
+    /**
+     * Get a list of all deadends in the maze.
+     */
+    private fun getAllDeadends(): MutableList<Cell> {
+        val deadends = java.util.ArrayList<Cell>()
+        forEachCell {
+            if (it.countSides() == it.getAllSides().size - 1) {
+                // A cell is a deadend if it has only one side opened.
+                deadends.add(it)
+            }
+        }
+        return deadends
+    }
+
+    /**
+     * Open [count] deadends from a list of deadends.
+     */
+    private fun braid(deadends: MutableList<Cell>, count: Int) {
+        var removed = 0
+        while (deadends.isNotEmpty() && removed < count) {
+            val index = Random.nextInt(deadends.size)
+            val deadend = deadends[index]
+            deadends.removeAt(index)
+
+            for (side in deadend.getAllSides()) {
+                if (!deadend.hasSide(side)) {
+                    val deadside = side.opposite()
+                    val other = deadend.getCellOnSide(deadside)
+                    if (other != null) {
+                        // If the deadside is not a border, open it.
+                        deadend.connectWith(other)
+                    }
+                    break
+                }
+            }
+            removed++
+        }
+    }
 
     /**
      * Draw the maze to a [canvas], with an arbritrary [cellSize] and other styling settings.

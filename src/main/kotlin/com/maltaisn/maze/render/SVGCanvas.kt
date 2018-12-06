@@ -39,7 +39,7 @@ import kotlin.collections.HashMap
  * Canvas for exporting SVG files.
  * SVG path data can be optimized with [optimize] to reduce the file size.
  *
- * FIXME: BROKEN ON THIS COMMIT
+ * FIXME: OPTIMIZATION BROKEN ON THIS COMMIT
  */
 class SVGCanvas : Canvas(OutputFormat.SVG) {
 
@@ -62,6 +62,13 @@ class SVGCanvas : Canvas(OutputFormat.SVG) {
     override var translate: Point? = null
         set(value) {
             super.translate = value
+            field = super.translate
+            updateStyle()
+        }
+
+    override var antialiasing = true
+        set(value) {
+            field = value
             updateStyle()
         }
 
@@ -86,7 +93,8 @@ class SVGCanvas : Canvas(OutputFormat.SVG) {
     }
 
     private fun updateStyle() {
-        currentStyle = Style(stroke, color, if (translate != null) SvgPoint(translate!!) else null)
+        val translatePoint = if (translate != null) SvgPoint(translate!!) else null
+        currentStyle = Style(stroke, color, translatePoint, antialiasing)
     }
 
 
@@ -538,7 +546,8 @@ class SVGCanvas : Canvas(OutputFormat.SVG) {
     private class Rectangle(style: Style,
                             val x: Float, val y: Float,
                             val width: Float, val height: Float,
-                            val filled: Boolean) : Shape(style) {
+                            val filled: Boolean) :
+            Shape(style) {
 
         override fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat) {
             svg.append("<rect ")
@@ -554,7 +563,8 @@ class SVGCanvas : Canvas(OutputFormat.SVG) {
     /**
      * Class defining a shape style.
      */
-    private data class Style(val stroke: BasicStroke, val color: Color, val translate: SvgPoint?) {
+    private data class Style(val stroke: BasicStroke, val color: Color,
+                             val translate: SvgPoint?, val antialiasing: Boolean) {
 
         /**
          * Append the style to [svg] as attributes.
@@ -594,6 +604,11 @@ class SVGCanvas : Canvas(OutputFormat.SVG) {
                 svg.append(" transform=\"translate(")
                 translate.appendTo(svg, numberFormat)
                 svg.append(")\"")
+            }
+
+            // Antialiasing
+            if (!antialiasing) {
+                svg.append(" shape-rendering=\"crispEdges\"")
             }
         }
 

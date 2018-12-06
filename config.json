@@ -6,7 +6,7 @@
       "count": 1,
       "size": {
         "radius": 10,
-        "centerRadius": 0.1,
+        "centerRadius": 1,
         "subdivision": 1.5
       },
       "algorithm": "rb",
@@ -25,7 +25,8 @@
       "color": "#000000",
       "stroke_width": 3,
       "solution_color": "#0000FF",
-      "solution_stroke_width": 3
+      "solution_stroke_width": 3,
+      "antialiasing": true
     }
   }
 }
