@@ -1,15 +1,13 @@
 {
   "mazes": [
     {
-      "name": "hey",
+      "name": "maze2",
+      "type": "delta",
       "count": 1,
-      "size": {
-        "width": 100,
-        "height": 100
-      },
+      "size": 50,
       "algorithm": {
-        "name": "rb",
-        "braid": "50%"
+        "name": "bt",
+        "btBias": "ne"
       },
       "openings": [["S", "C"], ["E", "C"]],
       "solve": true

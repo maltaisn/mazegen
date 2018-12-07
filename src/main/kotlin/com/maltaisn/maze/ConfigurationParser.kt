@@ -117,6 +117,7 @@ class ConfigurationParser {
         }
         val generator = when (algorithm) {
             "ab", "aldous-broder" -> AldousBroderGenerator()
+            "bt", "binary-tree" -> BinaryTreeGenerator()
             "gt", "growing-tree" -> GrowingTreeGenerator()
             "hk", "hunt-kill" -> HuntKillGenerator()
             "kr", "kruskal" -> KruskalGenerator()
@@ -128,12 +129,24 @@ class ConfigurationParser {
         }
 
         // Generactor-specific settings
-        if (generator is GrowingTreeGenerator && algorithmJson is JSONObject) {
-            if (algorithmJson.has(KEY_MAZE_ALGORITHM_GT_WEIGHTS)) {
-                val weights = algorithmJson.getJSONArray(KEY_MAZE_ALGORITHM_GT_WEIGHTS)
-                generator.randomWeight = weights[0] as Int
-                generator.newestWeight = weights[1] as Int
-                generator.oldestWeight = weights[1] as Int
+        if (algorithmJson is JSONObject) {
+            when (generator) {
+                is BinaryTreeGenerator -> if (algorithmJson.has(KEY_MAZE_ALGORITHM_BT_BIAS)) {
+                    generator.bias = when (val bias = algorithmJson
+                            .getString(KEY_MAZE_ALGORITHM_BT_BIAS).toLowerCase()) {
+                        "ne" -> BinaryTreeGenerator.Bias.NORTH_EAST
+                        "nw" -> BinaryTreeGenerator.Bias.NORTH_WEST
+                        "se" -> BinaryTreeGenerator.Bias.SOUTH_EAST
+                        "sw" -> BinaryTreeGenerator.Bias.SOUTH_WEST
+                        else -> throw ParameterException("Invalid binary tree bias '$bias'")
+                    }
+                }
+                is GrowingTreeGenerator -> if (algorithmJson.has(KEY_MAZE_ALGORITHM_GT_WEIGHTS)) {
+                    val weights = algorithmJson.getJSONArray(KEY_MAZE_ALGORITHM_GT_WEIGHTS)
+                    generator.randomWeight = weights[0] as Int
+                    generator.newestWeight = weights[1] as Int
+                    generator.oldestWeight = weights[1] as Int
+                }
             }
         }
 
@@ -361,7 +374,8 @@ class ConfigurationParser {
         private const val KEY_MAZE_ALGORITHM = "algorithm"
         private const val KEY_MAZE_ALGORITHM_NAME = "name"
         private const val KEY_MAZE_ALGORITHM_BRAID = "braid"
-        private const val KEY_MAZE_ALGORITHM_GT_WEIGHTS = "gt_weights"
+        private const val KEY_MAZE_ALGORITHM_GT_WEIGHTS = "gtWeights"
+        private const val KEY_MAZE_ALGORITHM_BT_BIAS = "btBias"
 
         private const val DEFAULT_MAZE_NAME = "maze"
         private const val DEFAULT_MAZE_COUNT = 1
