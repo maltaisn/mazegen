@@ -2,14 +2,11 @@
   "mazes": [
     {
       "name": "maze",
-      "type": "theta",
+      "type": "orthogonal",
       "count": 1,
       "size": 50,
-      "algorithm": {
-        "name": "bt",
-        "btBias": ["in", "cw"]
-      },
-      "openings": [["S", "C"], ["E", "C"]],
+      "algorithm": "sw",
+      "openings": [["S", "S"], ["E", "E"]],
       "solve": true
     }
   ],

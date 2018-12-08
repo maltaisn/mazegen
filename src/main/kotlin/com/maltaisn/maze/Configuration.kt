@@ -63,18 +63,16 @@ class Configuration(val mazeSets: List<MazeSet>,
     /**
      * Output settings.
      */
-    open class Output(val format: OutputFormat,
-                      val path: File) {
+    open class Output(val format: OutputFormat, val path: File) {
 
         open fun createCanvas(): Canvas = RasterCanvas(format)
-
     }
 
     /**
      * Output settings for the SVG format.
      */
-    class SvgOutput(path: File, val optimize: Boolean,
-                    val precision: Int): Output(OutputFormat.SVG, path) {
+    class SvgOutput(path: File, private val optimize: Boolean,
+                    private val precision: Int): Output(OutputFormat.SVG, path) {
 
         override fun createCanvas(): Canvas {
             val canvas = SvgCanvas()

@@ -115,7 +115,7 @@ class ConfigurationParser {
                 }
             }
         }
-        val generator = when (algorithm) {
+        val generator = when (algorithm.toLowerCase()) {
             "ab", "aldous-broder" -> AldousBroderGenerator()
             "bt", "binary-tree" -> BinaryTreeGenerator()
             "gt", "growing-tree" -> GrowingTreeGenerator()
@@ -124,13 +124,15 @@ class ConfigurationParser {
             "pr", "prim" -> PrimGenerator()
             "rb", "recursive-backtracker" -> RecursiveBacktrackerGenerator()
             "rd", "recursive-division" -> RecursiveDivisionGenerator()
+            "sw", "sidewinder" -> SidewinderGenerator()
             "wi", "wilson" -> WilsonGenerator()
             else -> throw ParameterException("Invalid algorithm '$algorithm'.")
         }
 
         // Type
         val type = if (from.has(KEY_MAZE_TYPE)) {
-            when (val typeStr = from.getString(KEY_MAZE_TYPE)) {
+            val typeStr = from.getString(KEY_MAZE_TYPE)
+            when (typeStr.toLowerCase()) {
                 "orthogonal" -> MazeType.ORTHOGONAL
                 "sigma" -> MazeType.SIGMA
                 "delta" -> MazeType.DELTA
@@ -145,13 +147,14 @@ class ConfigurationParser {
         if (algorithmJson is JSONObject) {
             when (generator) {
                 is BinaryTreeGenerator -> if (algorithmJson.has(KEY_MAZE_ALGORITHM_BT_BIAS)) {
-                    val biasJson = algorithmJson.getJSONArray(KEY_MAZE_ALGORITHM_BT_BIAS)
-                    if (biasJson.length() != 2) {
-                        throw ParameterException("Binary tree algorithm bias must be exactly two sides.")
+                    val biasStr = algorithmJson.getString(KEY_MAZE_ALGORITHM_BT_BIAS)
+                    generator.bias = when (biasStr.toLowerCase()) {
+                        "ne" -> BinaryTreeGenerator.Bias.NORTH_EAST
+                        "nw" -> BinaryTreeGenerator.Bias.NORTH_WEST
+                        "se" -> BinaryTreeGenerator.Bias.SOUTH_EAST
+                        "sw" -> BinaryTreeGenerator.Bias.SOUTH_WEST
+                        else -> throw ParameterException("Invalid binary tree algorithm bias '$biasStr'")
                     }
-                    generator.bias = BinaryTreeGenerator.Bias(
-                            parseSideString(type, biasJson[0] as String),
-                            parseSideString(type, biasJson[1] as String))
                 }
                 is GrowingTreeGenerator -> if (algorithmJson.has(KEY_MAZE_ALGORITHM_GT_WEIGHTS)) {
                     val weightsJson = algorithmJson.getJSONArray(KEY_MAZE_ALGORITHM_GT_WEIGHTS)
@@ -171,7 +174,8 @@ class ConfigurationParser {
 
         // Arrangement
         val arrangement = if (from.has(KEY_MAZE_ARRANGEMENT)) {
-            when (val arrStr = from.getString(KEY_MAZE_ARRANGEMENT)) {
+            val arrStr = from.getString(KEY_MAZE_ARRANGEMENT)
+            when (arrStr.toLowerCase()) {
                 "rectangle" -> Arrangement.RECTANGLE
                 "triangle" -> Arrangement.TRIANGLE
                 "hexagon" -> Arrangement.HEXAGON
@@ -304,9 +308,10 @@ class ConfigurationParser {
             }
 
             if (from.has(KEY_OUTPUT_FORMAT)) {
-                format = when (val formatStr = from.getString(KEY_OUTPUT_FORMAT).toLowerCase()) {
+                val formatStr = from.getString(KEY_OUTPUT_FORMAT)
+                format = when (formatStr.toLowerCase()) {
                     "png" -> OutputFormat.PNG
-                    "jpg", "jpeg" -> OutputFormat.JPG
+                    "jpg" -> OutputFormat.JPG
                     "bmp" -> OutputFormat.BMP
                     "gif" -> OutputFormat.GIF
                     "svg" -> OutputFormat.SVG

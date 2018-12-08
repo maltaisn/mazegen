@@ -26,6 +26,7 @@
 package com.maltaisn.maze.generator
 
 import com.maltaisn.maze.ParameterException
+import com.maltaisn.maze.maze.Cell
 import com.maltaisn.maze.maze.Maze
 import com.maltaisn.maze.maze.OrthogonalCell.Side
 import com.maltaisn.maze.maze.OrthogonalMaze
@@ -33,54 +34,46 @@ import kotlin.random.Random
 
 
 /**
- * Implementation of the binary tree algorithm as described
- * [here](http://weblog.jamisbuck.org/2011/2/1/maze-generation-binary-tree-algorithm).
+ * Implementation of the sidewinder algorithm as described
+ * [here](http://weblog.jamisbuck.org/2011/2/3/maze-generation-sidewinder-algorithm).
  * Only works for orthogonal mazes.
  *
- * 1. Iterate over all cells, randomly opening one side out
- *    of two possibles sides, for example north and east.
+ * 1. Iterate over all rows
+ * 2. For each cell in the row, either carve a passage east or not
+ *     - If it's carved, add the cell to a set.
+ *     - If not, choose a random cell from the set and carve a
+ *       passage north to it, then clear the set.
  *
  * Runtime complexity is O(n) and memory space is O(1).
  */
-class BinaryTreeGenerator : Generator() {
-
-    /**
-     * Bias setting that decides which two sides to connect for a cell.
-     * There will always be straight passages the length of the maze on these two sides.
-     */
-    var bias: Bias = Bias.NORTH_EAST
-
+class SidewinderGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         if (maze !is OrthogonalMaze) {
-            throw ParameterException("Binary tree generator only works on orthogonal mazes.")
+            throw ParameterException("Sidewinder generator only works on orthogonal mazes.")
         }
 
         super.generate(maze)
         maze.fillAll()
 
-        maze.forEachCell {
-            // Randomly select a cell on a side to connect to
-            val cell1 = it.getCellOnSide(bias.side1)
-            val cell2 = it.getCellOnSide(bias.side2)
-            val cell = if (Random.nextBoolean()) {
-                cell1 ?: cell2
-            } else {
-                cell2 ?: cell1
-            }
+        for (y in 0 until maze.height) {
+            val run = ArrayList<Cell>()
+            for (x in 0 until maze.width) {
+                val cell = maze.cellAt(x, y)!!
+                run.add(cell)
 
-            // Connect the two cells if one was found
-            if (cell != null) {
-                it.connectWith(cell)
+                val northCell = cell.getCellOnSide(Side.NORTH)
+                val eastCell = cell.getCellOnSide(Side.EAST)
+                if (eastCell != null && (northCell == null || Random.nextBoolean())) {
+                    // Carve passage east
+                    cell.openSide(Side.EAST)
+                } else if (northCell != null) {
+                    // Carve a passage north from a random cell in the set
+                    run.random().openSide(Side.NORTH)
+                    run.clear()
+                }
             }
         }
-    }
-
-    enum class Bias(val side1: Side, val side2: Side) {
-        NORTH_EAST(Side.NORTH, Side.EAST),
-        NORTH_WEST(Side.NORTH, Side.WEST),
-        SOUTH_EAST(Side.SOUTH, Side.EAST),
-        SOUTH_WEST(Side.SOUTH, Side.WEST);
     }
 
 }

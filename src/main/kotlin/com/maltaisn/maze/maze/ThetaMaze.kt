@@ -126,7 +126,7 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
         val x = when (val pos = opening.position[0]) {
             Opening.POS_START -> 0
             Opening.POS_CENTER -> grid[r].size / 2
-            Opening.POS_END -> grid.size - 1
+            Opening.POS_END -> grid[r].size - 1
             else -> pos
         }
         return cellAt(x, r)
