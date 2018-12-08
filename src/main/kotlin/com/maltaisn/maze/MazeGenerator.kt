@@ -30,6 +30,9 @@ import java.io.File
 import kotlin.system.measureTimeMillis
 
 
+/**
+ * Takes a configuration object to generate and export mazes to files.
+ */
 class MazeGenerator(private val config: Configuration) {
 
     fun generate() {

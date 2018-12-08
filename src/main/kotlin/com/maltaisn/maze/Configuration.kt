@@ -57,7 +57,7 @@ class Configuration(val mazeSets: List<MazeSet>,
                   val solve: Boolean)
 
     enum class MazeType {
-        RECT, HEX, DELTA, POLAR
+        ORTHOGONAL, SIGMA, DELTA, THETA
     }
 
     /**

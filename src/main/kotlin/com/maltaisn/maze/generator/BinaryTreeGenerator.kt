@@ -26,16 +26,14 @@
 package com.maltaisn.maze.generator
 
 import com.maltaisn.maze.ParameterException
-import com.maltaisn.maze.maze.Maze
-import com.maltaisn.maze.maze.RectCell.Side
-import com.maltaisn.maze.maze.RectMaze
+import com.maltaisn.maze.maze.*
 import kotlin.random.Random
 
 
 /**
  * Implementation of the binary tree algorithm as described
  * [here](http://weblog.jamisbuck.org/2011/2/1/maze-generation-binary-tree-algorithm).
- * Only works for orthogonal mazes.
+ * Only works for orthogonal, sigma and theta mazes.
  *
  * 1. Iterate over all cells, randomly opening one side out
  *    of two possibles sides, for example north and east.
@@ -46,16 +44,22 @@ class BinaryTreeGenerator : Generator() {
 
     /**
      * Bias setting that decides which two sides to connect for a cell.
+     * There will always be straight passages the length of the maze on these two sides.
+     * Use null for the default bias setting.
      */
-    var bias = Bias.SOUTH_WEST
+    var bias: Bias? = null
+
 
     override fun generate(maze: Maze) {
-        if (maze !is RectMaze) {
-            throw ParameterException("Binary tree generator only work on orthogonal mazes.")
+        if (maze !is OrthogonalMaze && maze !is SigmaMaze && maze !is ThetaMaze) {
+            throw ParameterException("Binary tree generator only work " +
+                    "on orthogonal, sigma and theta mazes.")
         }
 
         super.generate(maze)
         maze.fillAll()
+
+        val bias = bias ?: getDefaultBiasFor(maze)
 
         maze.forEachCell {
             // Randomly select a cell on a side to connect to
@@ -74,11 +78,16 @@ class BinaryTreeGenerator : Generator() {
         }
     }
 
-    enum class Bias(val side1: Side, val side2: Side) {
-        NORTH_EAST(Side.NORTH, Side.EAST),
-        NORTH_WEST(Side.NORTH, Side.WEST),
-        SOUTH_EAST(Side.SOUTH, Side.EAST),
-        SOUTH_WEST(Side.SOUTH, Side.WEST);
+    /**
+     * Get the default bias for a [maze].
+     */
+    private fun getDefaultBiasFor(maze: Maze) = when (maze) {
+        is OrthogonalMaze -> Bias(OrthogonalCell.Side.NORTH, OrthogonalCell.Side.EAST)
+        is SigmaMaze -> Bias(SigmaCell.Side.NORTH, SigmaCell.Side.SOUTHEAST)
+        is ThetaMaze -> Bias(ThetaCell.Side.IN, ThetaCell.Side.CW)
+        else -> throw IllegalArgumentException()
     }
+
+    class Bias(val side1: Cell.Side, val side2: Cell.Side)
 
 }

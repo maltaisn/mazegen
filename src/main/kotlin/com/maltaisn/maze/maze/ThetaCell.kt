@@ -27,11 +27,11 @@ package com.maltaisn.maze.maze
 
 
 /**
- * A cell for [PolarMaze], different than other cells because it can
+ * A cell for [ThetaMaze], different than other cells because it can
  * sometimes have more than one neighbor on the outward side.
  * Has outward, inward, clockwise and counterclockwise sides.
  */
-class PolarCell(maze: PolarMaze, position: PositionPolar) : Cell(maze, position) {
+class ThetaCell(maze: ThetaMaze, position: PositionPolar) : Cell(maze, position) {
 
     override val neighbors: List<Cell> by lazy {
         val list = ArrayList<Cell>()
@@ -48,17 +48,17 @@ class PolarCell(maze: PolarMaze, position: PositionPolar) : Cell(maze, position)
         list.toList()
     }
 
-    private val outwardCells: List<PolarCell> by lazy {
+    private val outwardCells: List<ThetaCell> by lazy {
         maze.getOutwardCellsOf(this)
     }
 
-    override fun getCellOnSide(side: Cell.Side): PolarCell? = when (side) {
-        Side.OUT -> (maze as PolarMaze).getOutwardCellOf(this)
-        Side.IN -> (maze as PolarMaze).getInwardCellOf(this)
+    override fun getCellOnSide(side: Cell.Side): ThetaCell? = when (side) {
+        Side.OUT -> (maze as ThetaMaze).getOutwardCellOf(this)
+        Side.IN -> (maze as ThetaMaze).getInwardCellOf(this)
         else -> {
             val cell = super.getCellOnSide(side)
             if (cell !== this) {
-                cell as PolarCell?
+                cell as ThetaCell?
             } else {
                 // Can happens if trying to get clockwise neighbor of center cell for example.
                 // Super method will try to get cellAt(PositionPolar(1, 0)) and the circular wrapping
@@ -128,12 +128,10 @@ class PolarCell(maze: PolarMaze, position: PositionPolar) : Cell(maze, position)
         return count
     }
 
-    override fun getAllSides(): List<Side> = ALL_SIDES
-
-    override fun getAllSideValue(): Side = Side.ALL
+    override fun getAllSides(): List<Side> = Side.ALL
 
     /**
-     * Enum class for the side a polar cell.
+     * Enum class for the side a theta cell.
      */
     enum class Side(override val value: Int,
                     override val relativePos: PositionPolar? = null,
@@ -146,21 +144,19 @@ class PolarCell(maze: PolarMaze, position: PositionPolar) : Cell(maze, position)
         OUT(1, null, "OUT"),
         IN(2, null, "IN"),
         CW(4, PositionPolar(-1, 0), "CW"),
-        CCW(8, PositionPolar(1, 0), "CCW"),
-        ALL(15, null, null);
+        CCW(8, PositionPolar(1, 0), "CCW");
 
         override fun opposite(): Side = when (this) {
             OUT -> IN
             IN -> OUT
             CW -> CCW
             CCW -> CW
-            ALL -> ALL
         }
 
-    }
+        companion object {
+            val ALL = listOf(Side.OUT, Side.IN, Side.CW, Side.CCW)
+        }
 
-    companion object {
-        private val ALL_SIDES = listOf(Side.OUT, Side.IN, Side.CW, Side.CCW)
     }
 
 }

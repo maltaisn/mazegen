@@ -28,7 +28,7 @@ package com.maltaisn.maze.maze
 
 /**
  * Interface for a cell position in the maze.
- * @param[P] Position type
+ * @param P Position type
  */
 interface Position {
 

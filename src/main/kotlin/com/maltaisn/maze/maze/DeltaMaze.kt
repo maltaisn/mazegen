@@ -32,14 +32,17 @@ import com.maltaisn.maze.render.Point
 import java.awt.BasicStroke
 import java.awt.Color
 import java.util.*
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 
 /**
  * Class for a triangle-tiled maze represented by 2D grid of [DeltaCell].
- * @param[width] number of rows
- * @param[height] number of columns
- * @param[arrangement] cell arrangement
+ * @param width number of rows
+ * @param height number of columns
+ * @param arrangement cell arrangement
  */
 class DeltaMaze(val width: Int, height: Int,
                 private val arrangement: Arrangement) : Maze() {
@@ -92,7 +95,7 @@ class DeltaMaze(val width: Int, height: Int,
             }
             Arrangement.TRIANGLE -> {
                 rowOffset = { 0 }
-                rowsForColumn = { width - Math.abs(it - gridWith / 2) }
+                rowsForColumn = { width - abs(it - gridWith / 2) }
             }
             Arrangement.RHOMBUS -> {
                 gridWith = 2 * width + height - 1
@@ -106,7 +109,7 @@ class DeltaMaze(val width: Int, height: Int,
                     }
                     rows
                 }
-                rowOffset = { Math.max(0, height - gridWith + it) }
+                rowOffset = { max(0, height - gridWith + it) }
             }
         }
         rowOffsets = IntArray(gridWith)
@@ -196,7 +199,7 @@ class DeltaMaze(val width: Int, height: Int,
             if (height > maxHeight) maxHeight = height
         }
 
-        val cellHeight = (Math.sqrt(3.0) / 2 * cellSize).toFloat()
+        val cellHeight = sqrt(3f) / 2 * cellSize
         canvas.init((grid.size / 2f + 0f) * cellSize + stroke.lineWidth,
                 maxHeight * cellHeight + stroke.lineWidth)
 

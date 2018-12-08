@@ -26,6 +26,7 @@
 package com.maltaisn.maze.render
 
 import com.maltaisn.maze.OutputFormat
+import javafx.scene.shape.Polyline
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
@@ -38,6 +39,7 @@ import java.awt.image.BufferedImage
 import java.io.File
 import java.util.*
 import javax.imageio.ImageIO
+import kotlin.math.ceil
 
 
 /**
@@ -101,8 +103,7 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
         } else {
             BufferedImage.TYPE_INT_RGB
         }
-        buffImage = BufferedImage(Math.ceil(width.toDouble()).toInt(),
-                Math.ceil(height.toDouble()).toInt(), type)
+        buffImage = BufferedImage(ceil(width).toInt(), ceil(height).toInt(), type)
         graphics = buffImage.createGraphics()
         transform = graphics.transform
 
@@ -120,6 +121,7 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
     override fun drawPolyline(points: LinkedList<Point>) {
         val xPoints = IntArray(points.size)
         val yPoints = IntArray(points.size)
+        Polyline()
         for (i in 0 until points.size) {
             val point = points[i]
             xPoints[i] = point.x.toInt()

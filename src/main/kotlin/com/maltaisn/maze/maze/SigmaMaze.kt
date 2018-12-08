@@ -26,32 +26,34 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.ParameterException
-import com.maltaisn.maze.maze.HexCell.Side
+import com.maltaisn.maze.maze.SigmaCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
 import java.awt.BasicStroke
 import java.awt.Color
 import java.util.*
+import kotlin.math.abs
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 
 /**
- * Class for a hexagon-tiled maze represented by 2D grid of [HexCell].
- * @param[width] number of rows
- * @param[height] number of columns
- * @param[arrangement] cell arrangement
+ * Class for a hexagon-tiled maze represented by 2D grid of [SigmaCell].
+ * @param width number of rows
+ * @param height number of columns
+ * @param arrangement cell arrangement
  */
-class HexMaze(val width: Int, height: Int,
-              private val arrangement: Arrangement) : Maze() {
+class SigmaMaze(val width: Int, height: Int,
+                private val arrangement: Arrangement) : Maze() {
 
     val height: Int
 
     /**
-     * Hexagonal maze grid. There number of columns is the same as the maze width, except for
-     * hexagonal shaped mazes where the number of columns is equal to `width * 2 - 1`.
+     * Sigma maze grid. There number of columns is the same as the maze width, except for
+     * hexagon shaped mazes where the number of columns is equal to `width * 2 - 1`.
      * The number of rows varies for each column depending on the arrangement of the maze.
      */
-    private val grid: Array<Array<HexCell>>
+    private val grid: Array<Array<SigmaCell>>
 
     /**
      * The offset of the actual Y coordinate of a cell in the grid array, for each column
@@ -80,7 +82,7 @@ class HexMaze(val width: Int, height: Int,
             }
             Arrangement.HEXAGON -> {
                 gridWith = 2 * width - 1
-                rowsForColumn = { gridWith - Math.abs(it - width + 1) }
+                rowsForColumn = { gridWith - abs(it - width + 1) }
                 rowOffset = { if (it < width) 0 else it - width + 1 }
             }
             Arrangement.TRIANGLE -> {
@@ -96,7 +98,7 @@ class HexMaze(val width: Int, height: Int,
         grid = Array(gridWith) { x ->
             rowOffsets[x] = rowOffset(x)
             Array(rowsForColumn(x)) { y ->
-                HexCell(this, Position2D(x, y + rowOffsets[x]))
+                SigmaCell(this, Position2D(x, y + rowOffsets[x]))
             }
         }
     }
@@ -109,19 +111,19 @@ class HexMaze(val width: Int, height: Int,
             this(size, size, arrangement)
 
 
-    override fun cellAt(pos: Position): HexCell? {
+    override fun cellAt(pos: Position): SigmaCell? {
         val pos2d = pos as Position2D
         return cellAt(pos2d.x, pos2d.y)
     }
 
-    fun cellAt(x: Int, y: Int): HexCell? {
+    fun cellAt(x: Int, y: Int): SigmaCell? {
         if (x < 0 || x >= grid.size) return null
         val actualY = y - rowOffsets[x]
         if (actualY < 0 || actualY >= grid[x].size) return null
         return grid[x][actualY]
     }
 
-    override fun getRandomCell(): HexCell {
+    override fun getRandomCell(): SigmaCell {
         val x = Random.nextInt(grid.size)
         return grid[x][Random.nextInt(grid[x].size)]
     }
@@ -134,8 +136,8 @@ class HexMaze(val width: Int, height: Int,
         return count
     }
 
-    override fun getAllCells(): MutableList<HexCell> {
-        val list = ArrayList<HexCell>(getCellCount())
+    override fun getAllCells(): MutableList<SigmaCell> {
+        val list = ArrayList<SigmaCell>(getCellCount())
         for (x in 0 until grid.size) {
             for (y in 0 until grid[x].size) {
                 list.add(grid[x][y])
@@ -183,7 +185,7 @@ class HexMaze(val width: Int, height: Int,
         }
         maxRow -= minTop
 
-        val cellHeight = (Math.sqrt(3.0) * cellSize).toFloat()
+        val cellHeight = sqrt(3f) * cellSize
         canvas.init((1.5f * (grid.size - 1) + 2) * cellSize + stroke.lineWidth,
                 cellHeight * maxRow + stroke.lineWidth)
 

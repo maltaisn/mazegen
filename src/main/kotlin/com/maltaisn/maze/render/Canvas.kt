@@ -102,7 +102,7 @@ abstract class Canvas(val format: OutputFormat) {
 
     /**
      * Draw a rectangle with its top left corner at ([x]; [y]) and with size [width] x [height].
-     * @param[filled] whether to draw a filled rect or just the outline.
+     * @param filled whether to draw a filled rect or just the outline.
      */
     abstract fun drawRect(x: Float, y: Float, width: Float, height: Float, filled: Boolean)
 

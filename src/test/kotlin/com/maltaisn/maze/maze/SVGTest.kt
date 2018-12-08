@@ -29,6 +29,7 @@ import com.maltaisn.maze.render.SvgCanvas
 import org.junit.jupiter.api.Test
 import java.awt.BasicStroke
 import java.io.File
+import kotlin.math.PI
 
 
 class SVGTest {
@@ -40,13 +41,13 @@ class SVGTest {
         canvas.stroke = BasicStroke(3f)
         canvas.optimize = true
 
-        canvas.drawArc(50f, 50f, 25f, 25f, 0.0, Math.PI * 0.5)
-        canvas.drawArc(25f, 25f, 25f, 25f, Math.PI * 1.5, Math.PI * 0.5)
-        canvas.drawArc(50f, 50f, 25f, 25f, Math.PI * 1.0, Math.PI * 0.5)
-        canvas.drawArc(75f, 75f, 25f, 25f, Math.PI * 0.5, Math.PI * 0.5)
+        canvas.drawArc(50f, 50f, 25f, 25f, 0.0, PI * 0.5)
+        canvas.drawArc(25f, 25f, 25f, 25f, PI * 1.5, PI * 0.5)
+        canvas.drawArc(50f, 50f, 25f, 25f, PI * 1.0, PI * 0.5)
+        canvas.drawArc(75f, 75f, 25f, 25f, PI * 0.5, PI * 0.5)
 
-        canvas.exportTo(File("D:\\Documents\\nicolas\\code\\kotlin" +
-                "\\maze\\mazes\\test.${canvas.format.extension}"))
+        canvas.exportTo(File(File(System.getProperty("user.dir")),
+                "mazes\\test.${canvas.format.extension}"))
     }
 
 }

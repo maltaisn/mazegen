@@ -34,6 +34,10 @@ import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
 import kotlin.collections.HashMap
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.min
+import kotlin.math.sin
 
 
 /**
@@ -112,7 +116,7 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
     override fun drawArc(x: Float, y: Float, rx: Float, ry: Float,
                          start: Double, extent: Double) {
         getLastPath().elements.add(Path.Element.Arc(
-                x, y, rx, ry, start, Math.min(ArcPoint.PI2, extent)))
+                x, y, rx, ry, start, min(ArcPoint.PI2, extent)))
     }
 
     override fun drawPolyline(points: LinkedList<Point>) {
@@ -209,7 +213,7 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
                            val startAngle: Double, extent: Double) :
             SvgPoint(end.x, end.y) {
 
-        val extent = Math.min(PI2, extent)
+        val extent = min(PI2, extent)
 
         override fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat) {
             val radiusSb = StringBuilder()
@@ -219,12 +223,12 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
             if (extent == PI2) {
                 // Arc is a whole circle, but SVG can't draw that as a single arc.
                 // So draw two connected half circles.
-                val halfAngle = startAngle + Math.PI
+                val halfAngle = startAngle + PI
                 svg.append('A')
                 svg.append(radiusStr)
                 svg.append(",0,0,0,")
-                SvgPoint(cx + Math.cos(halfAngle).toFloat() * radius.x,
-                        cy - Math.sin(halfAngle).toFloat() * radius.y).appendTo(svg, numberFormat)
+                SvgPoint(cx + cos(halfAngle).toFloat() * radius.x,
+                        cy - sin(halfAngle).toFloat() * radius.y).appendTo(svg, numberFormat)
                 svg.append('A')
                 svg.append(radiusStr)
                 svg.append(",0,0,0,")
@@ -233,7 +237,7 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
                 svg.append('A')
                 svg.append(radiusStr)
                 svg.append(",0,")
-                svg.append(if (extent > Math.PI) '1' else '0')
+                svg.append(if (extent > PI) '1' else '0')
                 svg.append(',')
                 svg.append(if (extent < 0) '1' else '0')
                 svg.append(',')
@@ -242,7 +246,7 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
         }
 
         companion object {
-            const val PI2 = Math.PI * 2
+            const val PI2 = PI * 2
         }
 
     }
@@ -427,10 +431,10 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
                     // Find the starting and ending point of this arc.
                     val endAngle = startAngle + extent
                     val radius = SvgPoint(rx, ry)
-                    start = SvgPoint(cx + rx * Math.cos(startAngle),
-                            cy - ry * Math.sin(startAngle))
-                    end = ArcPoint(cx, cy, SvgPoint(cx + rx * Math.cos(endAngle),
-                            cy - ry * Math.sin(endAngle)),
+                    start = SvgPoint(cx + rx * cos(startAngle),
+                            cy - ry * sin(startAngle))
+                    end = ArcPoint(cx, cy, SvgPoint(cx + rx * cos(endAngle),
+                            cy - ry * sin(endAngle)),
                             radius, startAngle, extent)
                 }
 
@@ -578,7 +582,7 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
 
         /**
          * Append the style to [svg] as attributes.
-         * @param[filled] Whether style is for a filled shape or not.
+         * @param filled Whether style is for a filled shape or not.
          */
         fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat, filled: Boolean) {
             svg.append("style=\"")

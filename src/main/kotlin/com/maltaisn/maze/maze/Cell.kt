@@ -152,11 +152,6 @@ abstract class Cell(val maze: Maze, val position: Position) {
     open fun countSides(): Int = Integer.bitCount(value)
 
     /**
-     * Returns the enum value representing all sides.
-     */
-    abstract fun getAllSideValue(): Side
-
-    /**
      * Returns a list of all possible side values.
      */
     abstract fun getAllSides(): List<Side>

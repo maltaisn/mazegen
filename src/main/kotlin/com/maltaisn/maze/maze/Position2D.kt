@@ -25,6 +25,8 @@
 
 package com.maltaisn.maze.maze
 
+import kotlin.math.abs
+
 
 /**
  * A 2D position.
@@ -36,7 +38,7 @@ open class Position2D(val x: Int, val y: Int) : Position {
      */
     override fun distanceTo(pos: Position): Int {
         val pos2D = pos as Position2D
-        return Math.abs(pos2D.x - x) + Math.abs(pos2D.y - y)
+        return abs(pos2D.x - x) + abs(pos2D.y - y)
     }
 
     override operator fun plus(pos: Position): Position2D {

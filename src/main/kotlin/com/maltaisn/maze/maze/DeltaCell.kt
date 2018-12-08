@@ -43,9 +43,7 @@ class DeltaCell(maze: DeltaMaze, position: Position2D) : Cell(maze, position) {
         return super.getCellOnSide(side)
     }
 
-    override fun getAllSides(): List<Side> = ALL_SIDES
-
-    override fun getAllSideValue(): Side = Side.ALL
+    override fun getAllSides(): List<Side> = Side.ALL
 
     /**
      * Enum class for the side a delta cell.
@@ -55,20 +53,18 @@ class DeltaCell(maze: DeltaMaze, position: Position2D) : Cell(maze, position) {
                     override val symbol: String?) : Cell.Side {
         BASE(1, null, "B"),
         EAST(2, Position2D(1, 0), "E"),
-        WEST(4, Position2D(-1, 0), "W"),
-        ALL(7, null, null);
+        WEST(4, Position2D(-1, 0), "W");
 
         override fun opposite(): Side = when (this) {
             BASE -> BASE
             EAST -> WEST
             WEST -> EAST
-            ALL -> ALL
         }
 
-    }
+        companion object {
+            val ALL = listOf(Side.BASE, Side.EAST, Side.WEST)
+        }
 
-    companion object {
-        private val ALL_SIDES = listOf(Side.BASE, Side.EAST, Side.WEST)
     }
 
 }

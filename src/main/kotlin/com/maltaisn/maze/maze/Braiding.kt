@@ -26,6 +26,8 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.ParameterException
+import kotlin.math.min
+import kotlin.math.round
 
 
 /**
@@ -65,9 +67,9 @@ class Braiding {
      * setting out of the [total] number of deadends.
      */
     fun getNumberOfDeadendsToRemove(total: Int) = if (byCount) {
-        Math.min(value.toInt(), total)
+        min(value.toInt(), total)
     } else {
-        Math.round(total * value.toDouble()).toInt()
+        round(total * value.toDouble()).toInt()
     }
 
 }

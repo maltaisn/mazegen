@@ -26,7 +26,7 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.ParameterException
-import com.maltaisn.maze.maze.RectCell.Side
+import com.maltaisn.maze.maze.OrthogonalCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
 import java.awt.BasicStroke
@@ -36,12 +36,12 @@ import kotlin.random.Random
 
 
 /**
- * Class for a square-tiled maze represented by 2D grid of [RectCell].
+ * Class for a square-tiled maze represented by 2D grid of [OrthogonalCell].
  * Create an empty maze with [width] columns and [height] rows.
  */
-class RectMaze(val width: Int, val height: Int) : Maze() {
+class OrthogonalMaze(val width: Int, val height: Int) : Maze() {
 
-    private val grid: Array<Array<RectCell>>
+    private val grid: Array<Array<OrthogonalCell>>
 
     init {
         if (width < 1 || height < 1) {
@@ -49,30 +49,30 @@ class RectMaze(val width: Int, val height: Int) : Maze() {
         }
         grid = Array(width) { x ->
             Array(height) { y ->
-                RectCell(this, Position2D(x, y))
+                OrthogonalCell(this, Position2D(x, y))
             }
         }
     }
 
 
-    override fun cellAt(pos: Position): RectCell? {
+    override fun cellAt(pos: Position): OrthogonalCell? {
         val pos2d = pos as Position2D
         return cellAt(pos2d.x, pos2d.y)
     }
 
-    fun cellAt(x: Int, y: Int): RectCell? {
+    fun cellAt(x: Int, y: Int): OrthogonalCell? {
         if (x < 0 || x >= width || y < 0 || y >= height) return null
         return grid[x][y]
     }
 
-    override fun getRandomCell(): RectCell {
+    override fun getRandomCell(): OrthogonalCell {
         return grid[Random.nextInt(width)][Random.nextInt(height)]
     }
 
     override fun getCellCount(): Int = width * height
 
-    override fun getAllCells(): MutableList<RectCell> {
-        val set = ArrayList<RectCell>(width * height)
+    override fun getAllCells(): MutableList<OrthogonalCell> {
+        val set = ArrayList<OrthogonalCell>(width * height)
         for (x in 0 until width) {
             for (y in 0 until height) {
                 set.add(grid[x][y])

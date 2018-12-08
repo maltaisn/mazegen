@@ -25,6 +25,9 @@
 
 package com.maltaisn.maze.maze
 
+import kotlin.math.abs
+import kotlin.math.min
+
 
 /**
  * A position in a 2D polar coordinate system.
@@ -40,8 +43,8 @@ class PositionPolar(x: Int, r: Int, val rowWidth: Int = 0) : Position2D(x, r) {
      */
     override fun distanceTo(pos: Position): Int {
         val pp = pos as PositionPolar
-        val dx = Math.abs(x - pos.x)
-        return Math.abs(y - pp.y) + Math.min(dx, rowWidth - dx)
+        val dx = abs(x - pos.x)
+        return abs(y - pp.y) + min(dx, rowWidth - dx)
     }
 
     override operator fun plus(pos: Position): PositionPolar {

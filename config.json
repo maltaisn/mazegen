@@ -1,13 +1,13 @@
 {
   "mazes": [
     {
-      "name": "maze2",
-      "type": "delta",
+      "name": "maze",
+      "type": "theta",
       "count": 1,
       "size": 50,
       "algorithm": {
         "name": "bt",
-        "btBias": "ne"
+        "btBias": ["in", "cw"]
       },
       "openings": [["S", "C"], ["E", "C"]],
       "solve": true

@@ -128,39 +128,38 @@ class ConfigurationParser {
             else -> throw ParameterException("Invalid algorithm '$algorithm'.")
         }
 
-        // Generactor-specific settings
-        if (algorithmJson is JSONObject) {
-            when (generator) {
-                is BinaryTreeGenerator -> if (algorithmJson.has(KEY_MAZE_ALGORITHM_BT_BIAS)) {
-                    generator.bias = when (val bias = algorithmJson
-                            .getString(KEY_MAZE_ALGORITHM_BT_BIAS).toLowerCase()) {
-                        "ne" -> BinaryTreeGenerator.Bias.NORTH_EAST
-                        "nw" -> BinaryTreeGenerator.Bias.NORTH_WEST
-                        "se" -> BinaryTreeGenerator.Bias.SOUTH_EAST
-                        "sw" -> BinaryTreeGenerator.Bias.SOUTH_WEST
-                        else -> throw ParameterException("Invalid binary tree bias '$bias'")
-                    }
-                }
-                is GrowingTreeGenerator -> if (algorithmJson.has(KEY_MAZE_ALGORITHM_GT_WEIGHTS)) {
-                    val weights = algorithmJson.getJSONArray(KEY_MAZE_ALGORITHM_GT_WEIGHTS)
-                    generator.randomWeight = weights[0] as Int
-                    generator.newestWeight = weights[1] as Int
-                    generator.oldestWeight = weights[1] as Int
-                }
-            }
-        }
-
         // Type
         val type = if (from.has(KEY_MAZE_TYPE)) {
             when (val typeStr = from.getString(KEY_MAZE_TYPE)) {
-                "rect", "orth" -> MazeType.RECT
-                "hex", "sigma" -> MazeType.HEX
-                "triangle", "delta" -> MazeType.DELTA
-                "polar", "circle", "theta" -> MazeType.POLAR
+                "orthogonal" -> MazeType.ORTHOGONAL
+                "sigma" -> MazeType.SIGMA
+                "delta" -> MazeType.DELTA
+                "theta" -> MazeType.THETA
                 else -> throw ParameterException("Invalid maze type '$typeStr'.")
             }
         } else {
             DEFAULT_MAZE_TYPE
+        }
+
+        // Generactor-specific settings
+        if (algorithmJson is JSONObject) {
+            when (generator) {
+                is BinaryTreeGenerator -> if (algorithmJson.has(KEY_MAZE_ALGORITHM_BT_BIAS)) {
+                    val biasJson = algorithmJson.getJSONArray(KEY_MAZE_ALGORITHM_BT_BIAS)
+                    if (biasJson.length() != 2) {
+                        throw ParameterException("Binary tree algorithm bias must be exactly two sides.")
+                    }
+                    generator.bias = BinaryTreeGenerator.Bias(
+                            parseSideString(type, biasJson[0] as String),
+                            parseSideString(type, biasJson[1] as String))
+                }
+                is GrowingTreeGenerator -> if (algorithmJson.has(KEY_MAZE_ALGORITHM_GT_WEIGHTS)) {
+                    val weightsJson = algorithmJson.getJSONArray(KEY_MAZE_ALGORITHM_GT_WEIGHTS)
+                    generator.randomWeight = weightsJson[0] as Int
+                    generator.newestWeight = weightsJson[1] as Int
+                    generator.oldestWeight = weightsJson[1] as Int
+                }
+            }
         }
 
         // Size
@@ -173,9 +172,9 @@ class ConfigurationParser {
         // Arrangement
         val arrangement = if (from.has(KEY_MAZE_ARRANGEMENT)) {
             when (val arrStr = from.getString(KEY_MAZE_ARRANGEMENT)) {
-                "rect", "rectangle" -> Arrangement.RECTANGLE
+                "rectangle" -> Arrangement.RECTANGLE
                 "triangle" -> Arrangement.TRIANGLE
-                "hex", "hexagon" -> Arrangement.HEXAGON
+                "hexagon" -> Arrangement.HEXAGON
                 "rhombus" -> Arrangement.RHOMBUS
                 else -> throw ParameterException("Invalid maze arrangement '$arrStr'.")
             }
@@ -185,7 +184,7 @@ class ConfigurationParser {
 
         // Maze creator
         val mazeCreator: () -> Maze = when (type) {
-            MazeType.RECT -> {
+            MazeType.ORTHOGONAL -> {
                 val width: Int
                 val height: Int
                 if (size is Int) {
@@ -196,9 +195,9 @@ class ConfigurationParser {
                     width = sizeJson.getInt(KEY_MAZE_SIZE_WIDTH)
                     height = sizeJson.getInt(KEY_MAZE_SIZE_HEIGHT)
                 }
-                { RectMaze(width, height) }
+                { OrthogonalMaze(width, height) }
             }
-            MazeType.HEX, MazeType.DELTA -> {
+            MazeType.SIGMA, MazeType.DELTA -> {
                 val width: Int
                 val height: Int
                 if (size is Int) {
@@ -214,14 +213,14 @@ class ConfigurationParser {
                     height = sizeJson.getInt(KEY_MAZE_SIZE_HEIGHT)
                 }
                 {
-                    if (type == MazeType.HEX) {
-                        HexMaze(width, height, arrangement)
+                    if (type == MazeType.SIGMA) {
+                        SigmaMaze(width, height, arrangement)
                     } else {
                         DeltaMaze(width, height, arrangement)
                     }
                 }
             }
-            MazeType.POLAR -> {
+            MazeType.THETA -> {
                 val radius: Int
                 var centerRadius = DEFAULT_MAZE_SIZE_CENTER_RADIUS
                 var subdivision = DEFAULT_MAZE_SIZE_SUBDIVISION
@@ -237,7 +236,7 @@ class ConfigurationParser {
                         subdivision = sizeJson.getFloat(KEY_MAZE_SIZE_SUBDIVISION)
                     }
                 }
-                { PolarMaze(radius, centerRadius, subdivision) }
+                { ThetaMaze(radius, centerRadius, subdivision) }
             }
         }
 
@@ -270,6 +269,24 @@ class ConfigurationParser {
             from.getBoolean(KEY_MAZE_SOLVE) else DEFAULT_MAZE_SOLVE
 
         return MazeSet(name, count, mazeCreator, generator, braiding, openings, solve)
+    }
+
+    /**
+     * Get a side from a maze string, [sideStr], for of maze of a [type].
+     */
+    private fun parseSideString(type: MazeType, sideStr: String): Cell.Side {
+        val values = when (type) {
+            MazeType.ORTHOGONAL -> OrthogonalCell.Side.values()
+            MazeType.SIGMA -> SigmaCell.Side.values()
+            MazeType.DELTA -> DeltaCell.Side.values()
+            MazeType.THETA -> ThetaCell.Side.values()
+        }
+        for (side in values) {
+            if (side is Cell.Side && side.symbol.equals(sideStr, ignoreCase = true)) {
+                return side
+            }
+        }
+        throw ParameterException("Unknown side value '$sideStr' for this maze type.")
     }
 
     private fun parseOutput(from: JSONObject?): Configuration.Output {
@@ -381,7 +398,7 @@ class ConfigurationParser {
         private const val DEFAULT_MAZE_COUNT = 1
         private const val DEFAULT_MAZE_ALGORITHM = "rb"
         private val DEFAULT_MAZE_ALGORITHM_BRAID: Braiding? = null
-        private val DEFAULT_MAZE_TYPE = MazeType.RECT
+        private val DEFAULT_MAZE_TYPE = MazeType.ORTHOGONAL
         private val DEFAULT_MAZE_ARRANGEMENT = Arrangement.RECTANGLE
         private const val DEFAULT_MAZE_SIZE_CENTER_RADIUS = 1f
         private const val DEFAULT_MAZE_SIZE_SUBDIVISION = 1.5f

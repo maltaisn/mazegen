@@ -94,8 +94,15 @@ abstract class Maze {
      * Set all sides of all cells in the maze.
      */
     fun fillAll() {
+        var value = 0
         forEachCell {
-            it.value = it.getAllSideValue().value
+            if (value == 0) {
+                // Find the value for all sides set
+                for (side in it.getAllSides()) {
+                    value = value or side.value
+                }
+            }
+            it.value = value
             it.visited = false
         }
     }

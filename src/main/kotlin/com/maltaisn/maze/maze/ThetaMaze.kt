@@ -26,26 +26,27 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.ParameterException
-import com.maltaisn.maze.maze.PolarCell.Side
+import com.maltaisn.maze.maze.ThetaCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
 import java.awt.BasicStroke
 import java.awt.Color
 import java.util.*
+import kotlin.math.*
 import kotlin.random.Random
 
 
 /**
- * Class for a circle shaped maze represented by 2D grid of [PolarCell].
+ * Class for a circle shaped maze represented by 2D grid of [ThetaCell].
  * @property radius number of rows in the radius, minimum is 1.
  * @property centerRadius the radius of the center cell.
  * @param subdivisionFactor when a cell has become this many times the base size,
  * it is subdivided into multiple cells.
  */
-class PolarMaze(private val radius: Int, private val centerRadius: Float = 1f,
+class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
                 subdivisionFactor: Float = 1.5f) : Maze() {
 
-    private val grid: Array<Array<PolarCell>>
+    private val grid: Array<Array<ThetaCell>>
 
     init {
         when {
@@ -55,7 +56,7 @@ class PolarMaze(private val radius: Int, private val centerRadius: Float = 1f,
         }
 
         // Create the grid
-        val rows = ArrayList<Array<PolarCell>>(radius)
+        val rows = ArrayList<Array<ThetaCell>>(radius)
         var lastWidth = 1.0
         for (r in 0 until radius) {
             var width = if (r == 0) 0.0 else (r + centerRadius - 1) * PI2
@@ -65,26 +66,26 @@ class PolarMaze(private val radius: Int, private val centerRadius: Float = 1f,
             } else {
                 // Subdivide: row should have at least twice as many cells as last row
                 // and be a multiple of the number of cells in the last row.
-                width = Math.max(width - width % lastWidth, lastWidth * 2)
+                width = max(width - width % lastWidth, lastWidth * 2)
                 lastWidth = width
             }
             val rowWidth = width.toInt()
-            rows.add(Array(rowWidth) { x -> PolarCell(this, PositionPolar(x, r, rowWidth)) })
+            rows.add(Array(rowWidth) { x -> ThetaCell(this, PositionPolar(x, r, rowWidth)) })
         }
         grid = rows.toTypedArray()
     }
 
-    override fun cellAt(pos: Position): PolarCell? {
+    override fun cellAt(pos: Position): ThetaCell? {
         val pp = pos as PositionPolar
         return cellAt(pp.x, pp.y)
     }
 
-    fun cellAt(x: Int, r: Int): PolarCell? {
+    fun cellAt(x: Int, r: Int): ThetaCell? {
         if (r < 0 || r >= grid.size) return null
         return grid[r][Math.floorMod(x, grid[r].size)]
     }
 
-    override fun getRandomCell(): PolarCell {
+    override fun getRandomCell(): ThetaCell {
         val r = Random.nextInt(grid.size)
         return grid[r][Random.nextInt(grid[r].size)]
     }
@@ -97,8 +98,8 @@ class PolarMaze(private val radius: Int, private val centerRadius: Float = 1f,
         return count
     }
 
-    override fun getAllCells(): MutableList<PolarCell> {
-        val list = ArrayList<PolarCell>(getCellCount())
+    override fun getAllCells(): MutableList<ThetaCell> {
+        val list = ArrayList<ThetaCell>(getCellCount())
         for (r in 0 until grid.size) {
             for (x in 0 until grid[r].size) {
                 list.add(grid[r][x])
@@ -134,7 +135,7 @@ class PolarMaze(private val radius: Int, private val centerRadius: Float = 1f,
     /**
      * Get the cell in the inward direction of [cell].
      */
-    fun getInwardCellOf(cell: Cell): PolarCell? {
+    fun getInwardCellOf(cell: Cell): ThetaCell? {
         val pos = cell.position as PositionPolar
         if (pos.y == 0) return null
         val lastRow = grid[pos.y - 1]
@@ -144,7 +145,7 @@ class PolarMaze(private val radius: Int, private val centerRadius: Float = 1f,
     /**
      * Get the first cell found in the outward direction of [cell].
      */
-    fun getOutwardCellOf(cell: Cell): PolarCell? {
+    fun getOutwardCellOf(cell: Cell): ThetaCell? {
         val pos = cell.position as PositionPolar
         if (pos.y == grid.size - 1) return null
         val nextRow = grid[pos.y + 1]
@@ -154,9 +155,9 @@ class PolarMaze(private val radius: Int, private val centerRadius: Float = 1f,
     /**
      * Get the cells in the outward direction of [cell].
      */
-    fun getOutwardCellsOf(cell: Cell): List<PolarCell> {
+    fun getOutwardCellsOf(cell: Cell): List<ThetaCell> {
         val pos = cell.position as PositionPolar
-        val cells: List<PolarCell>
+        val cells: List<ThetaCell>
         if (pos.y == grid.size - 1) {
             cells = emptyList()
         } else {
@@ -195,14 +196,14 @@ class PolarMaze(private val radius: Int, private val centerRadius: Float = 1f,
         for (r in 1..radius) {
             val startRadius = (r + centerRadius - 1) * cellSize
             val endRadius = startRadius + cellSize
-            val width = grid[Math.min(grid.size - 1, r)].size
+            val width = grid[min(grid.size - 1, r)].size
             for (x in 0 until width) {
                 val extent = 1.0 / width * PI2
                 val startAngle = x * extent
                 val cell = cellAt(x, r)
                 if (cell != null && cell.hasSide(Side.CW)) {
-                    val px = Math.cos(startAngle).toFloat()
-                    val py = -Math.sin(startAngle).toFloat()
+                    val px = cos(startAngle).toFloat()
+                    val py = -sin(startAngle).toFloat()
                     canvas.drawLine(center + px * startRadius, center + py * startRadius,
                             center + px * endRadius, center + py * endRadius)
                 }
@@ -252,8 +253,8 @@ class PolarMaze(private val radius: Int, private val centerRadius: Float = 1f,
                     if (prevPos != null && prevPos.y != currPos.y) {
                         // Draw the START line: a line extending last line to the current cell's center
                         val startRadius = centerRadius - (currPos.y - prevPos.y) * cellSize / 2
-                        val px = Math.cos(startAngle).toFloat()
-                        val py = -Math.sin(startAngle).toFloat()
+                        val px = cos(startAngle).toFloat()
+                        val py = -sin(startAngle).toFloat()
                         canvas.drawLine(center + px * startRadius, center + py * startRadius,
                                 center + px * centerRadius, center + py * centerRadius)
 
@@ -264,8 +265,8 @@ class PolarMaze(private val radius: Int, private val centerRadius: Float = 1f,
                         if (nextPos != null) {
                             // Draw the END line: a line from the current cell's center to its edge
                             val endRadius = centerRadius - (currPos.y - nextPos.y) * cellSize / 2
-                            val px = Math.cos(endAngle).toFloat()
-                            val py = -Math.sin(endAngle).toFloat()
+                            val px = cos(endAngle).toFloat()
+                            val py = -sin(endAngle).toFloat()
                             canvas.drawLine(center + px * centerRadius, center + py * centerRadius,
                                     center + px * endRadius, center + py * endRadius)
                         }
@@ -277,9 +278,9 @@ class PolarMaze(private val radius: Int, private val centerRadius: Float = 1f,
                             if (prevPos == null || prevPos.y != currPos.y) {
                                 // The previous cell is not on the same row as current cell.
                                 // Find the smallest arc between the START and END lines.
-                                if (extent < -Math.PI) {
+                                if (extent < -PI) {
                                     extent += PI2
-                                } else if (extent > Math.PI) {
+                                } else if (extent > PI) {
                                     extent -= PI2
                                 }
                             } else {
@@ -290,7 +291,7 @@ class PolarMaze(private val radius: Int, private val centerRadius: Float = 1f,
                                         && (prevPos.x != 0 || currPos.x != currPos.rowWidth - 1)
                                         || prevPos.x == currPos.rowWidth - 1 && currPos.x == 0
                                         || prevPos.x == 0 && currPos.x == 1) 1 else -1
-                                if (Math.signum(extent).toInt() != direction) {
+                                if (sign(extent).toInt() != direction) {
                                     // Extent is in the wrong direction, change it.
                                     extent += direction * PI2
                                 }
@@ -313,7 +314,7 @@ class PolarMaze(private val radius: Int, private val centerRadius: Float = 1f,
     }
 
     companion object {
-        private const val PI2 = Math.PI * 2
+        private const val PI2 = PI * 2
     }
 
 }
