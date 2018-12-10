@@ -39,7 +39,7 @@ import com.maltaisn.maze.maze.Maze
  *     - Make it the current cell.
  * 3. Repeat step 2 until set is empty.
  *
- * Generated mazes are bias-free, meaning all possible mazes are generated
+ * Generated mazes are uniform, meaning all possible mazes are generated
  * with equal probability. However this comes at the cost of efficiency,
  * which is very low, because each cell can be visited many times.
  * The algorithm has to find all the unvisited cells by walking randomly.

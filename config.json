@@ -1,11 +1,11 @@
 {
   "mazes": [
     {
-      "name": "maze",
+      "name": "maze2",
       "type": "orthogonal",
       "count": 1,
-      "size": 50,
-      "algorithm": "sw",
+      "size": 20,
+      "algorithm": "el",
       "openings": [["S", "S"], ["E", "E"]],
       "solve": true
     }
@@ -17,12 +17,12 @@
     "svgPrecision": 2
   },
   "style": {
-    "cellSize": 2,
+    "cellSize": 30,
     "backgroundColor": "#00FFFFFF",
     "color": "#000000",
-    "strokeWidth": 1,
+    "strokeWidth": 3,
     "solutionColor": "#0000FF",
-    "solutionStrokeWidth": 1,
+    "solutionStrokeWidth": 3,
     "antialiasing": true
   }
 }

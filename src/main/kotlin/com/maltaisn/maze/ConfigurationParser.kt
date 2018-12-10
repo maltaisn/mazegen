@@ -106,11 +106,10 @@ class ConfigurationParser {
                 if (braid is Int) {
                     braiding = Braiding(braid)
                 } else if (braid is String) {
-                    if (braid.endsWith('%')) {
-                        val percent = braid.substring(0, braid.length - 1).toDouble() / 100
-                        braiding = Braiding(percent)
+                    braiding = if (braid.endsWith('%')) {
+                        Braiding(parsePercentValue(braid))
                     } else {
-                        braiding = Braiding(braid.toInt())
+                        Braiding(braid.toInt())
                     }
                 }
             }
@@ -118,6 +117,7 @@ class ConfigurationParser {
         val generator = when (algorithm.toLowerCase()) {
             "ab", "aldous-broder" -> AldousBroderGenerator()
             "bt", "binary-tree" -> BinaryTreeGenerator()
+            "el", "eller" -> EllerGenerator()
             "gt", "growing-tree" -> GrowingTreeGenerator()
             "hk", "hunt-kill" -> HuntKillGenerator()
             "kr", "kruskal" -> KruskalGenerator()
@@ -127,6 +127,33 @@ class ConfigurationParser {
             "sw", "sidewinder" -> SidewinderGenerator()
             "wi", "wilson" -> WilsonGenerator()
             else -> throw ParameterException("Invalid algorithm '$algorithm'.")
+        }
+
+        // Generactor-specific settings
+        if (algorithmJson is JSONObject) {
+            when (generator) {
+                is BinaryTreeGenerator -> if (algorithmJson.has(KEY_MAZE_ALGORITHM_BIAS)) {
+                    val biasStr = algorithmJson.getString(KEY_MAZE_ALGORITHM_BIAS)
+                    generator.bias = when (biasStr.toLowerCase()) {
+                        "ne" -> BinaryTreeGenerator.Bias.NORTH_EAST
+                        "nw" -> BinaryTreeGenerator.Bias.NORTH_WEST
+                        "se" -> BinaryTreeGenerator.Bias.SOUTH_EAST
+                        "sw" -> BinaryTreeGenerator.Bias.SOUTH_WEST
+                        else -> throw ParameterException("Invalid binary tree algorithm bias '$biasStr'")
+                    }
+                }
+                is EllerGenerator -> if (algorithmJson.has(KEY_MAZE_ALGORITHM_BIAS)) {
+                    val biasArr = algorithmJson.getJSONArray(KEY_MAZE_ALGORITHM_BIAS)
+                    generator.horizontalBias = parsePercentValue(biasArr[0] as String)
+                    generator.verticalBias = parsePercentValue(biasArr[1] as String)
+                }
+                is GrowingTreeGenerator -> if (algorithmJson.has(KEY_MAZE_ALGORITHM_GT_WEIGHTS)) {
+                    val weightsJson = algorithmJson.getJSONArray(KEY_MAZE_ALGORITHM_GT_WEIGHTS)
+                    generator.randomWeight = weightsJson[0] as Int
+                    generator.newestWeight = weightsJson[1] as Int
+                    generator.oldestWeight = weightsJson[1] as Int
+                }
+            }
         }
 
         // Type
@@ -141,28 +168,6 @@ class ConfigurationParser {
             }
         } else {
             DEFAULT_MAZE_TYPE
-        }
-
-        // Generactor-specific settings
-        if (algorithmJson is JSONObject) {
-            when (generator) {
-                is BinaryTreeGenerator -> if (algorithmJson.has(KEY_MAZE_ALGORITHM_BT_BIAS)) {
-                    val biasStr = algorithmJson.getString(KEY_MAZE_ALGORITHM_BT_BIAS)
-                    generator.bias = when (biasStr.toLowerCase()) {
-                        "ne" -> BinaryTreeGenerator.Bias.NORTH_EAST
-                        "nw" -> BinaryTreeGenerator.Bias.NORTH_WEST
-                        "se" -> BinaryTreeGenerator.Bias.SOUTH_EAST
-                        "sw" -> BinaryTreeGenerator.Bias.SOUTH_WEST
-                        else -> throw ParameterException("Invalid binary tree algorithm bias '$biasStr'")
-                    }
-                }
-                is GrowingTreeGenerator -> if (algorithmJson.has(KEY_MAZE_ALGORITHM_GT_WEIGHTS)) {
-                    val weightsJson = algorithmJson.getJSONArray(KEY_MAZE_ALGORITHM_GT_WEIGHTS)
-                    generator.randomWeight = weightsJson[0] as Int
-                    generator.newestWeight = weightsJson[1] as Int
-                    generator.oldestWeight = weightsJson[1] as Int
-                }
-            }
         }
 
         // Size
@@ -275,24 +280,6 @@ class ConfigurationParser {
         return MazeSet(name, count, mazeCreator, generator, braiding, openings, solve)
     }
 
-    /**
-     * Get a side from a maze string, [sideStr], for of maze of a [type].
-     */
-    private fun parseSideString(type: MazeType, sideStr: String): Cell.Side {
-        val values = when (type) {
-            MazeType.ORTHOGONAL -> OrthogonalCell.Side.values()
-            MazeType.SIGMA -> SigmaCell.Side.values()
-            MazeType.DELTA -> DeltaCell.Side.values()
-            MazeType.THETA -> ThetaCell.Side.values()
-        }
-        for (side in values) {
-            if (side is Cell.Side && side.symbol.equals(sideStr, ignoreCase = true)) {
-                return side
-            }
-        }
-        throw ParameterException("Unknown side value '$sideStr' for this maze type.")
-    }
-
     private fun parseOutput(from: JSONObject?): Configuration.Output {
         var path = DEFAULT_OUTPUT_PATH
         var format = DEFAULT_OUTPUT_FORMAT
@@ -372,6 +359,16 @@ class ConfigurationParser {
                 stroke, solutionColor, solutionStroke, antialiasing)
     }
 
+    /**
+     * Parse a percentage value like "90%".
+     */
+    private fun parsePercentValue(value: String): Double {
+        if (value.endsWith('%')) {
+            return value.substring(0, value.length - 1).toDouble() / 100
+        }
+        throw ParameterException("Percentage value expected, got '$value'")
+    }
+
     companion object {
         // Maze set keys and defaults
         private const val KEY_MAZE = "mazes"
@@ -396,8 +393,8 @@ class ConfigurationParser {
         private const val KEY_MAZE_ALGORITHM = "algorithm"
         private const val KEY_MAZE_ALGORITHM_NAME = "name"
         private const val KEY_MAZE_ALGORITHM_BRAID = "braid"
-        private const val KEY_MAZE_ALGORITHM_GT_WEIGHTS = "gtWeights"
-        private const val KEY_MAZE_ALGORITHM_BT_BIAS = "btBias"
+        private const val KEY_MAZE_ALGORITHM_GT_WEIGHTS = "weights"
+        private const val KEY_MAZE_ALGORITHM_BIAS = "bias"
 
         private const val DEFAULT_MAZE_NAME = "maze"
         private const val DEFAULT_MAZE_COUNT = 1
@@ -422,7 +419,7 @@ class ConfigurationParser {
         private const val DEFAULT_OUTPUT_SVG_PRECISION = 2
 
         // Style keys and defaults
-        private const val KEY_STYLE = "output"
+        private const val KEY_STYLE = "style"
         private const val KEY_STYLE_CELL_SIZE = "cellSize"
         private const val KEY_STYLE_BACKGROUND_COLOR = "backgroundColor"
         private const val KEY_STYLE_COLOR = "color"

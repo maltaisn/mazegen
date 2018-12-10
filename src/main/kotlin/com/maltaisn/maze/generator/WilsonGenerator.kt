@@ -40,7 +40,7 @@ import kotlin.random.Random
  *    If a cell is already part of the random walk list, start the walk over from that cell.
  * 3. Repeat step 2 until all cells have been added to the maze.
  *
- * Generated mazes are bias-free, meaning all possible mazes are generated
+ * Generated mazes are uniform, meaning all possible mazes are generated
  * with equal probability. However this comes to the cost of efficiency,
  * which is very low, because each cell can be visited many times and the
  * algorithm has to find all the unvisited cells by walking randomly.
