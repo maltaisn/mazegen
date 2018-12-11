@@ -34,6 +34,8 @@ class SigmaCell(maze: SigmaMaze, position: Position2D) : Cell(maze, position) {
 
     override fun getAllSides(): List<Side> = Side.ALL
 
+    override fun getAllSidesValue(): Int = Side.ALL_VALUE
+
     /**
      * Enum class for the side a hexagonal cell
      * ```
@@ -66,6 +68,7 @@ class SigmaCell(maze: SigmaMaze, position: Position2D) : Cell(maze, position) {
         companion object {
             val ALL = listOf(Side.NORTH, Side.SOUTH, Side.NORTHEAST,
                     Side.SOUTHWEST, Side.SOUTHEAST, Side.NORTHWEST)
+            const val ALL_VALUE = 63
         }
 
     }

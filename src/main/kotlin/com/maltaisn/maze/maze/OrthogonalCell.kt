@@ -34,6 +34,8 @@ class OrthogonalCell(maze: OrthogonalMaze, position: Position2D) : Cell(maze, po
 
     override fun getAllSides(): List<Side> = Side.ALL
 
+    override fun getAllSidesValue(): Int = Side.ALL_VALUE
+
     /**
      * Enum class for the side a rectangular cell
      */
@@ -54,6 +56,7 @@ class OrthogonalCell(maze: OrthogonalMaze, position: Position2D) : Cell(maze, po
 
         companion object {
             val ALL = listOf(NORTH, SOUTH, WEST, EAST)
+            const val ALL_VALUE = 15
         }
 
     }

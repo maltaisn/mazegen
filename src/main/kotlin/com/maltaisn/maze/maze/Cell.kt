@@ -44,7 +44,7 @@ abstract class Cell(val maze: Maze, val position: Position) {
     /**
      * The cell value encoding which sides are set. Bit field of [Side] values.
      */
-    var value: Int = 0
+    open var value: Int = 0
 
     /**
      * The list of cells adjacent to this cell, but not necessarily connected.
@@ -155,6 +155,11 @@ abstract class Cell(val maze: Maze, val position: Position) {
      * Returns a list of all possible side values.
      */
     abstract fun getAllSides(): List<Side>
+
+    /**
+     * Returns the value of a cell with all sides set.
+     */
+    abstract fun getAllSidesValue(): Int
 
 
     override fun toString(): String {

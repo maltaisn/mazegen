@@ -57,7 +57,7 @@ class Configuration(val mazeSets: List<MazeSet>,
                   val solve: Boolean)
 
     enum class MazeType {
-        ORTHOGONAL, SIGMA, DELTA, THETA
+        DELTA, ORTHOGONAL, SIGMA, THETA, UPSILON
     }
 
     /**
@@ -72,7 +72,7 @@ class Configuration(val mazeSets: List<MazeSet>,
      * Output settings for the SVG format.
      */
     class SvgOutput(path: File, private val optimize: Boolean,
-                    private val precision: Int): Output(OutputFormat.SVG, path) {
+                    private val precision: Int) : Output(OutputFormat.SVG, path) {
 
         override fun createCanvas(): Canvas {
             val canvas = SvgCanvas()

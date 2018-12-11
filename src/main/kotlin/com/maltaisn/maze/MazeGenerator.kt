@@ -35,6 +35,9 @@ import kotlin.system.measureTimeMillis
  */
 class MazeGenerator(private val config: Configuration) {
 
+    /**
+     * Generate, solve and export all mazes described by [config].
+     */
     fun generate() {
         for (i in 0 until config.mazeSets.size) {
             val mazeSet = config.mazeSets[i]
@@ -84,7 +87,7 @@ class MazeGenerator(private val config: Configuration) {
     }
 
     /**
-     *
+     * Create, generate, add openings and braid a maze with configuration of [mazeSet].
      */
     private fun createMaze(mazeSet: Configuration.MazeSet): Maze {
         // Create

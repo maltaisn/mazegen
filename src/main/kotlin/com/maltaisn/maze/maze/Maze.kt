@@ -81,7 +81,7 @@ abstract class Maze {
     abstract fun forEachCell(action: (Cell) -> Unit)
 
     /**
-     * Clear all sides of all cells in the maze.
+     * Clears all sides of all cells in the maze, resets all visited flags.
      */
     fun resetAll() {
         forEachCell {
@@ -91,18 +91,11 @@ abstract class Maze {
     }
 
     /**
-     * Set all sides of all cells in the maze.
+     * Sets all sides of all cells in the maze, resets all visited flags.
      */
     fun fillAll() {
-        var value = 0
         forEachCell {
-            if (value == 0) {
-                // Find the value for all sides set
-                for (side in it.getAllSides()) {
-                    value = value or side.value
-                }
-            }
-            it.value = value
+            it.value = it.getAllSidesValue()
             it.visited = false
         }
     }
@@ -161,7 +154,7 @@ abstract class Maze {
         if (!generated) {
             throw IllegalStateException("Maze must be generated before being solved.")
         } else if (openings.size < 2) {
-            throw IllegalStateException("Not enough openings to solve this maze.")
+            throw ParameterException("Not enough openings to solve this maze.")
         }
 
         forEachCell { it.visited = false }

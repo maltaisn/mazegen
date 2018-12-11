@@ -160,10 +160,11 @@ class ConfigurationParser {
         val type = if (from.has(KEY_MAZE_TYPE)) {
             val typeStr = from.getString(KEY_MAZE_TYPE)
             when (typeStr.toLowerCase()) {
+                "delta" -> MazeType.DELTA
                 "orthogonal" -> MazeType.ORTHOGONAL
                 "sigma" -> MazeType.SIGMA
-                "delta" -> MazeType.DELTA
                 "theta" -> MazeType.THETA
+                "upsilon" -> MazeType.UPSILON
                 else -> throw ParameterException("Invalid maze type '$typeStr'.")
             }
         } else {
@@ -193,7 +194,7 @@ class ConfigurationParser {
 
         // Maze creator
         val mazeCreator: () -> Maze = when (type) {
-            MazeType.ORTHOGONAL -> {
+            MazeType.ORTHOGONAL, MazeType.UPSILON -> {
                 val width: Int
                 val height: Int
                 if (size is Int) {
@@ -204,7 +205,11 @@ class ConfigurationParser {
                     width = sizeJson.getInt(KEY_MAZE_SIZE_WIDTH)
                     height = sizeJson.getInt(KEY_MAZE_SIZE_HEIGHT)
                 }
-                { OrthogonalMaze(width, height) }
+                if (type == MazeType.ORTHOGONAL) {
+                    { OrthogonalMaze(width, height) }
+                } else {
+                    { UpsilonMaze(width, height) }
+                }
             }
             MazeType.SIGMA, MazeType.DELTA -> {
                 val width: Int
@@ -221,12 +226,10 @@ class ConfigurationParser {
                     width = sizeJson.getInt(KEY_MAZE_SIZE_WIDTH)
                     height = sizeJson.getInt(KEY_MAZE_SIZE_HEIGHT)
                 }
-                {
-                    if (type == MazeType.SIGMA) {
-                        SigmaMaze(width, height, arrangement)
-                    } else {
-                        DeltaMaze(width, height, arrangement)
-                    }
+                if (type == MazeType.SIGMA) {
+                    { SigmaMaze(width, height, arrangement) }
+                } else {
+                    { DeltaMaze(width, height, arrangement) }
                 }
             }
             MazeType.THETA -> {

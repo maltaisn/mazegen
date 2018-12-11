@@ -130,6 +130,8 @@ class ThetaCell(maze: ThetaMaze, position: PositionPolar) : Cell(maze, position)
 
     override fun getAllSides(): List<Side> = Side.ALL
 
+    override fun getAllSidesValue(): Int = Side.ALL_VALUE
+
     /**
      * Enum class for the side a theta cell.
      */
@@ -155,6 +157,7 @@ class ThetaCell(maze: ThetaMaze, position: PositionPolar) : Cell(maze, position)
 
         companion object {
             val ALL = listOf(Side.OUT, Side.IN, Side.CW, Side.CCW)
+            const val ALL_VALUE = 15
         }
 
     }

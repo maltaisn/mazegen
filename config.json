@@ -1,28 +1,28 @@
 {
   "mazes": [
     {
-      "name": "maze2",
-      "type": "orthogonal",
+      "name": "maze",
+      "type": "upsilon",
       "count": 1,
       "size": 20,
-      "algorithm": "el",
+      "algorithm": "rb",
       "openings": [["S", "S"], ["E", "E"]],
       "solve": true
     }
   ],
   "output": {
     "format": "png",
-    "path": "mazes/new/",
+    "path": "mazes/",
     "svgOptimize": false,
     "svgPrecision": 2
   },
   "style": {
-    "cellSize": 30,
+    "cellSize": 20,
     "backgroundColor": "#00FFFFFF",
     "color": "#000000",
-    "strokeWidth": 3,
+    "strokeWidth": 2,
     "solutionColor": "#0000FF",
-    "solutionStrokeWidth": 3,
+    "solutionStrokeWidth": 2,
     "antialiasing": true
   }
 }
