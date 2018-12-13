@@ -34,17 +34,23 @@ import java.io.FileInputStream
 fun main(args: Array<String>) {
     try {
         if (args.isNotEmpty()) {
-            val file = File(args[0])
-            if (file.exists()) {
-                val inputStream = FileInputStream(file)
-                val configJson = JSONObject(JSONTokener(inputStream))
-                inputStream.close()
-                MazeGenerator((ConfigurationParser().parse(configJson))).generate()
-            } else {
-                throw ParameterException("Config file doesn't exists.")
+            for (arg in args) {
+                val file = File(arg)
+                if (file.exists()) {
+                    if (args.size > 1) {
+                        println("Configuration file: ${file.absolutePath}")
+                    }
+                    val inputStream = FileInputStream(file)
+                    val configJson = JSONObject(JSONTokener(inputStream))
+                    inputStream.close()
+                    MazeGenerator((ConfigurationParser().parse(configJson))).generate()
+                } else {
+                    throw ParameterException("Configuration file " +
+                            "at ${file.absolutePath} doesn't exists.")
+                }
             }
         } else {
-            throw ParameterException("No config file provided.")
+            throw ParameterException("No configuration file provided.")
         }
     } catch (exception: ParameterException) {
         println("ERROR: ${exception.message}")

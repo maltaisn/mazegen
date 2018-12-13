@@ -89,29 +89,15 @@ class ConfigurationParser {
             throw ParameterException("At least one maze must be generated for maze with name '$name'.")
         }
 
-        // Generator and braiding
+        // Generator
         val algorithmJson = if (from.has(KEY_MAZE_ALGORITHM))
             from.get(KEY_MAZE_ALGORITHM) else null
         var algorithm = DEFAULT_MAZE_ALGORITHM
-        var braiding: Braiding? = DEFAULT_MAZE_ALGORITHM_BRAID
         if (algorithmJson is String) {
             algorithm = algorithmJson
         } else if (algorithmJson is JSONObject) {
             if (algorithmJson.has(KEY_MAZE_ALGORITHM_NAME)) {
                 algorithm = algorithmJson.getString(KEY_MAZE_ALGORITHM_NAME)
-            }
-
-            if (algorithmJson.has(KEY_MAZE_ALGORITHM_BRAID)) {
-                val braid = algorithmJson.get(KEY_MAZE_ALGORITHM_BRAID)
-                if (braid is Int) {
-                    braiding = Braiding(braid)
-                } else if (braid is String) {
-                    braiding = if (braid.endsWith('%')) {
-                        Braiding(parsePercentValue(braid))
-                    } else {
-                        Braiding(braid.toInt())
-                    }
-                }
             }
         }
         val generator = when (algorithm.toLowerCase()) {
@@ -152,6 +138,21 @@ class ConfigurationParser {
                     generator.randomWeight = weightsJson[0] as Int
                     generator.newestWeight = weightsJson[1] as Int
                     generator.oldestWeight = weightsJson[1] as Int
+                }
+            }
+        }
+
+        // Braiding
+        var braiding: Braiding? = DEFAULT_MAZE_ALGORITHM_BRAID
+        if (from.has(KEY_MAZE_BRAID)) {
+            val braid = from.get(KEY_MAZE_BRAID)
+            if (braid is Int) {
+                braiding = Braiding(braid)
+            } else if (braid is String) {
+                braiding = if (braid.endsWith('%')) {
+                    Braiding(parsePercentValue(braid))
+                } else {
+                    Braiding(braid.toInt())
                 }
             }
         }
@@ -388,6 +389,7 @@ class ConfigurationParser {
         private const val KEY_MAZE_COUNT = "count"
         private const val KEY_MAZE_TYPE = "type"
         private const val KEY_MAZE_ARRANGEMENT = "arrangement"
+        private const val KEY_MAZE_BRAID = "braid"
         private const val KEY_MAZE_SOLVE = "solve"
 
         private const val KEY_MAZE_OPENINGS = "openings"
@@ -404,7 +406,6 @@ class ConfigurationParser {
 
         private const val KEY_MAZE_ALGORITHM = "algorithm"
         private const val KEY_MAZE_ALGORITHM_NAME = "name"
-        private const val KEY_MAZE_ALGORITHM_BRAID = "braid"
         private const val KEY_MAZE_ALGORITHM_GT_WEIGHTS = "weights"
         private const val KEY_MAZE_ALGORITHM_BIAS = "bias"
 
