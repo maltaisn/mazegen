@@ -25,12 +25,11 @@
 
 package com.maltaisn.maze.maze
 
+import com.maltaisn.maze.Configuration
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.SigmaCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
-import java.awt.BasicStroke
-import java.awt.Color
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -170,10 +169,7 @@ class SigmaMaze(val width: Int, height: Int,
         return cellAt(x, y)
     }
 
-    override fun drawTo(canvas: Canvas,
-                        cellSize: Float, backgroundColor: Color?,
-                        color: Color, stroke: BasicStroke,
-                        solutionColor: Color, solutionStroke: BasicStroke) {
+    override fun drawTo(canvas: Canvas, style: Configuration.Style) {
         // Find the empty top padding (minTop) and maximum column rows
         var maxRow = 0f
         var minTop = Float.MAX_VALUE
@@ -185,75 +181,76 @@ class SigmaMaze(val width: Int, height: Int,
         }
         maxRow -= minTop
 
-        val cellHeight = sqrt(3f) * cellSize
-        canvas.init((1.5f * (grid.size - 1) + 2) * cellSize + stroke.lineWidth,
-                cellHeight * maxRow + stroke.lineWidth)
+        val csize = style.cellSize
+        val cheight = sqrt(3f) * csize
+        canvas.init((1.5f * (grid.size - 1) + 2) * csize + style.stroke.lineWidth,
+                cheight * maxRow + style.stroke.lineWidth)
 
         // Draw the background
-        if (backgroundColor != null) {
-            canvas.color = backgroundColor
+        if (style.backgroundColor != null) {
+            canvas.color = style.backgroundColor
             canvas.drawRect(0f, 0f, canvas.width, canvas.height, true)
         }
 
         // Draw the maze
         // Without going into details, only half the sides are drawn
         // for each cell except the bottommost and rightmost cells.
-        val offset = stroke.lineWidth / 2
+        val offset = style.stroke.lineWidth / 2
         canvas.translate = Point(offset, offset)
-        canvas.color = color
-        canvas.stroke = stroke
-        var cx = cellSize
+        canvas.color = style.color
+        canvas.stroke = style.stroke
+        var cx = csize
         for (x in 0 until grid.size) {
-            var cy = (rowOffsets[x] - minTop + (grid.size - x - 1) / 2f + 0.5f) * cellHeight
+            var cy = (rowOffsets[x] - minTop + (grid.size - x - 1) / 2f + 0.5f) * cheight
             for (y in 0 until grid[x].size) {
                 val cell = grid[x][y]
 
                 // Draw north, northwest and southwest for every cell
                 if (cell.hasSide(Side.NORTH)) {
-                    canvas.drawLine(cx + cellSize / 2, cy - cellHeight / 2,
-                            cx - cellSize / 2, cy - cellHeight / 2)
+                    canvas.drawLine(cx + csize / 2, cy - cheight / 2,
+                            cx - csize / 2, cy - cheight / 2)
                 }
                 if (cell.hasSide(Side.NORTHWEST)) {
-                    canvas.drawLine(cx - cellSize / 2, cy - cellHeight / 2,
-                            cx - cellSize, cy)
+                    canvas.drawLine(cx - csize / 2, cy - cheight / 2,
+                            cx - csize, cy)
                 }
                 if (cell.hasSide(Side.SOUTHWEST)) {
-                    canvas.drawLine(cx - cellSize, cy,
-                            cx - cellSize / 2, cy + cellHeight / 2)
+                    canvas.drawLine(cx - csize, cy,
+                            cx - csize / 2, cy + cheight / 2)
                 }
 
                 // Only draw the remaining sides if there's no cell on the side
                 if (cell.hasSide(Side.SOUTH)
                         && cell.getCellOnSide(Side.SOUTH) == null) {
-                    canvas.drawLine(cx - cellSize / 2, cy + cellHeight / 2,
-                            cx + cellSize / 2, cy + cellHeight / 2)
+                    canvas.drawLine(cx - csize / 2, cy + cheight / 2,
+                            cx + csize / 2, cy + cheight / 2)
                 }
                 if (cell.hasSide(Side.SOUTHEAST)
                         && cell.getCellOnSide(Side.SOUTHEAST) == null) {
-                    canvas.drawLine(cx + cellSize / 2, cy + cellHeight / 2,
-                            cx + cellSize, cy)
+                    canvas.drawLine(cx + csize / 2, cy + cheight / 2,
+                            cx + csize, cy)
                 }
                 if (cell.hasSide(Side.NORTHEAST)
                         && cell.getCellOnSide(Side.NORTHEAST) == null) {
-                    canvas.drawLine(cx + cellSize, cy,
-                            cx + cellSize / 2, cy - cellHeight / 2)
+                    canvas.drawLine(cx + csize, cy,
+                            cx + csize / 2, cy - cheight / 2)
                 }
 
-                cy += cellHeight
+                cy += cheight
             }
-            cx += 1.5f * cellSize
+            cx += 1.5f * csize
         }
 
         // Draw the solution
         if (solution != null) {
-            canvas.color = solutionColor
-            canvas.stroke = solutionStroke
+            canvas.color = style.solutionColor
+            canvas.stroke = style.solutionStroke
 
             val points = LinkedList<Point>()
             for (cell in solution!!) {
                 val pos = cell.position as Position2D
-                val px = (1.5f * pos.x + 1f) * cellSize
-                val py = (pos.y - minTop + (grid.size - pos.x - 1) / 2f + 0.5f) * cellHeight
+                val px = (1.5f * pos.x + 1f) * csize
+                val py = (pos.y - minTop + (grid.size - pos.x - 1) / 2f + 0.5f) * cheight
                 points.add(Point(px, py))
             }
             canvas.drawPolyline(points)

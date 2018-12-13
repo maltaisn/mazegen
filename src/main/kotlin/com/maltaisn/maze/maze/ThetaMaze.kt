@@ -25,12 +25,11 @@
 
 package com.maltaisn.maze.maze
 
+import com.maltaisn.maze.Configuration
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.ThetaCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
-import java.awt.BasicStroke
-import java.awt.Color
 import java.util.*
 import kotlin.math.*
 import kotlin.random.Random
@@ -172,30 +171,28 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
         return cells
     }
 
-    override fun drawTo(canvas: Canvas,
-                        cellSize: Float, backgroundColor: Color?,
-                        color: Color, stroke: BasicStroke,
-                        solutionColor: Color, solutionStroke: BasicStroke) {
-        val center = (radius + centerRadius - 1) * cellSize
-        val size = 2 * center + stroke.lineWidth
+    override fun drawTo(canvas: Canvas, style: Configuration.Style) {
+        val csize = style.cellSize
+        val center = (radius + centerRadius - 1) * csize
+        val size = 2 * center + style.stroke.lineWidth
         canvas.init(size, size)
 
         // Draw the background
-        if (backgroundColor != null) {
-            canvas.color = backgroundColor
+        if (style.backgroundColor != null) {
+            canvas.color = style.backgroundColor
             canvas.drawRect(0f, 0f, canvas.width, canvas.height, true)
         }
 
         // Draw the maze
         // For each cell, only the inward and clockwise sides are drawn if they are set,
         // except for the last row where the outward side is also drawn.
-        val offset = stroke.lineWidth / 2
+        val offset = style.stroke.lineWidth / 2
         canvas.translate = Point(offset, offset)
-        canvas.color = color
-        canvas.stroke = stroke
+        canvas.color = style.color
+        canvas.stroke = style.stroke
         for (r in 1..radius) {
-            val startRadius = (r + centerRadius - 1) * cellSize
-            val endRadius = startRadius + cellSize
+            val startRadius = (r + centerRadius - 1) * csize
+            val endRadius = startRadius + csize
             val width = grid[min(grid.size - 1, r)].size
             for (x in 0 until width) {
                 val extent = 1.0 / width * PI2
@@ -216,8 +213,8 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
 
         // Draw the solution
         if (solution != null) {
-            canvas.color = solutionColor
-            canvas.stroke = solutionStroke
+            canvas.color = style.solutionColor
+            canvas.stroke = style.solutionStroke
 
             val solution = solution!!
 
@@ -241,7 +238,7 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
                 }
 
                 if (currPos != null) {
-                    val centerRadius = (currPos.y + 0.5f + centerRadius - 1) * cellSize
+                    val centerRadius = (currPos.y + 0.5f + centerRadius - 1) * csize
                     val startAngle = if (prevPos != null && prevPos.y > currPos.y) prevAngle else currAngle
                     val endAngle = if (nextPos != null && nextPos.y > currPos.y) nextAngle else currAngle
 
@@ -252,7 +249,7 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
 
                     if (prevPos != null && prevPos.y != currPos.y) {
                         // Draw the START line: a line extending last line to the current cell's center
-                        val startRadius = centerRadius - (currPos.y - prevPos.y) * cellSize / 2
+                        val startRadius = centerRadius - (currPos.y - prevPos.y) * csize / 2
                         val px = cos(startAngle).toFloat()
                         val py = -sin(startAngle).toFloat()
                         canvas.drawLine(center + px * startRadius, center + py * startRadius,
@@ -264,7 +261,7 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
                     if (nextPos?.y != currPos.y) {
                         if (nextPos != null) {
                             // Draw the END line: a line from the current cell's center to its edge
-                            val endRadius = centerRadius - (currPos.y - nextPos.y) * cellSize / 2
+                            val endRadius = centerRadius - (currPos.y - nextPos.y) * csize / 2
                             val px = cos(endAngle).toFloat()
                             val py = -sin(endAngle).toFloat()
                             canvas.drawLine(center + px * centerRadius, center + py * centerRadius,

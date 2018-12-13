@@ -57,7 +57,7 @@ class Configuration(val mazeSets: List<MazeSet>,
                   val solve: Boolean)
 
     enum class MazeType {
-        DELTA, ORTHOGONAL, SIGMA, THETA, UPSILON
+        DELTA, ORTHOGONAL, SIGMA, THETA, UPSILON, ZETA
     }
 
     /**
@@ -87,7 +87,7 @@ class Configuration(val mazeSets: List<MazeSet>,
      * Style settings for drawing the mazes.
      */
     class Style(val cellSize: Float,
-                val backgroundColor: Color,
+                val backgroundColor: Color?,
                 val color: Color,
                 val stroke: BasicStroke,
                 val solutionColor: Color,

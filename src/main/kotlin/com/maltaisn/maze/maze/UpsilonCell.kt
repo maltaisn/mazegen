@@ -68,9 +68,9 @@ class UpsilonCell(maze: UpsilonMaze, position: Position2D) : Cell(maze, position
      * Enum class for the side of both octogonal and square cells.
      */
     enum class Side(override val value: Int,
-                    override val relativePos: Position2D?,
+                    override val relativePos: Position2D,
                     val isDiagonal: Boolean,
-                    override val symbol: String?) : Cell.Side {
+                    override val symbol: String) : Cell.Side {
         NORTH(1, Position2D(0, -1), false, "N"),
         EAST(2, Position2D(1, 0), false, "E"),
         SOUTH(4, Position2D(0, 1), false, "S"),

@@ -25,8 +25,10 @@
 
 package com.maltaisn.maze.generator
 
+import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.Cell
 import com.maltaisn.maze.maze.Maze
+import com.maltaisn.maze.maze.ZetaMaze
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashSet
@@ -46,6 +48,13 @@ import kotlin.collections.LinkedHashSet
 class KruskalGenerator : Generator() {
 
     override fun generate(maze: Maze) {
+        if (maze is ZetaMaze) {
+            // Kruskal's can't generate zeta mazes correctly. This is because the neighbors
+            // of a zeta cell change depending on how neighbors are connected together
+            // but the implementation of the algorithm checks neighbors only at the beginning.
+            throw ParameterException("Kruskal's generator doesn't work for zeta mazes.")
+        }
+
         super.generate(maze)
         maze.fillAll()
 
@@ -109,7 +118,6 @@ class KruskalGenerator : Generator() {
         fun connect(node: Node) {
             node.root().parent = this
         }
-
     }
 
 }

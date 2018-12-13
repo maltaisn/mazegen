@@ -25,7 +25,9 @@
 
 package com.maltaisn.maze.generator
 
+import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.Maze
+import com.maltaisn.maze.maze.ZetaMaze
 import kotlin.random.Random
 
 
@@ -36,7 +38,7 @@ import kotlin.random.Random
  *
  * 1. Make the initial cell the current cell and mark it as visited.
  * 2. Perform a random walk without changing the maze, adding cells to a list.
- *    If a cell walked to is part of the maze, add the random walk to the maze.
+ *    If a cell walked to was already visited, add the random walk to the maze.
  *    If a cell is already part of the random walk list, start the walk over from that cell.
  * 3. Repeat step 2 until all cells have been added to the maze.
  *
@@ -47,11 +49,19 @@ import kotlin.random.Random
  * The algorithm should be more efficient than [AldousBroderGenerator] on paper but this
  * isn't actually the case, even for large mazes (1M+ cells), because of the implementation.
  *
- * Runtime complexity is O(n) at best and O(∞) at worst. Memory space is O(n).
+ * Runtime complexity is O(n²) at best and O(∞) at worst. Memory space is O(n).
  */
 class WilsonGenerator : Generator() {
 
     override fun generate(maze: Maze) {
+        if (maze is ZetaMaze) {
+            // Wilson's can't generate zeta mazes correctly. This is because the neighbors
+            // of a zeta cell change depending on how neighbors are connected together
+            // but the implementation of the algorithm checks neighbors during the walk
+            // phase, when connections are not yet made.
+            throw ParameterException("Wilson's generator doesn't work for zeta mazes.")
+        }
+
         super.generate(maze)
         maze.fillAll()
 

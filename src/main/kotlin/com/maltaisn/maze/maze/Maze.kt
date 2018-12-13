@@ -25,10 +25,9 @@
 
 package com.maltaisn.maze.maze
 
+import com.maltaisn.maze.Configuration
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.render.Canvas
-import java.awt.BasicStroke
-import java.awt.Color
 import kotlin.random.Random
 
 
@@ -259,11 +258,8 @@ abstract class Maze {
     }
 
     /**
-     * Draw the maze to a [canvas], with an arbritrary [cellSize] and other styling settings.
+     * Draw the maze to a [canvas] with [style] settings.
      */
-    abstract fun drawTo(canvas: Canvas,
-                        cellSize: Float, backgroundColor: Color?,
-                        color: Color, stroke: BasicStroke,
-                        solutionColor: Color, solutionStroke: BasicStroke)
+    abstract fun drawTo(canvas: Canvas, style: Configuration.Style)
 
 }

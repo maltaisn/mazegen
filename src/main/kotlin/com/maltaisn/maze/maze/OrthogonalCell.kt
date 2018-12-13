@@ -40,8 +40,8 @@ class OrthogonalCell(maze: OrthogonalMaze, position: Position2D) : Cell(maze, po
      * Enum class for the side a rectangular cell
      */
     enum class Side(override val value: Int,
-                    override val relativePos: Position2D?,
-                    override val symbol: String?) : Cell.Side {
+                    override val relativePos: Position2D,
+                    override val symbol: String) : Cell.Side {
         NORTH(1, Position2D(0, -1), "N"),
         EAST(2, Position2D(1, 0), "E"),
         SOUTH(4, Position2D(0, 1), "S"),

@@ -27,20 +27,23 @@ package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
 import com.maltaisn.maze.ParameterException
-import com.maltaisn.maze.maze.OrthogonalCell.Side
+import com.maltaisn.maze.maze.ZetaCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
 import java.util.*
+import kotlin.collections.HashMap
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 
 /**
- * Class for a square-tiled maze represented by 2D grid of [OrthogonalCell].
+ * Class for a square-tiled maze represented by 2D grid of [ZetaCell].
+ * Like a [OrthogonalMaze] but allows passage at 45 degrees.
  * Create an empty maze with [width] columns and [height] rows.
  */
-class OrthogonalMaze(val width: Int, val height: Int) : Maze() {
+class ZetaMaze(val width: Int, val height: Int) : Maze() {
 
-    private val grid: Array<Array<OrthogonalCell>>
+    private val grid: Array<Array<ZetaCell>>
 
     init {
         if (width < 1 || height < 1) {
@@ -48,30 +51,30 @@ class OrthogonalMaze(val width: Int, val height: Int) : Maze() {
         }
         grid = Array(width) { x ->
             Array(height) { y ->
-                OrthogonalCell(this, Position2D(x, y))
+                ZetaCell(this, Position2D(x, y))
             }
         }
     }
 
 
-    override fun cellAt(pos: Position): OrthogonalCell? {
+    override fun cellAt(pos: Position): ZetaCell? {
         val pos2d = pos as Position2D
         return cellAt(pos2d.x, pos2d.y)
     }
 
-    fun cellAt(x: Int, y: Int): OrthogonalCell? {
+    fun cellAt(x: Int, y: Int): ZetaCell? {
         if (x < 0 || x >= width || y < 0 || y >= height) return null
         return grid[x][y]
     }
 
-    override fun getRandomCell(): OrthogonalCell {
+    override fun getRandomCell(): ZetaCell {
         return grid[Random.nextInt(width)][Random.nextInt(height)]
     }
 
     override fun getCellCount(): Int = width * height
 
-    override fun getAllCells(): MutableList<OrthogonalCell> {
-        val set = ArrayList<OrthogonalCell>(width * height)
+    override fun getAllCells(): MutableList<ZetaCell> {
+        val set = ArrayList<ZetaCell>(width * height)
         for (x in 0 until width) {
             for (y in 0 until height) {
                 set.add(grid[x][y])
@@ -105,9 +108,12 @@ class OrthogonalMaze(val width: Int, val height: Int) : Maze() {
     }
 
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
-        val csive = style.cellSize
-        canvas.init(width * csive + style.stroke.lineWidth,
-                height * csive + style.stroke.lineWidth)
+        val sideSize = style.cellSize  // Size of an octogon side
+        val diagSize = sqrt(2f) / 2 * sideSize  // Diagonal side size
+        val cellSize = 2 * diagSize + sideSize  // Full cell size
+
+        canvas.init(width * cellSize + style.stroke.lineWidth,
+                height * cellSize + style.stroke.lineWidth)
 
         // Draw the background
         if (style.backgroundColor != null) {
@@ -116,24 +122,62 @@ class OrthogonalMaze(val width: Int, val height: Int) : Maze() {
         }
 
         // Draw the maze
-        // For each cell, only the north and west sides are drawn if they are set,
-        // except for the last row and column where to south and east side are also drawn.
+        // For each cell, draw west and north walls, as well as all 45 degrees lines.
+        // On the last row and column, the east and south walls are also drawn.
         val offset = style.stroke.lineWidth / 2
         canvas.translate = Point(offset, offset)
         canvas.color = style.color
         canvas.stroke = style.stroke
-        for (x in 0..width) {
-            val px = x * csive
-            for (y in 0..height) {
-                val py = y * csive
-                val cell = cellAt(x, y)
-                if (cell != null && cell.hasSide(Side.NORTH) || cell == null
-                        && cellAt(x, y - 1)?.hasSide(Side.SOUTH) == true) {
-                    canvas.drawLine(px, py, px + csive, py)
+        for (x in 0 until width) {
+            val px = x * cellSize
+            val cx = px + cellSize / 2
+            for (y in 0 until height) {
+                val py = y * cellSize
+                val cy = py + cellSize / 2
+                val cell = cellAt(x, y)!!
+
+                val sides = HashMap<Side, Boolean>()
+                val passages = HashMap<Side, Boolean>()
+                for (side in cell.getAllSides()) {
+                    if (side.isDiagonal) {
+                        val hasSide = cell.hasSide(side)
+                        sides[side] = hasSide
+                        val hasPassage = cell.hasDiagonalPassageOnSide(side)
+                        passages[side] = hasPassage
+
+                        if (hasSide && hasPassage) {
+                            // Draw a diagonal line if there's a diagonal passage on this side
+                            // of the cell and this cell has also a wall.
+                            val pos = side.relativePos
+                            canvas.drawLine(cx + pos.x * sideSize / 2, cy + pos.y * cellSize / 2,
+                                    cx + pos.x * cellSize / 2, cy + pos.y * sideSize / 2)
+                        }
+                    }
                 }
-                if (cell != null && cell.hasSide(Side.WEST) || cell == null
-                        && cellAt(x - 1, y)?.hasSide(Side.EAST) == true) {
-                    canvas.drawLine(px, py, px, py + csive)
+
+                // Draw the west and north walls
+                // They must take account of the presence of diagonal passages.
+                if (cell.hasSide(Side.WEST)) {
+                    val start = if (!sides[Side.NORTHWEST]!!
+                            || passages[Side.NORTHWEST]!!) diagSize else 0f
+                    val end = cellSize - if (!sides[Side.SOUTHWEST]!!
+                            || passages[Side.SOUTHWEST]!!) diagSize else 0f
+                    canvas.drawLine(px, py + start, px, py + end)
+                }
+                if (cell.hasSide(Side.NORTH)) {
+                    val start = if (!sides[Side.NORTHWEST]!!
+                            || passages[Side.NORTHWEST]!!) diagSize else 0f
+                    val end = cellSize - if (!sides[Side.NORTHEAST]!!
+                            || passages[Side.NORTHEAST]!!) diagSize else 0f
+                    canvas.drawLine(px + start, py, px + end, py)
+                }
+
+                // On the last row and column, also draw east and north walls
+                if (x == width - 1 && cell.hasSide(Side.EAST)) {
+                    canvas.drawLine(px + cellSize, py, px + cellSize, py + cellSize)
+                }
+                if (y == height - 1 && cell.hasSide(Side.SOUTH)) {
+                    canvas.drawLine(px, py + cellSize, px + cellSize, py + cellSize)
                 }
             }
         }
@@ -146,8 +190,8 @@ class OrthogonalMaze(val width: Int, val height: Int) : Maze() {
             val points = LinkedList<Point>()
             for (cell in solution!!) {
                 val pos = cell.position as Position2D
-                val px = (pos.x + 0.5f) * csive
-                val py = (pos.y + 0.5f) * csive
+                val px = (pos.x + 0.5f) * cellSize
+                val py = (pos.y + 0.5f) * cellSize
                 points.add(Point(px, py))
             }
             canvas.drawPolyline(points)

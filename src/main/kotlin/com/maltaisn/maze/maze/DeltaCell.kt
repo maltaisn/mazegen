@@ -52,7 +52,7 @@ class DeltaCell(maze: DeltaMaze, position: Position2D) : Cell(maze, position) {
      */
     enum class Side(override val value: Int,
                     override val relativePos: Position2D?,
-                    override val symbol: String?) : Cell.Side {
+                    override val symbol: String) : Cell.Side {
         BASE(1, null, "B"),
         EAST(2, Position2D(1, 0), "E"),
         WEST(4, Position2D(-1, 0), "W");

@@ -25,12 +25,11 @@
 
 package com.maltaisn.maze.maze
 
+import com.maltaisn.maze.Configuration
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.UpsilonCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
-import java.awt.BasicStroke
-import java.awt.Color
 import java.util.*
 import kotlin.math.sqrt
 import kotlin.random.Random
@@ -106,19 +105,17 @@ class UpsilonMaze(val width: Int, val height: Int) : Maze() {
         return cellAt(x, y)
     }
 
-    override fun drawTo(canvas: Canvas,
-                        cellSize: Float, backgroundColor: Color?,
-                        color: Color, stroke: BasicStroke,
-                        solutionColor: Color, solutionStroke: BasicStroke) {
-        val diagonalSize = sqrt(2f) / 2 * cellSize
-        val centerDistance = diagonalSize + cellSize
+    override fun drawTo(canvas: Canvas, style: Configuration.Style) {
+        val csive = style.cellSize
+        val dsize = sqrt(2f) / 2 * csive // Diagonal side size
+        val centerDistance = dsize + csive
 
-        canvas.init(width * centerDistance + diagonalSize + stroke.lineWidth,
-                height * centerDistance + diagonalSize + stroke.lineWidth)
+        canvas.init(width * centerDistance + dsize + style.stroke.lineWidth,
+                height * centerDistance + dsize + style.stroke.lineWidth)
 
         // Draw the background
-        if (backgroundColor != null) {
-            canvas.color = backgroundColor
+        if (style.backgroundColor != null) {
+            canvas.color = style.backgroundColor
             canvas.drawRect(0f, 0f, canvas.width, canvas.height, true)
         }
 
@@ -126,42 +123,42 @@ class UpsilonMaze(val width: Int, val height: Int) : Maze() {
         // For each square cell, only the north and west sides are drawn if they are set,
         // except for the first and last rows and columns where other sides may be drawn too.
         // For octogon cells, only draw north, northwest, west and southwest sides.
-        val offset = stroke.lineWidth / 2
+        val offset = style.stroke.lineWidth / 2
         canvas.translate = Point(offset, offset)
-        canvas.color = color
-        canvas.stroke = stroke
+        canvas.color = style.color
+        canvas.stroke = style.stroke
         for (x in 0..width) {
-            val px = x * centerDistance + diagonalSize
+            val px = x * centerDistance + dsize
             for (y in -1..height) {
-                val py = y * centerDistance + diagonalSize
+                val py = y * centerDistance + dsize
                 val cell = cellAt(x, y)
                 if ((x + y) % 2 != 0) {
                     // Square cell
                     if (cell != null && cell.hasSide(Side.NORTH) || cell == null
                             && cellAt(x, y - 1)?.hasSide(Side.SOUTH) == true) {
-                        canvas.drawLine(px, py, px + cellSize, py)
+                        canvas.drawLine(px, py, px + csive, py)
                     }
                     if (cell != null && cell.hasSide(Side.WEST) || cell == null
                             && cellAt(x - 1, y)?.hasSide(Side.EAST) == true) {
-                        canvas.drawLine(px, py, px, py + cellSize)
+                        canvas.drawLine(px, py, px, py + csive)
                     }
                 } else {
                     // Octogon cell
                     if (cell != null && cell.hasSide(Side.NORTH) || cell == null
                             && cellAt(x, y - 1)?.hasSide(Side.SOUTH) == true) {
-                        canvas.drawLine(px, py - diagonalSize, px + cellSize, py - diagonalSize)
+                        canvas.drawLine(px, py - dsize, px + csive, py - dsize)
                     }
                     if (cell != null && cell.hasSide(Side.NORTHWEST) || cell == null
                             && cellAt(x - 1, y - 1)?.hasSide(Side.SOUTHEAST) == true) {
-                        canvas.drawLine(px - diagonalSize, py, px, py - diagonalSize)
+                        canvas.drawLine(px - dsize, py, px, py - dsize)
                     }
                     if (cell != null && cell.hasSide(Side.WEST) || cell == null
                             && cellAt(x - 1, y)?.hasSide(Side.EAST) == true) {
-                        canvas.drawLine(px - diagonalSize, py, px - diagonalSize, py + cellSize)
+                        canvas.drawLine(px - dsize, py, px - dsize, py + csive)
                     }
                     if (cell != null && cell.hasSide(Side.SOUTHWEST) || cell == null
                             && cellAt(x - 1, y + 1)?.hasSide(Side.NORTHEAST) == true) {
-                        canvas.drawLine(px - diagonalSize, py + cellSize, px, py + cellSize + diagonalSize)
+                        canvas.drawLine(px - dsize, py + csive, px, py + csive + dsize)
                     }
                 }
             }
@@ -169,14 +166,14 @@ class UpsilonMaze(val width: Int, val height: Int) : Maze() {
 
         // Draw the solution
         if (solution != null) {
-            canvas.color = solutionColor
-            canvas.stroke = solutionStroke
+            canvas.color = style.solutionColor
+            canvas.stroke = style.solutionStroke
 
             val points = LinkedList<Point>()
             for (cell in solution!!) {
                 val pos = cell.position as Position2D
-                val px = pos.x * centerDistance + diagonalSize + cellSize / 2
-                val py = pos.y * centerDistance + diagonalSize + cellSize / 2
+                val px = pos.x * centerDistance + dsize + csive / 2
+                val py = pos.y * centerDistance + dsize + csive / 2
                 points.add(Point(px, py))
             }
             canvas.drawPolyline(points)

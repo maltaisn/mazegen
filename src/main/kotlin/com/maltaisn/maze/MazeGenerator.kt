@@ -120,18 +120,8 @@ class MazeGenerator(private val config: Configuration) {
         val canvas = output.createCanvas()
         canvas.antialiasing = style.antialiasing
 
-        // If background color is completely transparent and format is SVG or PNG, don't draw it.
-        val backgroundColor = if (style.backgroundColor.alpha == 0
-                && (format == OutputFormat.PNG
-                        || format == OutputFormat.SVG)) {
-            null
-        } else {
-            style.backgroundColor
-        }
-
         // Draw to canvas
-        maze.drawTo(canvas, style.cellSize, backgroundColor, style.color,
-                style.stroke, style.solutionColor, style.solutionStroke)
+        maze.drawTo(canvas, style)
 
         // Export to file
         val fullFilename = filename + '.' + format.extension

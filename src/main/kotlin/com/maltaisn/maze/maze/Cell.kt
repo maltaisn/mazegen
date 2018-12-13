@@ -165,17 +165,16 @@ abstract class Cell(val maze: Maze, val position: Position) {
     override fun toString(): String {
         val sb = StringBuilder()
         sb.append("[pos: $position, sides: ")
-        when (value) {
-            0 -> sb.append("NONE")
-            else -> {
-                for (side in getAllSides()) {
-                    if (hasSide(side)) {
-                        sb.append(side.symbol)
-                        sb.append(",")
-                    }
+        if (value == 0) {
+            sb.append("NONE")
+        } else {
+            for (side in getAllSides()) {
+                if (hasSide(side)) {
+                    sb.append(side.symbol)
+                    sb.append(",")
                 }
-                sb.deleteCharAt(sb.length - 1)
             }
+            sb.deleteCharAt(sb.length - 1)
         }
         sb.append(", ")
         sb.append(if (visited) "visited" else "unvisited")
@@ -209,7 +208,7 @@ abstract class Cell(val maze: Maze, val position: Position) {
         /**
          * The symbol for this side, used by [Cell.toString].
          */
-        val symbol: String?
+        val symbol: String
 
         /**
          * Get the side opposite to this side.

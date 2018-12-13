@@ -78,12 +78,10 @@ class ThetaCell(maze: ThetaMaze, position: PositionPolar) : Cell(maze, position)
                         list.add(neighbor)
                     }
                 }
-            } else {
-                if (!hasSide(side)) {
-                    val neighbor = getCellOnSide(side)
-                    if (neighbor != null) {
-                        list.add(neighbor)
-                    }
+            } else if (!hasSide(side)) {
+                val neighbor = getCellOnSide(side)
+                if (neighbor != null) {
+                    list.add(neighbor)
                 }
             }
         }
@@ -137,8 +135,7 @@ class ThetaCell(maze: ThetaMaze, position: PositionPolar) : Cell(maze, position)
      */
     enum class Side(override val value: Int,
                     override val relativePos: PositionPolar? = null,
-                    override val symbol: String?) : Cell.Side {
-
+                    override val symbol: String) : Cell.Side {
         /**
          * The outward side of a cell. This side has no meaning if there's more than
          * one cell on the side. [IN] side should be used instead.

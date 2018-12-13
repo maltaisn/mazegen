@@ -2,9 +2,9 @@
   "mazes": [
     {
       "name": "maze",
-      "type": "upsilon",
+      "type": "zeta",
       "count": 1,
-      "size": 20,
+      "size": 10,
       "algorithm": "rb",
       "openings": [["S", "S"], ["E", "E"]],
       "solve": true

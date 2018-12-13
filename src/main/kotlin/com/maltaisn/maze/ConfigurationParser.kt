@@ -72,7 +72,7 @@ class ConfigurationParser {
 
         // Parse style settings 
         val style = parseStyle(if (from.has(KEY_STYLE))
-            from.getJSONObject(KEY_STYLE) else null)
+            from.getJSONObject(KEY_STYLE) else null, output.format)
 
         return Configuration(mazeSets, output, style)
     }
@@ -165,6 +165,7 @@ class ConfigurationParser {
                 "sigma" -> MazeType.SIGMA
                 "theta" -> MazeType.THETA
                 "upsilon" -> MazeType.UPSILON
+                "zeta" -> MazeType.ZETA
                 else -> throw ParameterException("Invalid maze type '$typeStr'.")
             }
         } else {
@@ -194,7 +195,7 @@ class ConfigurationParser {
 
         // Maze creator
         val mazeCreator: () -> Maze = when (type) {
-            MazeType.ORTHOGONAL, MazeType.UPSILON -> {
+            MazeType.ORTHOGONAL, MazeType.UPSILON, MazeType.ZETA -> {
                 val width: Int
                 val height: Int
                 if (size is Int) {
@@ -205,10 +206,10 @@ class ConfigurationParser {
                     width = sizeJson.getInt(KEY_MAZE_SIZE_WIDTH)
                     height = sizeJson.getInt(KEY_MAZE_SIZE_HEIGHT)
                 }
-                if (type == MazeType.ORTHOGONAL) {
-                    { OrthogonalMaze(width, height) }
-                } else {
-                    { UpsilonMaze(width, height) }
+                when (type) {
+                    MazeType.ORTHOGONAL -> ({ OrthogonalMaze(width, height) })
+                    MazeType.UPSILON -> ({ UpsilonMaze(width, height) })
+                    else -> ({ ZetaMaze(width, height) })
                 }
             }
             MazeType.SIGMA, MazeType.DELTA -> {
@@ -324,14 +325,15 @@ class ConfigurationParser {
         }
     }
 
-    private fun parseStyle(from: JSONObject?): Configuration.Style {
+    private fun parseStyle(from: JSONObject?, format: OutputFormat): Configuration.Style {
         var cellSize = DEFAULT_STYLE_CELL_SIZE
-        var backgroundColor = DEFAULT_STYLE_BACKGROUND_COLOR
+        var backgroundColor: Color? = DEFAULT_STYLE_BACKGROUND_COLOR
         var color = DEFAULT_STYLE_COLOR
         var strokeWidth = DEFAULT_STYLE_STROKE_WIDTH
         var solutionColor = DEFAULT_STYLE_SOLUTION_COLOR
         var solutionStrokeWidth = DEFAULT_STYLE_SOLUTION_STROKE_WIDTH
         var antialiasing = DEFAULT_STYLE_ANTIALIASING
+
         if (from != null) {
             if (from.has(KEY_STYLE_CELL_SIZE)) {
                 cellSize = from.getFloat(KEY_STYLE_CELL_SIZE)
@@ -356,8 +358,15 @@ class ConfigurationParser {
                 antialiasing = from.getBoolean(KEY_STYLE_ANTIALIASING)
             }
         }
+
+        // If background color is completely transparent and format is SVG or PNG, don't draw it.
+        if (backgroundColor?.alpha == 0 && (format == OutputFormat.PNG || format == OutputFormat.SVG)) {
+            backgroundColor = null
+        }
+
         val stroke = BasicStroke(strokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
         val solutionStroke = BasicStroke(solutionStrokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+
         return Configuration.Style(cellSize, backgroundColor, color,
                 stroke, solutionColor, solutionStroke, antialiasing)
     }
