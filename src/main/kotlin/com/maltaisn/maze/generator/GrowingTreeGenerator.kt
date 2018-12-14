@@ -49,7 +49,7 @@ import kotlin.random.Random
  *
  * Runtime complexity is O(n) and memory space is O(n).
  */
-class GrowingTreeGenerator : Generator() {
+class GrowingTreeGenerator : Generator("Growing tree") {
 
     /**
      * Weight for choosing a random cell.
@@ -101,6 +101,7 @@ class GrowingTreeGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         super.generate(maze)
+
         maze.fillAll()
 
         val initialCell = maze.getRandomCell()

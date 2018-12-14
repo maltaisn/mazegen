@@ -45,10 +45,11 @@ import com.maltaisn.maze.maze.Maze
  *
  * Runtime complexity is O(n) and memory space is O(n).
  */
-class PrimGenerator : Generator() {
+class PrimGenerator : Generator("Prim's") {
 
     override fun generate(maze: Maze) {
         super.generate(maze)
+
         maze.fillAll()
 
         val initialCell = maze.getRandomCell()

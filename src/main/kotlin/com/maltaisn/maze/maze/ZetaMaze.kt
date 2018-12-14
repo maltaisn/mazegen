@@ -26,6 +26,7 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
+import com.maltaisn.maze.MazeType
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.ZetaCell.Side
 import com.maltaisn.maze.render.Canvas
@@ -41,7 +42,7 @@ import kotlin.random.Random
  * Like a [OrthogonalMaze] but allows passage at 45 degrees.
  * Create an empty maze with [width] columns and [height] rows.
  */
-class ZetaMaze(val width: Int, val height: Int) : Maze() {
+class ZetaMaze(val width: Int, val height: Int) : Maze(MazeType.ZETA) {
 
     private val grid: Array<Array<ZetaCell>>
 
@@ -57,10 +58,8 @@ class ZetaMaze(val width: Int, val height: Int) : Maze() {
     }
 
 
-    override fun cellAt(pos: Position): ZetaCell? {
-        val pos2d = pos as Position2D
-        return cellAt(pos2d.x, pos2d.y)
-    }
+    override fun cellAt(pos: Position) =
+            cellAt((pos as Position2D).x, pos.y)
 
     fun cellAt(x: Int, y: Int): ZetaCell? {
         if (x < 0 || x >= width || y < 0 || y >= height) return null
@@ -108,8 +107,8 @@ class ZetaMaze(val width: Int, val height: Int) : Maze() {
     }
 
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
-        val sideSize = style.cellSize  // Size of an octogon side
-        val diagSize = sqrt(2f) / 2 * sideSize  // Diagonal side size
+        val sideSize = style.cellSize  // Size of an octogon wall
+        val diagSize = sqrt(2f) / 2 * sideSize  // Diagonal wall size
         val cellSize = 2 * diagSize + sideSize  // Full cell size
 
         canvas.init(width * cellSize + style.stroke.lineWidth,

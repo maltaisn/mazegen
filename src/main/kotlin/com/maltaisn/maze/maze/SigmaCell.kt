@@ -30,14 +30,15 @@ package com.maltaisn.maze.maze
  * A hexagonal cell for [SigmaMaze].
  * Has north, northeast, southeast, south, southwest and northwest sides.
  */
-class SigmaCell(maze: SigmaMaze, position: Position2D) : Cell(maze, position) {
+class SigmaCell(override val maze: SigmaMaze,
+                override val position: Position2D) : Cell(maze, position) {
 
     override fun getAllSides(): List<Side> = Side.ALL
 
     override fun getAllSidesValue(): Int = Side.ALL_VALUE
 
     /**
-     * Enum class for the side a hexagonal cell
+     * Enum class for the sides of a hexagonal cell.
      * ```
      *     N -> __
      *   NW -> /  \  <- NE

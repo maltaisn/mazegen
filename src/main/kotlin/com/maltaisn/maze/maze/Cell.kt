@@ -34,7 +34,7 @@ package com.maltaisn.maze.maze
  * @property maze The maze containing this cell.
  * @property position The position of the cell in [maze].
  */
-abstract class Cell(val maze: Maze, val position: Position) {
+abstract class Cell(open val maze: Maze, open val position: Position) {
 
     /**
      * Cell can be marked as visited by a generator.
@@ -48,6 +48,7 @@ abstract class Cell(val maze: Maze, val position: Position) {
 
     /**
      * The list of cells adjacent to this cell, but not necessarily connected.
+     * All neighbors must be able to validly connect with this cell.
      */
     open val neighbors: List<Cell> by lazy {
         val list = ArrayList<Cell>()
@@ -71,9 +72,9 @@ abstract class Cell(val maze: Maze, val position: Position) {
 
     /**
      * Returns a list of neighbor cells than are accessible from this cell,
-     * meaning the side they share with this cell is not set.
+     * meaning the wall they share with this cell is not set.
      */
-    open fun getAccessibleNeighbors(): MutableList<Cell> {
+    open fun getAccessibleNeighbors(): MutableList<out Cell> {
         val list = ArrayList<Cell>()
         for (side in getAllSides()) {
             if (!hasSide(side)) {
@@ -121,9 +122,9 @@ abstract class Cell(val maze: Maze, val position: Position) {
 
     /**
      * Connect this cell with another cell [cell] if they are neighbors of the same maze.
-     * Does nothing otherwise. The common side of both cells is opened (removed).
+     * Does nothing otherwise. The common wall of both cells is opened (removed).
      */
-    fun connectWith(cell: Cell) {
+    open fun connectWith(cell: Cell) {
         val side = findSideOfCell(cell)
         if (side != null) {
             cell.value = cell.value and side.opposite().value.inv()

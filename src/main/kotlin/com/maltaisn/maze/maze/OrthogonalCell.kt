@@ -30,14 +30,15 @@ package com.maltaisn.maze.maze
  * A square cell for [OrthogonalMaze].
  * Has north, east, south and east sides.
  */
-class OrthogonalCell(maze: OrthogonalMaze, position: Position2D) : Cell(maze, position) {
+class OrthogonalCell(override val maze: OrthogonalMaze,
+                     override val position: Position2D) : Cell(maze, position) {
 
     override fun getAllSides(): List<Side> = Side.ALL
 
     override fun getAllSidesValue(): Int = Side.ALL_VALUE
 
     /**
-     * Enum class for the side a rectangular cell
+     * Enum class for the sides of a square cell.
      */
     enum class Side(override val value: Int,
                     override val relativePos: Position2D,

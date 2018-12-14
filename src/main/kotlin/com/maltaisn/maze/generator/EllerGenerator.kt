@@ -25,6 +25,7 @@
 
 package com.maltaisn.maze.generator
 
+import com.maltaisn.maze.MazeType.ORTHOGONAL
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.Cell
 import com.maltaisn.maze.maze.Maze
@@ -53,7 +54,7 @@ import kotlin.random.Random
  *
  * Runtime complexity is O(n) and memory space is O(1).
  */
-class EllerGenerator : Generator() {
+class EllerGenerator : Generator("Eller's", ORTHOGONAL) {
 
     /**
      * Percentage of the time two adjacent cells are connected, between 0 and 1.
@@ -84,11 +85,9 @@ class EllerGenerator : Generator() {
 
 
     override fun generate(maze: Maze) {
-        if (maze !is OrthogonalMaze) {
-            throw ParameterException("Eller's generator only works on orthogonal mazes.")
-        }
-
         super.generate(maze)
+        maze as OrthogonalMaze
+
         maze.fillAll()
 
         val cells = HashMap<Cell, CellSet>()

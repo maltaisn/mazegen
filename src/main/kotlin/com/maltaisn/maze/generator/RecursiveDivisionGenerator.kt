@@ -25,7 +25,7 @@
 
 package com.maltaisn.maze.generator
 
-import com.maltaisn.maze.ParameterException
+import com.maltaisn.maze.MazeType.ORTHOGONAL
 import com.maltaisn.maze.maze.Maze
 import com.maltaisn.maze.maze.OrthogonalCell.Side
 import com.maltaisn.maze.maze.OrthogonalMaze
@@ -45,14 +45,11 @@ import kotlin.random.Random
  *
  * Runtime complexity is O(n) and memory space is O(n).
  */
-class RecursiveDivisionGenerator : Generator() {
+class RecursiveDivisionGenerator : Generator("Recursive division", ORTHOGONAL) {
 
     override fun generate(maze: Maze) {
-        if (maze !is OrthogonalMaze) {
-            throw ParameterException("Recursive division generator only work on orthogonal mazes.")
-        }
-
         super.generate(maze)
+        maze as OrthogonalMaze
 
         maze.resetAll()
 

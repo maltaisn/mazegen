@@ -26,12 +26,13 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
+import com.maltaisn.maze.MazeType
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.DeltaCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
 import java.util.*
-import kotlin.math.abs
+import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.sqrt
 import kotlin.random.Random
@@ -44,7 +45,7 @@ import kotlin.random.Random
  * @param arrangement cell arrangement
  */
 class DeltaMaze(val width: Int, height: Int,
-                private val arrangement: Arrangement) : Maze() {
+                private val arrangement: Arrangement) : Maze(MazeType.DELTA) {
 
     val height: Int
 
@@ -94,7 +95,7 @@ class DeltaMaze(val width: Int, height: Int,
             }
             Arrangement.TRIANGLE -> {
                 rowOffset = { 0 }
-                rowsForColumn = { width - abs(it - gridWith / 2) }
+                rowsForColumn = { width - (it - gridWith / 2).absoluteValue }
             }
             Arrangement.RHOMBUS -> {
                 gridWith = 2 * width + height - 1
@@ -120,18 +121,9 @@ class DeltaMaze(val width: Int, height: Int,
         }
     }
 
-    /**
-     * Create a new delta maze with the same width and height, equal to [size]
-     * Hexagon and triangle mazes should be created with this constructor.
-     */
-    constructor(size: Int, arrangement: Arrangement) :
-            this(size, size, arrangement)
 
-
-    override fun cellAt(pos: Position): DeltaCell? {
-        val pos2d = pos as Position2D
-        return cellAt(pos2d.x, pos2d.y)
-    }
+    override fun cellAt(pos: Position): DeltaCell? =
+            cellAt((pos as Position2D).x, pos.y)
 
     fun cellAt(x: Int, y: Int): DeltaCell? {
         if (x < 0 || x >= grid.size) return null

@@ -26,6 +26,7 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
+import com.maltaisn.maze.MazeType
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.OrthogonalCell.Side
 import com.maltaisn.maze.render.Canvas
@@ -38,7 +39,7 @@ import kotlin.random.Random
  * Class for a square-tiled maze represented by 2D grid of [OrthogonalCell].
  * Create an empty maze with [width] columns and [height] rows.
  */
-class OrthogonalMaze(val width: Int, val height: Int) : Maze() {
+class OrthogonalMaze(val width: Int, val height: Int) : Maze(MazeType.ORTHOGONAL) {
 
     private val grid: Array<Array<OrthogonalCell>>
 
@@ -54,10 +55,8 @@ class OrthogonalMaze(val width: Int, val height: Int) : Maze() {
     }
 
 
-    override fun cellAt(pos: Position): OrthogonalCell? {
-        val pos2d = pos as Position2D
-        return cellAt(pos2d.x, pos2d.y)
-    }
+    override fun cellAt(pos: Position) =
+            cellAt((pos as Position2D).x, pos.y)
 
     fun cellAt(x: Int, y: Int): OrthogonalCell? {
         if (x < 0 || x >= width || y < 0 || y >= height) return null
@@ -116,8 +115,8 @@ class OrthogonalMaze(val width: Int, val height: Int) : Maze() {
         }
 
         // Draw the maze
-        // For each cell, only the north and west sides are drawn if they are set,
-        // except for the last row and column where to south and east side are also drawn.
+        // For each cell, only the north and west walls are drawn if they are set,
+        // except for the last row and column where to south and east walls are also drawn.
         val offset = style.stroke.lineWidth / 2
         canvas.translate = Point(offset, offset)
         canvas.color = style.color

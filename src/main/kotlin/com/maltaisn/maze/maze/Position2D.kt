@@ -25,7 +25,7 @@
 
 package com.maltaisn.maze.maze
 
-import kotlin.math.abs
+import kotlin.math.absoluteValue
 
 
 /**
@@ -36,26 +36,20 @@ open class Position2D(val x: Int, val y: Int) : Position {
     /**
      * Compute the Manhattan distance between this position and [pos].
      */
-    override fun distanceTo(pos: Position): Int {
-        val pos2D = pos as Position2D
-        return abs(pos2D.x - x) + abs(pos2D.y - y)
-    }
+    override fun distanceTo(pos: Position) =
+            ((pos as Position2D).x - x).absoluteValue + (pos.y - y).absoluteValue
 
-    override operator fun plus(pos: Position): Position2D {
-        val pos2D = pos as Position2D
-        return Position2D(x + pos2D.x, y + pos2D.y)
-    }
+    override operator fun plus(pos: Position) =
+            Position2D(x + (pos as Position2D).x, y + pos.y)
 
-    override fun compareTo(pos: Position): Int {
-        val pos2D = pos as Position2D
-        return if (x == pos2D.x && y == pos2D.y) {
-            0
-        } else if (x > pos2D.x || x == pos2D.x && y > pos2D.y) {
-            1
-        } else {
-            -1
-        }
-    }
+    override fun compareTo(pos: Position) =
+            if (x == (pos as Position2D).x && y == pos.y) {
+                0
+            } else if (x > pos.x || x == pos.x && y > pos.y) {
+                1
+            } else {
+                -1
+            }
 
     override fun equals(other: Any?): Boolean {
         if (other === this) return true

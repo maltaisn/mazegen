@@ -26,6 +26,7 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
+import com.maltaisn.maze.MazeType
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.UpsilonCell.Side
 import com.maltaisn.maze.render.Canvas
@@ -39,7 +40,7 @@ import kotlin.random.Random
  * Class for a square and octogon-tiled maze represented by 2D grid of [UpsilonCell].
  * Create an empty maze with [width] columns and [height] rows.
  */
-class UpsilonMaze(val width: Int, val height: Int) : Maze() {
+class UpsilonMaze(val width: Int, val height: Int) : Maze(MazeType.UPSILON) {
 
     private val grid: Array<Array<UpsilonCell>>
 
@@ -55,10 +56,8 @@ class UpsilonMaze(val width: Int, val height: Int) : Maze() {
     }
 
 
-    override fun cellAt(pos: Position): UpsilonCell? {
-        val pos2d = pos as Position2D
-        return cellAt(pos2d.x, pos2d.y)
-    }
+    override fun cellAt(pos: Position) =
+            cellAt((pos as Position2D).x, pos.y)
 
     fun cellAt(x: Int, y: Int): UpsilonCell? {
         if (x < 0 || x >= width || y < 0 || y >= height) return null
@@ -107,7 +106,7 @@ class UpsilonMaze(val width: Int, val height: Int) : Maze() {
 
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
         val csive = style.cellSize
-        val dsize = sqrt(2f) / 2 * csive // Diagonal side size
+        val dsize = sqrt(2f) / 2 * csive // Diagonal wall size
         val centerDistance = dsize + csive
 
         canvas.init(width * centerDistance + dsize + style.stroke.lineWidth,
@@ -120,7 +119,7 @@ class UpsilonMaze(val width: Int, val height: Int) : Maze() {
         }
 
         // Draw the maze
-        // For each square cell, only the north and west sides are drawn if they are set,
+        // For each square cell, only the north and west walls are drawn if they are set,
         // except for the first and last rows and columns where other sides may be drawn too.
         // For octogon cells, only draw north, northwest, west and southwest sides.
         val offset = style.stroke.lineWidth / 2

@@ -30,11 +30,12 @@ package com.maltaisn.maze.maze
  * A octogon-like cell for [ZetaMaze].
  * Has north, northeast, east, southeast, south, southwest, west and northwest sides.
  */
-class ZetaCell(maze: ZetaMaze, position: Position2D) : Cell(maze, position) {
+class ZetaCell(override val maze: ZetaMaze,
+               override val position: Position2D) : Cell(maze, position) {
 
     override val neighbors = ArrayList<Cell>()
         get() {
-            // Neighbors must be computed on every call, they depend on other cells connections.
+            // Neighbors must be found on every call, they depend on other cells connections.
             field.clear()
             for (side in getAllSides()) {
                 val cell = getCellOnSide(side)
@@ -81,7 +82,7 @@ class ZetaCell(maze: ZetaMaze, position: Position2D) : Cell(maze, position) {
     override fun getAllSidesValue(): Int = Side.ALL_VALUE
 
     /**
-     * Enum class for the side a rectangular cell
+     * Enum class for the sides of an octogon-like zeta cell.
      */
     enum class Side(override val value: Int,
                     override val relativePos: Position2D,

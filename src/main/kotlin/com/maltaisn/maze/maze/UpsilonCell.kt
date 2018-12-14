@@ -30,7 +30,8 @@ package com.maltaisn.maze.maze
  * A square or octogon cell for [UpsilonMaze].
  * Has 4 or 8 sides depending on its type.
  */
-class UpsilonCell(maze: UpsilonMaze, position: Position2D) : Cell(maze, position) {
+class UpsilonCell(override val maze: UpsilonMaze,
+                  override val position: Position2D) : Cell(maze, position) {
 
     override var value: Int = 0
         set(value) {

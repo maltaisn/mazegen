@@ -26,7 +26,6 @@
 package com.maltaisn.maze
 
 import com.maltaisn.maze.Configuration.MazeSet
-import com.maltaisn.maze.Configuration.MazeType
 import com.maltaisn.maze.generator.*
 import com.maltaisn.maze.maze.*
 import com.maltaisn.maze.render.Canvas
@@ -166,6 +165,7 @@ class ConfigurationParser {
                 "sigma" -> MazeType.SIGMA
                 "theta" -> MazeType.THETA
                 "upsilon" -> MazeType.UPSILON
+                "weaveorthogonal" -> MazeType.WEAVE_ORTHOGONAL
                 "zeta" -> MazeType.ZETA
                 else -> throw ParameterException("Invalid maze type '$typeStr'.")
             }
@@ -251,6 +251,23 @@ class ConfigurationParser {
                     }
                 }
                 { ThetaMaze(radius, centerRadius, subdivision) }
+            }
+            MazeType.WEAVE_ORTHOGONAL -> {
+                val width: Int
+                val height: Int
+                var maxWeave = DEFAULT_MAZE_SIZE_MAX_WEAVE
+                if (size is Int) {
+                    width = size
+                    height = size
+                } else {
+                    val sizeJson = size as JSONObject
+                    width = sizeJson.getInt(KEY_MAZE_SIZE_WIDTH)
+                    height = sizeJson.getInt(KEY_MAZE_SIZE_HEIGHT)
+                    if (sizeJson.has(KEY_MAZE_SIZE_MAX_WEAVE)) {
+                        maxWeave = sizeJson.getInt(KEY_MAZE_SIZE_MAX_WEAVE)
+                    }
+                }
+                { WeaveOrthogonalMaze(width, height, maxWeave) }
             }
         }
 
@@ -403,6 +420,7 @@ class ConfigurationParser {
         private const val KEY_MAZE_SIZE_RADIUS = "radius"
         private const val KEY_MAZE_SIZE_CENTER_RADIUS = "centerRadius"
         private const val KEY_MAZE_SIZE_SUBDIVISION = "subdivision"
+        private const val KEY_MAZE_SIZE_MAX_WEAVE = "maxWeave"
 
         private const val KEY_MAZE_ALGORITHM = "algorithm"
         private const val KEY_MAZE_ALGORITHM_NAME = "name"
@@ -417,6 +435,7 @@ class ConfigurationParser {
         private val DEFAULT_MAZE_ARRANGEMENT = Arrangement.RECTANGLE
         private const val DEFAULT_MAZE_SIZE_CENTER_RADIUS = 1f
         private const val DEFAULT_MAZE_SIZE_SUBDIVISION = 1.5f
+        private const val DEFAULT_MAZE_SIZE_MAX_WEAVE = 1
         private const val DEFAULT_MAZE_SOLVE = false
 
         // Output keys and defaults

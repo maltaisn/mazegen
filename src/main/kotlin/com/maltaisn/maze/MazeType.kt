@@ -23,32 +23,14 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.maltaisn.maze.maze
+package com.maltaisn.maze
 
-import kotlin.math.absoluteValue
-import kotlin.math.min
-
-
-/**
- * A position in a 2D polar coordinate system.
- * @param x the index in the row array.
- * @param r the radial distance of this position from the center.
- * @param rowWidth the length of the row array, optional.
- */
-class PositionPolar(x: Int, r: Int, val rowWidth: Int = 0) : Position2D(x, r) {
-
-    /**
-     * The super method wouldn't work because a polar system wraps around on the theta axis.
-     * For example the distance between a cell at 0 degrees and 359 degrees is 1 not 359.
-     */
-    override fun distanceTo(pos: Position): Int {
-        val dx = (x - (pos as PositionPolar).x).absoluteValue
-        return (y - pos.y).absoluteValue + min(dx, rowWidth - dx)
-    }
-
-    override operator fun plus(pos: Position) =
-            PositionPolar(x + (pos as PositionPolar).x, y + pos.y)
-
-    override fun toString(): String = "[x: $x, r: $y]"
-
+enum class MazeType(val mazeName: String) {
+    DELTA("Delta"),
+    ORTHOGONAL("Orthogonal"),
+    SIGMA("Sigma"),
+    THETA("Theta"),
+    UPSILON("Upsilon"),
+    WEAVE_ORTHOGONAL("Weave Orthogonal"),
+    ZETA("Zeta")
 }

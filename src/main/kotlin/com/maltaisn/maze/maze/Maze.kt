@@ -26,6 +26,7 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
+import com.maltaisn.maze.MazeType
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.render.Canvas
 import kotlin.random.Random
@@ -34,7 +35,7 @@ import kotlin.random.Random
 /**
  * Base class for a maze.
  */
-abstract class Maze {
+abstract class Maze(val type: MazeType) {
 
     /**
      * Whether this maze has been generated yet or not.

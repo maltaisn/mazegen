@@ -56,10 +56,6 @@ class Configuration(val mazeSets: List<MazeSet>,
                   val openings: List<Opening>,
                   val solve: Boolean)
 
-    enum class MazeType {
-        DELTA, ORTHOGONAL, SIGMA, THETA, UPSILON, ZETA
-    }
-
     /**
      * Output settings.
      */

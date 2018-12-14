@@ -31,7 +31,8 @@ package com.maltaisn.maze.maze
  * sometimes have more than one neighbor on the outward side.
  * Has outward, inward, clockwise and counterclockwise sides.
  */
-class ThetaCell(maze: ThetaMaze, position: PositionPolar) : Cell(maze, position) {
+class ThetaCell(override val maze: ThetaMaze,
+                override val position: PositionPolar) : Cell(maze, position) {
 
     override val neighbors: List<Cell> by lazy {
         val list = ArrayList<Cell>()
@@ -53,8 +54,8 @@ class ThetaCell(maze: ThetaMaze, position: PositionPolar) : Cell(maze, position)
     }
 
     override fun getCellOnSide(side: Cell.Side): ThetaCell? = when (side) {
-        Side.OUT -> (maze as ThetaMaze).getOutwardCellOf(this)
-        Side.IN -> (maze as ThetaMaze).getInwardCellOf(this)
+        Side.OUT -> maze.getOutwardCellOf(this)
+        Side.IN -> maze.getInwardCellOf(this)
         else -> {
             val cell = super.getCellOnSide(side)
             if (cell !== this) {

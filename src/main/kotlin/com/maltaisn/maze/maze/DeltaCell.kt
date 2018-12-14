@@ -30,13 +30,13 @@ package com.maltaisn.maze.maze
  * A triangular cell in [DeltaMaze].
  * Has west, east and base (north or south) sides.
  */
-class DeltaCell(maze: DeltaMaze, position: Position2D) : Cell(maze, position) {
+class DeltaCell(override val maze: DeltaMaze,
+                override val position: Position2D) : Cell(maze, position) {
 
     override fun getCellOnSide(side: Cell.Side): Cell? {
         if (side == Side.BASE) {
             // The cell on the base side can be either up or down, depending on the X position.
-            val pos = position as Position2D
-            val flatTopped = (pos.x + pos.y) % 2 == 0
+            val flatTopped = (position.x + position.y) % 2 == 0
             return maze.cellAt(position
                     + Position2D(0, if (flatTopped) -1 else 1))
         }
@@ -48,7 +48,7 @@ class DeltaCell(maze: DeltaMaze, position: Position2D) : Cell(maze, position) {
     override fun getAllSidesValue(): Int = Side.ALL_VALUE
 
     /**
-     * Enum class for the side a delta cell.
+     * Enum class for the sides of a delta cell.
      */
     enum class Side(override val value: Int,
                     override val relativePos: Position2D?,

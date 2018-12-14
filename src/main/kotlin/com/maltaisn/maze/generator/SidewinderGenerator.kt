@@ -25,7 +25,7 @@
 
 package com.maltaisn.maze.generator
 
-import com.maltaisn.maze.ParameterException
+import com.maltaisn.maze.MazeType.ORTHOGONAL
 import com.maltaisn.maze.maze.Cell
 import com.maltaisn.maze.maze.Maze
 import com.maltaisn.maze.maze.OrthogonalCell.Side
@@ -46,14 +46,12 @@ import kotlin.random.Random
  *
  * Runtime complexity is O(n) and memory space is O(1).
  */
-class SidewinderGenerator : Generator() {
+class SidewinderGenerator : Generator("Sidewinder", ORTHOGONAL) {
 
     override fun generate(maze: Maze) {
-        if (maze !is OrthogonalMaze) {
-            throw ParameterException("Sidewinder generator only works on orthogonal mazes.")
-        }
-
         super.generate(maze)
+        maze as OrthogonalMaze
+
         maze.fillAll()
 
         for (y in 0 until maze.height) {

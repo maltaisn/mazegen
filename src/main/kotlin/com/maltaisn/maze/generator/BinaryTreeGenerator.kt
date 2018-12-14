@@ -25,7 +25,7 @@
 
 package com.maltaisn.maze.generator
 
-import com.maltaisn.maze.ParameterException
+import com.maltaisn.maze.MazeType.ORTHOGONAL
 import com.maltaisn.maze.maze.Maze
 import com.maltaisn.maze.maze.OrthogonalCell.Side
 import com.maltaisn.maze.maze.OrthogonalMaze
@@ -42,7 +42,7 @@ import kotlin.random.Random
  *
  * Runtime complexity is O(n) and memory space is O(1).
  */
-class BinaryTreeGenerator : Generator() {
+class BinaryTreeGenerator : Generator("Binary tree", ORTHOGONAL) {
 
     /**
      * Bias setting that decides which two sides to connect for a cell.
@@ -52,11 +52,9 @@ class BinaryTreeGenerator : Generator() {
 
 
     override fun generate(maze: Maze) {
-        if (maze !is OrthogonalMaze) {
-            throw ParameterException("Binary tree generator only works on orthogonal mazes.")
-        }
-
         super.generate(maze)
+        maze as OrthogonalMaze
+
         maze.fillAll()
 
         maze.forEachCell {

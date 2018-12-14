@@ -25,9 +25,8 @@
 
 package com.maltaisn.maze.generator
 
-import com.maltaisn.maze.ParameterException
+import com.maltaisn.maze.MazeType.*
 import com.maltaisn.maze.maze.Maze
-import com.maltaisn.maze.maze.ZetaMaze
 import kotlin.random.Random
 
 
@@ -49,20 +48,18 @@ import kotlin.random.Random
  * The algorithm should be more efficient than [AldousBroderGenerator] on paper but this
  * isn't actually the case, even for large mazes (1M+ cells), because of the implementation.
  *
+ * Can't generate zeta and weave orthogonal mazes correctly. This is because the
+ * neighbors of the cells change depending on how neighbors are connected together
+ * but the implementation of the algorithm checks neighbors during the walk
+ * phase, when connections are not yet made.
+ *
  * Runtime complexity is O(n²) at best and O(∞) at worst. Memory space is O(n).
  */
-class WilsonGenerator : Generator() {
+class WilsonGenerator : Generator("Wilson's", DELTA, ORTHOGONAL, SIGMA, THETA, UPSILON) {
 
     override fun generate(maze: Maze) {
-        if (maze is ZetaMaze) {
-            // Wilson's can't generate zeta mazes correctly. This is because the neighbors
-            // of a zeta cell change depending on how neighbors are connected together
-            // but the implementation of the algorithm checks neighbors during the walk
-            // phase, when connections are not yet made.
-            throw ParameterException("Wilson's generator doesn't work for zeta mazes.")
-        }
-
         super.generate(maze)
+
         maze.fillAll()
 
         val unvisitedCells = maze.getAllCells()

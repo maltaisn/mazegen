@@ -25,10 +25,9 @@
 
 package com.maltaisn.maze.generator
 
-import com.maltaisn.maze.ParameterException
+import com.maltaisn.maze.MazeType.*
 import com.maltaisn.maze.maze.Cell
 import com.maltaisn.maze.maze.Maze
-import com.maltaisn.maze.maze.ZetaMaze
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashSet
@@ -43,19 +42,17 @@ import kotlin.collections.LinkedHashSet
  *    connect them and connect their trees' root
  * 3. Repeat step 2 until there are no more edges in the list.
  *
+ * Kruskal's can't generate zeta and weave orthogonal mazes correctly. This is because
+ * the neighbors of the cells change depending on how neighbors are connected together
+ * but the implementation of the algorithm checks neighbors only at the beginning.
+ *
  * Runtime complexity is O(n) and memory space is O(n).
  */
-class KruskalGenerator : Generator() {
+class KruskalGenerator : Generator("Kruskal's", DELTA, ORTHOGONAL, SIGMA, THETA, UPSILON) {
 
     override fun generate(maze: Maze) {
-        if (maze is ZetaMaze) {
-            // Kruskal's can't generate zeta mazes correctly. This is because the neighbors
-            // of a zeta cell change depending on how neighbors are connected together
-            // but the implementation of the algorithm checks neighbors only at the beginning.
-            throw ParameterException("Kruskal's generator doesn't work for zeta mazes.")
-        }
-
         super.generate(maze)
+
         maze.fillAll()
 
         // Get all edges and create a tree node for every cell

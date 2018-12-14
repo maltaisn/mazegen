@@ -26,12 +26,13 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
+import com.maltaisn.maze.MazeType
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.SigmaCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
 import java.util.*
-import kotlin.math.abs
+import kotlin.math.absoluteValue
 import kotlin.math.sqrt
 import kotlin.random.Random
 
@@ -43,7 +44,7 @@ import kotlin.random.Random
  * @param arrangement cell arrangement
  */
 class SigmaMaze(val width: Int, height: Int,
-                private val arrangement: Arrangement) : Maze() {
+                private val arrangement: Arrangement) : Maze(MazeType.SIGMA) {
 
     val height: Int
 
@@ -81,7 +82,7 @@ class SigmaMaze(val width: Int, height: Int,
             }
             Arrangement.HEXAGON -> {
                 gridWith = 2 * width - 1
-                rowsForColumn = { gridWith - abs(it - width + 1) }
+                rowsForColumn = { gridWith - (it - width + 1).absoluteValue }
                 rowOffset = { if (it < width) 0 else it - width + 1 }
             }
             Arrangement.TRIANGLE -> {
@@ -102,18 +103,9 @@ class SigmaMaze(val width: Int, height: Int,
         }
     }
 
-    /**
-     * Create a new maze with the same width and height, equal to [size]
-     * Hexagon and triangle mazes should be created with this constructor.
-     */
-    constructor(size: Int, arrangement: Arrangement) :
-            this(size, size, arrangement)
 
-
-    override fun cellAt(pos: Position): SigmaCell? {
-        val pos2d = pos as Position2D
-        return cellAt(pos2d.x, pos2d.y)
-    }
+    override fun cellAt(pos: Position) =
+            cellAt((pos as Position2D).x, pos.y)
 
     fun cellAt(x: Int, y: Int): SigmaCell? {
         if (x < 0 || x >= grid.size) return null
