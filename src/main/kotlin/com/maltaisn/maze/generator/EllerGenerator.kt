@@ -164,7 +164,7 @@ class EllerGenerator : Generator("Eller's", ORTHOGONAL) {
      * ArrayList subclass to prevent expensive equals and hashCode because they're not needed.
      * Each set is assigned an ID for a hashcode.
      */
-    private class CellSet(val id: Int): ArrayList<Cell>() {
+    private class CellSet(val id: Int) : ArrayList<Cell>() {
         override fun equals(other: Any?): Boolean = (this === other)
         override fun hashCode(): Int = id
     }

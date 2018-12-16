@@ -39,7 +39,7 @@ import kotlin.math.sqrt
  * Class for a square-tiled orthogonal maze with [width] columns and [height] rows.
  * Like a [OrthogonalMaze] but cells allow passages at 45 degrees.
  */
-class ZetaMaze(width: Int,  height: Int) :
+class ZetaMaze(width: Int, height: Int) :
         BaseOrthogonalMaze<ZetaCell>(width, height, MazeType.ZETA) {
 
     override fun createCell(pos: Position2D) = ZetaCell(this, pos)

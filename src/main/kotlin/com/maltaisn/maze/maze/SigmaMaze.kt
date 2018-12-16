@@ -44,7 +44,7 @@ class SigmaMaze(width: Int, height: Int, shape: Shape) :
     /**
      * Sigma maze grid. There number of columns is the same as the maze width, except for
      * hexagon shaped mazes where the number of columns is equal to `width * 2 - 1`.
-     * The number of rows varies for each column depending on the arrangement of the maze.
+     * The number of rows varies for each column depending on the shape of the maze.
      */
     override val grid: Array<Array<SigmaCell>>
 

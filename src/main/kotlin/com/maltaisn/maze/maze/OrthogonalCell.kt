@@ -31,7 +31,7 @@ package com.maltaisn.maze.maze
  * Has north, east, south and east sides.
  */
 open class OrthogonalCell(override val maze: OrthogonalMaze,
-                     override val position: Position2D) : Cell(maze, position) {
+                          override val position: Position2D) : Cell(maze, position) {
 
     override fun getAllSides(): List<Side> = Side.ALL
 

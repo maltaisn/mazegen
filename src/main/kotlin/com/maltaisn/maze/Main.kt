@@ -25,7 +25,6 @@
 
 package com.maltaisn.maze
 
-import com.maltaisn.maze.maze.WeaveOrthogonalMaze
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.File
@@ -33,8 +32,6 @@ import java.io.FileInputStream
 
 
 fun main(args: Array<String>) {
-    val maze = WeaveOrthogonalMaze(10, 10, 3)
-
     try {
         if (args.isNotEmpty()) {
             for (arg in args) {

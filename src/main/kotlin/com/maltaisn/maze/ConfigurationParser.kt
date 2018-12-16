@@ -132,8 +132,8 @@ class ConfigurationParser {
                     generator.horizontalBias = parsePercentValue(biasArr[0] as String)
                     generator.verticalBias = parsePercentValue(biasArr[1] as String)
                 }
-                is GrowingTreeGenerator -> if (algorithmJson.has(KEY_MAZE_ALGORITHM_GT_WEIGHTS)) {
-                    val weightsJson = algorithmJson.getJSONArray(KEY_MAZE_ALGORITHM_GT_WEIGHTS)
+                is GrowingTreeGenerator -> if (algorithmJson.has(KEY_MAZE_ALGORITHM_WEIGHTS)) {
+                    val weightsJson = algorithmJson.getJSONArray(KEY_MAZE_ALGORITHM_WEIGHTS)
                     generator.randomWeight = weightsJson[0] as Int
                     generator.newestWeight = weightsJson[1] as Int
                     generator.oldestWeight = weightsJson[1] as Int
@@ -180,18 +180,18 @@ class ConfigurationParser {
             throw ParameterException("A size must be specified for the maze.")
         }
 
-        // Arrangement
-        val arrangement = if (from.has(KEY_MAZE_ARRANGEMENT)) {
-            val arrStr = from.getString(KEY_MAZE_ARRANGEMENT)
+        // Shape
+        val shape = if (from.has(KEY_MAZE_SHAPE)) {
+            val arrStr = from.getString(KEY_MAZE_SHAPE)
             when (arrStr.toLowerCase()) {
                 "rectangle" -> BaseShapedMaze.Shape.RECTANGLE
                 "triangle" -> BaseShapedMaze.Shape.TRIANGLE
                 "hexagon" -> BaseShapedMaze.Shape.HEXAGON
                 "rhombus" -> BaseShapedMaze.Shape.RHOMBUS
-                else -> throw ParameterException("Invalid maze arrangement '$arrStr'.")
+                else -> throw ParameterException("Invalid maze shape '$arrStr'.")
             }
         } else {
-            DEFAULT_MAZE_ARRANGEMENT
+            DEFAULT_MAZE_SHAPE
         }
 
         // Maze creator
@@ -220,8 +220,8 @@ class ConfigurationParser {
                     width = size
                     height = size
                 } else {
-                    if (arrangement == BaseShapedMaze.Shape.HEXAGON
-                            || arrangement == BaseShapedMaze.Shape.TRIANGLE) {
+                    if (shape == BaseShapedMaze.Shape.HEXAGON
+                            || shape == BaseShapedMaze.Shape.TRIANGLE) {
                         throw ParameterException("For hexagon and triangle shaped " +
                                 "delta and sigma mazes, size must be an integer.")
                     }
@@ -230,9 +230,9 @@ class ConfigurationParser {
                     height = sizeJson.getInt(KEY_MAZE_SIZE_HEIGHT)
                 }
                 if (type == MazeType.SIGMA) {
-                    { SigmaMaze(width, height, arrangement) }
+                    { SigmaMaze(width, height, shape) }
                 } else {
-                    { DeltaMaze(width, height, arrangement) }
+                    { DeltaMaze(width, height, shape) }
                 }
             }
             MazeType.THETA -> {
@@ -406,7 +406,7 @@ class ConfigurationParser {
         private const val KEY_MAZE_NAME = "name"
         private const val KEY_MAZE_COUNT = "count"
         private const val KEY_MAZE_TYPE = "type"
-        private const val KEY_MAZE_ARRANGEMENT = "arrangement"
+        private const val KEY_MAZE_SHAPE = "shape"
         private const val KEY_MAZE_BRAID = "braid"
         private const val KEY_MAZE_SOLVE = "solve"
 
@@ -425,7 +425,7 @@ class ConfigurationParser {
 
         private const val KEY_MAZE_ALGORITHM = "algorithm"
         private const val KEY_MAZE_ALGORITHM_NAME = "name"
-        private const val KEY_MAZE_ALGORITHM_GT_WEIGHTS = "weights"
+        private const val KEY_MAZE_ALGORITHM_WEIGHTS = "weights"
         private const val KEY_MAZE_ALGORITHM_BIAS = "bias"
 
         private const val DEFAULT_MAZE_NAME = "maze"
@@ -433,7 +433,7 @@ class ConfigurationParser {
         private const val DEFAULT_MAZE_ALGORITHM = "rb"
         private val DEFAULT_MAZE_ALGORITHM_BRAID: Maze.Braiding? = null
         private val DEFAULT_MAZE_TYPE = MazeType.ORTHOGONAL
-        private val DEFAULT_MAZE_ARRANGEMENT = BaseShapedMaze.Shape.RECTANGLE
+        private val DEFAULT_MAZE_SHAPE = BaseShapedMaze.Shape.RECTANGLE
         private const val DEFAULT_MAZE_SIZE_CENTER_RADIUS = 1f
         private const val DEFAULT_MAZE_SIZE_SUBDIVISION = 1.5f
         private const val DEFAULT_MAZE_SIZE_MAX_WEAVE = 1
@@ -457,7 +457,7 @@ class ConfigurationParser {
         private const val KEY_STYLE_BACKGROUND_COLOR = "backgroundColor"
         private const val KEY_STYLE_COLOR = "color"
         private const val KEY_STYLE_STROKE_WIDTH = "strokeWidth"
-        private const val KEY_STYLE_SOLUTION_COLOR = "solution_color"
+        private const val KEY_STYLE_SOLUTION_COLOR = "solutionColor"
         private const val KEY_STYLE_SOLUTION_STROKE_WIDTH = "solutionStrokeWidth"
         private const val KEY_STYLE_ANTIALIASING = "antialiasing"
 

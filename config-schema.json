@@ -1,0 +1,267 @@
+{
+  "$id": "https://github.com/maltaisn/mazegen/config-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "algorithmName": {
+      "type": "string",
+      "enum": [
+        "ab", "bt", "el", "gt", "hk", "kr", "pr", "rb", "rd", "sw", "wi",
+        "aldous-broder", "binary-tree", "eller", "growing-tree", "hunt-kill", "kruskal",
+        "prim", "recursive-backtracker", "recursive-division", "sidewinder", "wilson"
+      ],
+      "default": "rb"
+    },
+    "colorString": {
+      "type": "string",
+      "pattern": "^#(?:[0-9A-Fa-f]{2}){3,4}$"
+    }
+  },
+  "type": "object",
+  "required": ["mazes"],
+  "properties": {
+    "mazes": {
+      "type": "array",
+      "description": "Maze sets",
+      "items": {
+        "type": "object",
+        "required": ["size"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the maze set",
+            "default": "maze"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Number of mazes",
+            "default": 1,
+            "minimum": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "delta", "orthogonal", "sigma", "theta",
+              "upsilon", "weaveOrthogonal", "zeta"
+            ],
+            "description": "Maze type",
+            "default": "orthogonal"
+          },
+          "size": {
+            "type": ["object", "number"],
+            "description": "Size and other dimensions",
+            "minimum": 1,
+            "properties": {
+              "size": {
+                "type": "integer",
+                "description": "Maze size",
+                "minimum": 1
+              },
+              "width": {
+                "type": "integer",
+                "description": "Maze width",
+                "minimum": 1
+              },
+              "height": {
+                "type": "integer",
+                "description": "Maze height",
+                "minimum": 1
+              },
+              "radius": {
+                "type": "integer",
+                "description": "Theta maze radius",
+                "default": 1,
+                "minimum": 1
+              },
+              "centerRadius": {
+                "type": "number",
+                "description": "Theta maze center radius",
+                "default": 1.0,
+                "exclusiveMinimum": 0.0
+              },
+              "subdivision": {
+                "type": "number",
+                "description": "Theta maze radius",
+                "default": 1.0,
+                "minimum": 1.0
+              },
+              "maxWeave": {
+                "type": "integer",
+                "description": "Maximum weave setting, 0 for no weaving",
+                "default": 1,
+                "minimum": 0
+              }
+            }
+          },
+          "shape": {
+            "type": "string",
+            "enum": ["rectangle", "triangle", "hexagon", "rhombus"],
+            "description": "Maze shape",
+            "default": "rectangle"
+          },
+          "algorithm": {
+            "description": "Algorithm to use for generation and its settings",
+            "default": "rb",
+            "oneOf": [
+              {"$ref": "#/definitions/algorithmName"},
+              {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": {"$ref": "#/definitions/algorithmName"},
+                  "weights": {
+                    "type": "array",
+                    "description": "Weights to use for choosing a cell when backtracking with the growing tree algorithm.",
+                    "items": [
+                      {
+                        "type": "integer",
+                        "description": "Weight for choosing a random cell",
+                        "minimum": 0,
+                        "default": 1
+                      },
+                      {
+                        "type": "integer",
+                        "description": "Weight for choosing the newest cell",
+                        "minimum": 0,
+                        "default": 1
+                      },
+                      {
+                        "type": "integer",
+                        "description": "Weight for choosing the oldest cell",
+                        "minimum": 0,
+                        "default": 0
+                      }
+                    ],
+                    "additionalItems": false,
+                    "default": [1, 1, 0]
+                  },
+                  "bias": {
+                    "type": "string",
+                    "enum": ["ne", "nw", "se", "sw"],
+                    "description": "Side bias setting for the binary tree algorithm.",
+                    "default": "ne"
+                  }
+                },
+                "additionalProperties": false
+              }
+            ]
+          },
+          "openings": {
+            "type": "array",
+            "description": "Openings to carve",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": ["string", "integer"],
+                "description": "Opening position. Either start, center, end or a specific coordinate.",
+                "oneOf": [
+                  {"type": "string", "enum": ["S", "C", "E"]},
+                  {"type": "integer"}
+                ]
+              }
+            },
+            "default": []
+          },
+          "braid": {
+            "type": ["integer", "string"],
+            "description": "Braiding setting, either a number of deadends to remove or with a percentage.",
+            "minimum": 0,
+            "pattern": "^\\d*(\\.\\d)?\\d*%$",
+            "default": 0
+          },
+          "solve": {
+            "type": "boolean",
+            "description": "Whether to show a solution for a maze or not.",
+            "default": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "output": {
+      "type": "object",
+      "description": "Output options for the generated mazes",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Output path",
+          "default": ""
+        },
+        "format": {
+          "type": "string",
+          "description": "Output format",
+          "enum": ["png", "jpg", "bmp", "gif", "svg"],
+          "default": "png"
+        },
+        "svgOptimize": {
+          "type": "boolean",
+          "description": "Whether to optimize the output if format is SVG",
+          "default": false
+        },
+        "svgPrecision": {
+          "type": "integer",
+          "description": "If output is SVG, the precision to use on numbers",
+          "default": 2,
+          "minimum": 0,
+          "maximum": 10
+        }
+      },
+      "additionalProperties": false
+    },
+    "style": {
+      "type": "object",
+      "description": "Styling options for the generated mazes",
+      "properties": {
+        "cellSize": {
+          "type": "number",
+          "description": "Cell size in pixels",
+          "minimum": 2.0,
+          "default": 30.0
+        },
+        "backgroundColor": {
+          "type": "string",
+          "description": "Background color as a hex string",
+          "default": "#00FFFFFF",
+          "pattern": "^#(?:[0-9A-Fa-f]{2}){3,4}$"
+        },
+        "color": {
+          "allOf": [
+            {"$ref": "#/definitions/colorString"},
+            {
+              "description": "Stroke color used for drawing the maze",
+              "default": "#000000"
+            }
+          ]
+        },
+        "strokeWidth": {
+          "type": "number",
+          "description": "Stroke width used for drawing the maze",
+          "default": 3,
+          "exclusiveMinimum": 0
+        },
+        "solutionColor": {
+          "allOf": [
+            {"$ref": "#/definitions/colorString"},
+            {
+              "description": "Stroke color used for drawing the solution",
+              "default": "#0000FF"
+            }
+          ]
+        },
+        "solutionStrokeWidth": {
+          "type": "number",
+          "description": "Stroke width used for drawing the solution",
+          "default": 3,
+          "exclusiveMinimum": 0
+        },
+        "antialiasing": {
+          "type": "boolean",
+          "title": "Whether to use antialiasing or not when drawing the maze",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
