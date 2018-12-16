@@ -26,9 +26,7 @@
 package com.maltaisn.maze
 
 import com.maltaisn.maze.generator.Generator
-import com.maltaisn.maze.maze.Braiding
 import com.maltaisn.maze.maze.Maze
-import com.maltaisn.maze.maze.Opening
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.RasterCanvas
 import com.maltaisn.maze.render.SvgCanvas
@@ -52,8 +50,8 @@ class Configuration(val mazeSets: List<MazeSet>,
                   val count: Int,
                   val mazeCreator: () -> Maze,
                   val generator: Generator,
-                  val braiding: Braiding?,
-                  val openings: List<Opening>,
+                  val braiding: Maze.Braiding?,
+                  val openings: List<Maze.Opening>,
                   val solve: Boolean)
 
     /**

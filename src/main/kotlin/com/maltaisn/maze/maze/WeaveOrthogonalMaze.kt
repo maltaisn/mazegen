@@ -31,87 +31,27 @@ import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
 import java.awt.Color
-import java.util.*
 import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.sign
-import kotlin.random.Random
 
 
 /**
- * Class for a square-tiled maze represented by 2D grid of [WeaveOrthogonalCell].
- * Like a [OrthogonalMaze] but allows passages over other passages.
- * Create an empty maze with [width] columns and [height] rows.
+ * Class for a square-tiled orthogonal maze with [width] columns and [height] rows.
+ * Like an [OrthogonalMaze] but allows passages over or under other passages.
  *
  * @property maxWeave the maximum number of rows or columns a passage can go over or under.
  */
-class WeaveOrthogonalMaze(val width: Int, val height: Int,
-                          val maxWeave: Int) : Maze(MazeType.WEAVE_ORTHOGONAL) {
-
-    private val grid: Array<Array<WeaveOrthogonalCell>>
+class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
+        BaseOrthogonalMaze<WeaveOrthogonalCell>(width, height, MazeType.WEAVE_ORTHOGONAL) {
 
     init {
-        if (width < 1 || height < 1) {
-            throw ParameterException("Dimensions must be at least 1.")
-        } else if (maxWeave < 0) {
+        if (maxWeave < 0) {
             throw ParameterException("Max weave setting must be positive.")
         }
-
-        grid = Array(width) { x ->
-            Array(height) { y ->
-                WeaveOrthogonalCell(this, Position2D(x, y))
-            }
-        }
     }
 
-
-    override fun cellAt(pos: Position) =
-            cellAt((pos as Position2D).x, pos.y)
-
-    fun cellAt(x: Int, y: Int): WeaveOrthogonalCell? {
-        if (x < 0 || x >= width || y < 0 || y >= height) return null
-        return grid[x][y]
-    }
-
-    override fun getRandomCell(): WeaveOrthogonalCell {
-        return grid[Random.nextInt(width)][Random.nextInt(height)]
-    }
-
-    override fun getCellCount(): Int = width * height
-
-    override fun getAllCells(): MutableList<WeaveOrthogonalCell> {
-        val set = ArrayList<WeaveOrthogonalCell>(width * height)
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                set.add(grid[x][y])
-            }
-        }
-        return set
-    }
-
-    override fun forEachCell(action: (Cell) -> Unit) {
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                action(grid[x][y])
-            }
-        }
-    }
-
-    override fun getOpeningCell(opening: Opening): Cell? {
-        val x = when (val pos = opening.position[0]) {
-            Opening.POS_START -> 0
-            Opening.POS_CENTER -> width / 2
-            Opening.POS_END -> width - 1
-            else -> pos
-        }
-        val y = when (val pos = opening.position[1]) {
-            Opening.POS_START -> 0
-            Opening.POS_CENTER -> height / 2
-            Opening.POS_END -> height - 1
-            else -> pos
-        }
-        return cellAt(x, y)
-    }
+    override fun createCell(pos: Position2D) = WeaveOrthogonalCell(this, pos)
 
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
         val csive = style.cellSize
@@ -209,7 +149,7 @@ class WeaveOrthogonalMaze(val width: Int, val height: Int,
     }
 
     override fun toString(): String {
-        return "[width: $width, height: $height, maxWeave: $maxWeave]"
+        return "[${super.toString()}, maxWeave: $maxWeave]"
     }
 
     companion object {

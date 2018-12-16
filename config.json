@@ -1,8 +1,8 @@
 {
   "mazes": [
     {
-      "name": "rb",
-      "type": "weaveOrthogonal",
+      "name": "maze",
+      "type": "delta",
       "count": 1,
       "size": {
         "width": 20,

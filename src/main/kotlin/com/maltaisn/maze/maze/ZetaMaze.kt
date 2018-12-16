@@ -27,84 +27,22 @@ package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
 import com.maltaisn.maze.MazeType
-import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.ZetaCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.math.sqrt
-import kotlin.random.Random
 
 
 /**
- * Class for a square-tiled maze represented by 2D grid of [ZetaCell].
- * Like a [OrthogonalMaze] but allows passage at 45 degrees.
- * Create an empty maze with [width] columns and [height] rows.
+ * Class for a square-tiled orthogonal maze with [width] columns and [height] rows.
+ * Like a [OrthogonalMaze] but cells allow passages at 45 degrees.
  */
-class ZetaMaze(val width: Int, val height: Int) : Maze(MazeType.ZETA) {
+class ZetaMaze(width: Int,  height: Int) :
+        BaseOrthogonalMaze<ZetaCell>(width, height, MazeType.ZETA) {
 
-    private val grid: Array<Array<ZetaCell>>
-
-    init {
-        if (width < 1 || height < 1) {
-            throw ParameterException("Dimensions must be at least 1.")
-        }
-        grid = Array(width) { x ->
-            Array(height) { y ->
-                ZetaCell(this, Position2D(x, y))
-            }
-        }
-    }
-
-
-    override fun cellAt(pos: Position) =
-            cellAt((pos as Position2D).x, pos.y)
-
-    fun cellAt(x: Int, y: Int): ZetaCell? {
-        if (x < 0 || x >= width || y < 0 || y >= height) return null
-        return grid[x][y]
-    }
-
-    override fun getRandomCell(): ZetaCell {
-        return grid[Random.nextInt(width)][Random.nextInt(height)]
-    }
-
-    override fun getCellCount(): Int = width * height
-
-    override fun getAllCells(): MutableList<ZetaCell> {
-        val set = ArrayList<ZetaCell>(width * height)
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                set.add(grid[x][y])
-            }
-        }
-        return set
-    }
-
-    override fun forEachCell(action: (Cell) -> Unit) {
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                action(grid[x][y])
-            }
-        }
-    }
-
-    override fun getOpeningCell(opening: Opening): Cell? {
-        val x = when (val pos = opening.position[0]) {
-            Opening.POS_START -> 0
-            Opening.POS_CENTER -> width / 2
-            Opening.POS_END -> width - 1
-            else -> pos
-        }
-        val y = when (val pos = opening.position[1]) {
-            Opening.POS_START -> 0
-            Opening.POS_CENTER -> height / 2
-            Opening.POS_END -> height - 1
-            else -> pos
-        }
-        return cellAt(x, y)
-    }
+    override fun createCell(pos: Position2D) = ZetaCell(this, pos)
 
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
         val sideSize = style.cellSize  // Size of an octogon wall
@@ -195,11 +133,6 @@ class ZetaMaze(val width: Int, val height: Int) : Maze(MazeType.ZETA) {
             }
             canvas.drawPolyline(points)
         }
-    }
-
-
-    override fun toString(): String {
-        return "[width: $width, height: $height]"
     }
 
 }

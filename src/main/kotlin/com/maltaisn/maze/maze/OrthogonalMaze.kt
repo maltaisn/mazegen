@@ -27,81 +27,19 @@ package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
 import com.maltaisn.maze.MazeType
-import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.OrthogonalCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
 import java.util.*
-import kotlin.random.Random
 
 
 /**
- * Class for a square-tiled maze represented by 2D grid of [OrthogonalCell].
- * Create an empty maze with [width] columns and [height] rows.
+ * Class for a normal square-tiled orthogonal maze with [width] columns and [height] rows.
  */
-class OrthogonalMaze(val width: Int, val height: Int) : Maze(MazeType.ORTHOGONAL) {
+class OrthogonalMaze(width: Int, height: Int) :
+        BaseOrthogonalMaze<OrthogonalCell>(width, height, MazeType.ORTHOGONAL) {
 
-    private val grid: Array<Array<OrthogonalCell>>
-
-    init {
-        if (width < 1 || height < 1) {
-            throw ParameterException("Dimensions must be at least 1.")
-        }
-        grid = Array(width) { x ->
-            Array(height) { y ->
-                OrthogonalCell(this, Position2D(x, y))
-            }
-        }
-    }
-
-
-    override fun cellAt(pos: Position) =
-            cellAt((pos as Position2D).x, pos.y)
-
-    fun cellAt(x: Int, y: Int): OrthogonalCell? {
-        if (x < 0 || x >= width || y < 0 || y >= height) return null
-        return grid[x][y]
-    }
-
-    override fun getRandomCell(): OrthogonalCell {
-        return grid[Random.nextInt(width)][Random.nextInt(height)]
-    }
-
-    override fun getCellCount(): Int = width * height
-
-    override fun getAllCells(): MutableList<OrthogonalCell> {
-        val set = ArrayList<OrthogonalCell>(width * height)
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                set.add(grid[x][y])
-            }
-        }
-        return set
-    }
-
-    override fun forEachCell(action: (Cell) -> Unit) {
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                action(grid[x][y])
-            }
-        }
-    }
-
-    override fun getOpeningCell(opening: Opening): Cell? {
-        val x = when (val pos = opening.position[0]) {
-            Opening.POS_START -> 0
-            Opening.POS_CENTER -> width / 2
-            Opening.POS_END -> width - 1
-            else -> pos
-        }
-        val y = when (val pos = opening.position[1]) {
-            Opening.POS_START -> 0
-            Opening.POS_CENTER -> height / 2
-            Opening.POS_END -> height - 1
-            else -> pos
-        }
-        return cellAt(x, y)
-    }
+    override fun createCell(pos: Position2D) = OrthogonalCell(this, pos)
 
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
         val csive = style.cellSize
@@ -151,11 +89,6 @@ class OrthogonalMaze(val width: Int, val height: Int) : Maze(MazeType.ORTHOGONAL
             }
             canvas.drawPolyline(points)
         }
-    }
-
-
-    override fun toString(): String {
-        return "[width: $width, height: $height]"
     }
 
 }

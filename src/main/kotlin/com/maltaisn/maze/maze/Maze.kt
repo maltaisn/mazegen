@@ -29,6 +29,8 @@ import com.maltaisn.maze.Configuration
 import com.maltaisn.maze.MazeType
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.render.Canvas
+import kotlin.math.min
+import kotlin.math.round
 import kotlin.random.Random
 
 
@@ -262,5 +264,63 @@ abstract class Maze(val type: MazeType) {
      * Draw the maze to a [canvas] with [style] settings.
      */
     abstract fun drawTo(canvas: Canvas, style: Configuration.Style)
+
+
+    /**
+     * Opening position in a maze.
+     */
+    class Opening(val position: IntArray) {
+
+        companion object {
+            const val POS_START = -3
+            const val POS_CENTER = -2
+            const val POS_END = -1
+        }
+
+    }
+
+    /**
+     * Braiding setting for a maze.
+     */
+    class Braiding {
+
+        private val value: Number
+        private val byCount: Boolean
+
+        /**
+         * Braiding setting to remove [count] deadends.
+         */
+        constructor(count: Int) {
+            if (count < 0) {
+                throw ParameterException("Braiding parameter must be a positive number.")
+            }
+
+            value = count
+            byCount = true
+        }
+
+        /**
+         * Braiding setting to remove a percentage, [percent], of the total number of deadends.
+         */
+        constructor(percent: Double) {
+            if (percent < 0 || percent > 1) {
+                throw ParameterException("Braiding percentage must be between 0 and 1 inclusive.")
+            }
+
+            value = percent
+            byCount = false
+        }
+
+        /**
+         * Get the number of deadends to remove with this braiding
+         * setting out of the [total] number of deadends.
+         */
+        fun getNumberOfDeadendsToRemove(total: Int) = if (byCount) {
+            min(value.toInt(), total)
+        } else {
+            round(total * value.toDouble()).toInt()
+        }
+
+    }
 
 }

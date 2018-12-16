@@ -142,16 +142,16 @@ class ConfigurationParser {
         }
 
         // Braiding
-        var braiding: Braiding? = DEFAULT_MAZE_ALGORITHM_BRAID
+        var braiding: Maze.Braiding? = DEFAULT_MAZE_ALGORITHM_BRAID
         if (from.has(KEY_MAZE_BRAID)) {
             val braid = from.get(KEY_MAZE_BRAID)
             if (braid is Int) {
-                braiding = Braiding(braid)
+                braiding = Maze.Braiding(braid)
             } else if (braid is String) {
                 braiding = if (braid.endsWith('%')) {
-                    Braiding(parsePercentValue(braid))
+                    Maze.Braiding(parsePercentValue(braid))
                 } else {
-                    Braiding(braid.toInt())
+                    Maze.Braiding(braid.toInt())
                 }
             }
         }
@@ -184,10 +184,10 @@ class ConfigurationParser {
         val arrangement = if (from.has(KEY_MAZE_ARRANGEMENT)) {
             val arrStr = from.getString(KEY_MAZE_ARRANGEMENT)
             when (arrStr.toLowerCase()) {
-                "rectangle" -> Arrangement.RECTANGLE
-                "triangle" -> Arrangement.TRIANGLE
-                "hexagon" -> Arrangement.HEXAGON
-                "rhombus" -> Arrangement.RHOMBUS
+                "rectangle" -> BaseShapedMaze.Shape.RECTANGLE
+                "triangle" -> BaseShapedMaze.Shape.TRIANGLE
+                "hexagon" -> BaseShapedMaze.Shape.HEXAGON
+                "rhombus" -> BaseShapedMaze.Shape.RHOMBUS
                 else -> throw ParameterException("Invalid maze arrangement '$arrStr'.")
             }
         } else {
@@ -220,7 +220,8 @@ class ConfigurationParser {
                     width = size
                     height = size
                 } else {
-                    if (arrangement == Arrangement.HEXAGON || arrangement == Arrangement.TRIANGLE) {
+                    if (arrangement == BaseShapedMaze.Shape.HEXAGON
+                            || arrangement == BaseShapedMaze.Shape.TRIANGLE) {
                         throw ParameterException("For hexagon and triangle shaped " +
                                 "delta and sigma mazes, size must be an integer.")
                     }
@@ -272,7 +273,7 @@ class ConfigurationParser {
         }
 
         // Openings
-        val openings = ArrayList<Opening>()
+        val openings = ArrayList<Maze.Opening>()
         if (from.has(KEY_MAZE_OPENINGS)) {
             val openingsJson = from.getJSONArray(KEY_MAZE_OPENINGS)
             for (openingJson in openingsJson) {
@@ -282,16 +283,16 @@ class ConfigurationParser {
                     val pos = openingArray[i]
                     position[i] = when (pos) {
                         is String -> when (pos[0].toUpperCase()) {
-                            KEY_MAZE_OPENING_START -> Opening.POS_START
-                            KEY_MAZE_OPENING_CENTER -> Opening.POS_CENTER
-                            KEY_MAZE_OPENING_END -> Opening.POS_END
+                            KEY_MAZE_OPENING_START -> Maze.Opening.POS_START
+                            KEY_MAZE_OPENING_CENTER -> Maze.Opening.POS_CENTER
+                            KEY_MAZE_OPENING_END -> Maze.Opening.POS_END
                             else -> throw ParameterException("Invalid opening position character '$pos'.")
                         }
                         is Int -> pos
                         else -> throw ParameterException("Invalid opening position argument '$pos'.")
                     }
                 }
-                openings.add(Opening(position))
+                openings.add(Maze.Opening(position))
             }
         }
 
@@ -430,9 +431,9 @@ class ConfigurationParser {
         private const val DEFAULT_MAZE_NAME = "maze"
         private const val DEFAULT_MAZE_COUNT = 1
         private const val DEFAULT_MAZE_ALGORITHM = "rb"
-        private val DEFAULT_MAZE_ALGORITHM_BRAID: Braiding? = null
+        private val DEFAULT_MAZE_ALGORITHM_BRAID: Maze.Braiding? = null
         private val DEFAULT_MAZE_TYPE = MazeType.ORTHOGONAL
-        private val DEFAULT_MAZE_ARRANGEMENT = Arrangement.RECTANGLE
+        private val DEFAULT_MAZE_ARRANGEMENT = BaseShapedMaze.Shape.RECTANGLE
         private const val DEFAULT_MAZE_SIZE_CENTER_RADIUS = 1f
         private const val DEFAULT_MAZE_SIZE_SUBDIVISION = 1.5f
         private const val DEFAULT_MAZE_SIZE_MAX_WEAVE = 1

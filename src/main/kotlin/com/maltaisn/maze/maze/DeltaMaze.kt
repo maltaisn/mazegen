@@ -27,7 +27,6 @@ package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
 import com.maltaisn.maze.MazeType
-import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.DeltaCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
@@ -35,48 +34,32 @@ import java.util.*
 import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.sqrt
-import kotlin.random.Random
 
 
 /**
- * Class for a triangle-tiled maze represented by 2D grid of [DeltaCell].
- * @param width number of rows
- * @param height number of columns
- * @param arrangement cell arrangement
+ * Class for a triangle-tiled maze of a [shape] with [width] rows and [height] columns.
  */
-class DeltaMaze(val width: Int, height: Int,
-                private val arrangement: Arrangement) : Maze(MazeType.DELTA) {
+class DeltaMaze(width: Int, height: Int, shape: Shape) :
+        BaseShapedMaze<DeltaCell>(width, height, shape, MazeType.DELTA) {
 
-    val height: Int
-
-    private val grid: Array<Array<DeltaCell>>
+    override val grid: Array<Array<DeltaCell>>
 
     /**
      * The offset of the actual Y coordinate of a cell in the grid array, for each column
      * The cell at ```grid[x][y]```'s actual coordinates are `(x ; y + rowOffsets[x])`.
      */
-    private val rowOffsets: IntArray
+    override val rowOffsets: IntArray
 
     init {
-        if (width < 1 || height < 1) {
-            throw ParameterException("Dimensions must be at least 1.")
-        }
-        if (arrangement == Arrangement.TRIANGLE
-                || arrangement == Arrangement.HEXAGON) {
-            // Hexagon and triangle mazes have only one size parameter.
-            this.height = width
-        } else {
-            this.height = height
-        }
         var gridWith = width * 2 - 1
         val rowsForColumn: (column: Int) -> Int
         val rowOffset: (column: Int) -> Int
-        when (arrangement) {
-            Arrangement.RECTANGLE -> {
+        when (shape) {
+            Shape.RECTANGLE -> {
                 rowsForColumn = { height }
                 rowOffset = { 0 }
             }
-            Arrangement.HEXAGON -> {
+            Shape.HEXAGON -> {
                 gridWith = 4 * width - 1
                 rowsForColumn = {
                     2 * when {
@@ -93,11 +76,11 @@ class DeltaMaze(val width: Int, height: Int,
                     } + width % 2
                 }
             }
-            Arrangement.TRIANGLE -> {
+            Shape.TRIANGLE -> {
                 rowOffset = { 0 }
                 rowsForColumn = { width - (it - gridWith / 2).absoluteValue }
             }
-            Arrangement.RHOMBUS -> {
+            Shape.RHOMBUS -> {
                 gridWith = 2 * width + height - 1
                 rowsForColumn = {
                     var rows = height
@@ -121,65 +104,6 @@ class DeltaMaze(val width: Int, height: Int,
         }
     }
 
-
-    override fun cellAt(pos: Position): DeltaCell? =
-            cellAt((pos as Position2D).x, pos.y)
-
-    fun cellAt(x: Int, y: Int): DeltaCell? {
-        if (x < 0 || x >= grid.size) return null
-        val actualY = y - rowOffsets[x]
-        if (actualY < 0 || actualY >= grid[x].size) return null
-        return grid[x][actualY]
-    }
-
-    override fun getRandomCell(): DeltaCell {
-        val x = Random.nextInt(grid.size)
-        return grid[x][Random.nextInt(grid[x].size)]
-    }
-
-    override fun getCellCount(): Int {
-        var count = 0
-        for (x in 0 until grid.size) {
-            count += grid[x].size
-        }
-        return count
-    }
-
-    override fun getAllCells(): MutableList<DeltaCell> {
-        val list = ArrayList<DeltaCell>(getCellCount())
-        for (x in 0 until grid.size) {
-            for (y in 0 until grid[x].size) {
-                list.add(grid[x][y])
-            }
-        }
-        return list
-    }
-
-    override fun forEachCell(action: (Cell) -> Unit) {
-        for (x in 0 until grid.size) {
-            for (y in 0 until grid[x].size) {
-                action(grid[x][y])
-            }
-        }
-    }
-
-    override fun getOpeningCell(opening: Opening): Cell? {
-        val x = when (val pos = opening.position[0]) {
-            Opening.POS_START -> 0
-            Opening.POS_CENTER -> grid.size / 2
-            Opening.POS_END -> grid.size - 1
-            else -> pos
-        }
-        val y = when (val pos = opening.position[1]) {
-            Opening.POS_START -> 0
-            Opening.POS_CENTER -> grid[x].size / 2
-            Opening.POS_END -> grid[x].size - 1
-            else -> pos
-        } + rowOffsets[x]
-
-        return cellAt(x, y)
-    }
-
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
         var maxHeight = 0
         for (x in 0 until grid.size) {
@@ -189,7 +113,7 @@ class DeltaMaze(val width: Int, height: Int,
 
         val csive = style.cellSize
         val cheight = sqrt(3f) / 2 * csive
-        canvas.init((grid.size / 2f + 0f) * csive + style.stroke.lineWidth,
+        canvas.init((grid.size / 2f + 0.5f) * csive + style.stroke.lineWidth,
                 maxHeight * cheight + style.stroke.lineWidth)
 
         // Draw the background
@@ -253,13 +177,6 @@ class DeltaMaze(val width: Int, height: Int,
             }
             canvas.drawPolyline(points)
         }
-    }
-
-
-    override fun toString(): String {
-        return "[arrangement: $arrangement, ${if (arrangement == Arrangement.TRIANGLE
-                || arrangement == Arrangement.HEXAGON)
-            "size : $width" else "width: $width, height: $height"}]"
     }
 
 }

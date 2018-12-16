@@ -56,7 +56,7 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
         }
 
         // Create the grid
-        val rows = ArrayList<Array<ThetaCell>>(radius)
+        val rows = ArrayList<Array<ThetaCell>>()
         var lastWidth = 1.0
         for (r in 0 until radius) {
             var width = if (r == 0) 0.0 else (r + centerRadius - 1) * PI2
@@ -97,7 +97,7 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
     }
 
     override fun getAllCells(): MutableList<ThetaCell> {
-        val list = ArrayList<ThetaCell>(getCellCount())
+        val list = ArrayList<ThetaCell>()
         for (r in 0 until grid.size) {
             for (x in 0 until grid[r].size) {
                 list.add(grid[r][x])
@@ -161,7 +161,7 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
         } else {
             val nextRow = grid[pos.y + 1]
             val factor = nextRow.size / grid[pos.y].size
-            cells = ArrayList(factor)
+            cells = ArrayList()
             val start = pos.x * factor
             for (x in start until start + factor) {
                 cells.add(nextRow[x])

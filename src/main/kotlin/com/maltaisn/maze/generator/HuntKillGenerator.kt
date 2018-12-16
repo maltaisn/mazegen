@@ -59,7 +59,7 @@ class HuntKillGenerator : Generator("Hunt-and-kill") {
 
         maze.fillAll()
 
-        val visitedCells = ArrayList<Cell>(maze.getCellCount())
+        val visitedCells = ArrayList<Cell>()
 
         // Get and mark the initial cell as visited
         var currentCell = maze.getRandomCell()
