@@ -26,7 +26,6 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
-import com.maltaisn.maze.MazeType
 import com.maltaisn.maze.maze.DeltaCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
@@ -40,7 +39,7 @@ import kotlin.math.sqrt
  * Class for a triangle-tiled maze of a [shape] with [width] rows and [height] columns.
  */
 class DeltaMaze(width: Int, height: Int, shape: Shape) :
-        BaseShapedMaze<DeltaCell>(width, height, shape, MazeType.DELTA) {
+        BaseShapedMaze<DeltaCell>(width, height, shape) {
 
     override val grid: Array<Array<DeltaCell>>
 

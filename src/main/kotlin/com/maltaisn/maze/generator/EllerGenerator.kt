@@ -25,12 +25,12 @@
 
 package com.maltaisn.maze.generator
 
-import com.maltaisn.maze.MazeType.ORTHOGONAL
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.Cell
 import com.maltaisn.maze.maze.Maze
 import com.maltaisn.maze.maze.OrthogonalCell.Side
 import com.maltaisn.maze.maze.OrthogonalMaze
+import com.maltaisn.maze.maze.UnicursalOrthogonalMaze
 import kotlin.random.Random
 
 
@@ -54,7 +54,8 @@ import kotlin.random.Random
  *
  * Runtime complexity is O(n) and memory space is O(1).
  */
-class EllerGenerator : Generator("Eller's", ORTHOGONAL) {
+class EllerGenerator : Generator(
+        OrthogonalMaze::class, UnicursalOrthogonalMaze::class) {
 
     /**
      * Percentage of the time two adjacent cells are connected, between 0 and 1.

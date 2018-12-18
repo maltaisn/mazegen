@@ -40,8 +40,8 @@
           "type": {
             "type": "string",
             "enum": [
-              "delta", "orthogonal", "sigma", "theta",
-              "upsilon", "weaveOrthogonal", "zeta"
+              "orthogonal", "unicursalOrthogonal", "weaveOrthogonal",
+              "delta", "sigma", "theta", "upsilon", "zeta"
             ],
             "description": "Maze type",
             "default": "orthogonal"

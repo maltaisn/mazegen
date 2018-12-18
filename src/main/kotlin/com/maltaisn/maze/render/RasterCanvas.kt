@@ -25,7 +25,6 @@
 
 package com.maltaisn.maze.render
 
-import com.maltaisn.maze.OutputFormat
 import javafx.scene.shape.Polyline
 import java.awt.BasicStroke
 import java.awt.Color

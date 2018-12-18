@@ -25,10 +25,10 @@
 
 package com.maltaisn.maze.generator
 
-import com.maltaisn.maze.MazeType.ORTHOGONAL
 import com.maltaisn.maze.maze.Maze
 import com.maltaisn.maze.maze.OrthogonalCell.Side
 import com.maltaisn.maze.maze.OrthogonalMaze
+import com.maltaisn.maze.maze.UnicursalOrthogonalMaze
 import kotlin.random.Random
 
 
@@ -42,7 +42,8 @@ import kotlin.random.Random
  *
  * Runtime complexity is O(n) and memory space is O(1).
  */
-class BinaryTreeGenerator : Generator("Binary tree", ORTHOGONAL) {
+class BinaryTreeGenerator : Generator(
+        OrthogonalMaze::class, UnicursalOrthogonalMaze::class) {
 
     /**
      * Bias setting that decides which two sides to connect for a cell.

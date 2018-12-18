@@ -45,7 +45,7 @@ import com.maltaisn.maze.maze.Maze
  *
  * Runtime complexity is O(n) and memory space is O(n).
  */
-class PrimGenerator : Generator("Prim's") {
+class PrimGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         super.generate(maze)

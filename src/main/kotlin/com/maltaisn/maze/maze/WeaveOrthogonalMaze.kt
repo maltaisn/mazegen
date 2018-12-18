@@ -26,7 +26,6 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
-import com.maltaisn.maze.MazeType
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
@@ -43,7 +42,9 @@ import kotlin.math.sign
  * @property maxWeave the maximum number of rows or columns a passage can go over or under.
  */
 class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
-        BaseOrthogonalMaze<WeaveOrthogonalCell>(width, height, MazeType.WEAVE_ORTHOGONAL) {
+        BaseGridMaze<WeaveOrthogonalCell>(width, height) {
+
+    override val grid: Array<Array<WeaveOrthogonalCell>>
 
     init {
         if (maxWeave < 0) {
@@ -51,7 +52,13 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
         }
     }
 
-    override fun createCell(pos: Position2D) = WeaveOrthogonalCell(this, pos)
+    init {
+        grid = Array(width) { x ->
+            Array(height) { y ->
+                WeaveOrthogonalCell(this, Position2D(x, y))
+            }
+        }
+    }
 
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
         val csive = style.cellSize

@@ -26,9 +26,9 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
-import com.maltaisn.maze.MazeType
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.render.Canvas
+import java.util.*
 import kotlin.math.min
 import kotlin.math.round
 import kotlin.random.Random
@@ -37,13 +37,7 @@ import kotlin.random.Random
 /**
  * Base class for a maze.
  */
-abstract class Maze(val type: MazeType) {
-
-    /**
-     * Whether this maze has been generated yet or not.
-     * A maze can only be generated once.
-     */
-    var generated = false
+abstract class Maze {
 
     /**
      * The list of cell with openings in the maze.
@@ -153,9 +147,7 @@ abstract class Maze(val type: MazeType) {
      * Runtime complexity is O(n) and memory space is O(n).
      */
     fun solve() {
-        if (!generated) {
-            throw IllegalStateException("Maze must be generated before being solved.")
-        } else if (openings.size < 2) {
+        if (openings.size < 2) {
             throw ParameterException("Not enough openings to solve this maze.")
         }
 
@@ -164,27 +156,17 @@ abstract class Maze(val type: MazeType) {
         val start = openings[0]
         val end = openings[1]
 
-        val nodes = ArrayList<Node>()
+        val nodes = PriorityQueue<Node>()
 
         // Add the start cell as the initial node
         nodes.add(Node(null, start, 0,
                 start.position.distanceTo(end.position)))
+        start.visited = true
 
         while (nodes.isNotEmpty()) {
-            // Find the node with the lowest cost and remove it from list.
-            var lowestCost = Int.MAX_VALUE
-            var lowestIndex = -1
-            for (i in 0 until nodes.size) {
-                val node = nodes[i]
-                val cost = node.costFromStart + node.costToEnd
-                if (cost < lowestCost) {
-                    lowestCost = cost
-                    lowestIndex = i
-                }
-            }
-            val node = nodes.removeAt(lowestIndex)
+            // Remove the node with the lowest cost from the queue.
+            val node = nodes.remove()
             val cell = node.cell
-            cell.visited = true
 
             if (cell === end) {
                 // Found path to the end cell
@@ -213,7 +195,10 @@ abstract class Maze(val type: MazeType) {
     }
 
     private data class Node(val parent: Node?, val cell: Cell,
-                            val costFromStart: Int, val costToEnd: Int) {
+                            val costFromStart: Int, val costToEnd: Int) : Comparable<Node> {
+
+        override operator fun compareTo(other: Node): Int = (costFromStart + costToEnd)
+                .compareTo(other.costFromStart + other.costToEnd)
 
         override fun equals(other: Any?): Boolean {
             if (other === this) return true
@@ -277,6 +262,21 @@ abstract class Maze(val type: MazeType) {
             const val POS_END = -1
         }
 
+        override fun toString(): String {
+            var str = "pos: ("
+            for (pos in position) {
+                str += when (pos) {
+                    POS_START -> "S"
+                    POS_CENTER -> "C"
+                    POS_END -> "E"
+                    else -> pos.toString()
+                } + ", "
+            }
+            str = str.substring(0, str.length - 2)
+            str += ")"
+            return str
+        }
+
     }
 
     /**
@@ -319,6 +319,12 @@ abstract class Maze(val type: MazeType) {
             min(value.toInt(), total)
         } else {
             round(total * value.toDouble()).toInt()
+        }
+
+        override fun toString() = "Remove " + if (byCount) {
+            "$value deadends"
+        } else {
+            "${value.toDouble() * 100}% of deadends"
         }
 
     }

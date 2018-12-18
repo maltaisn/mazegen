@@ -25,7 +25,6 @@
 
 package com.maltaisn.maze.maze
 
-import com.maltaisn.maze.MazeType
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.BaseShapedMaze.Shape
 import java.util.*
@@ -39,8 +38,7 @@ import kotlin.random.Random
  * @property shape the shape of the maze.
  */
 abstract class BaseShapedMaze<T : Cell>(val width: Int, height: Int,
-                                        private val shape: Shape,
-                                        type: MazeType) : Maze(type) {
+                                        private val shape: Shape) : Maze() {
 
     val height: Int
 

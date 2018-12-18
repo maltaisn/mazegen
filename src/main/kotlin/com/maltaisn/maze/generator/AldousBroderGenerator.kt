@@ -46,7 +46,7 @@ import com.maltaisn.maze.maze.Maze
  *
  * Runtime complexity is O(n) at best and O(∞) at worst. Memory space is O(1).
  */
-class AldousBroderGenerator : Generator("Aldous-Broder") {
+class AldousBroderGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         super.generate(maze)

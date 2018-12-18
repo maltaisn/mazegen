@@ -26,7 +26,6 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
-import com.maltaisn.maze.MazeType
 import com.maltaisn.maze.maze.SigmaCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
@@ -39,7 +38,7 @@ import kotlin.math.sqrt
  * Class for a hexagon-tiled maze of a [shape] with [width] rows and [height] columns.
  */
 class SigmaMaze(width: Int, height: Int, shape: Shape) :
-        BaseShapedMaze<SigmaCell>(width, height, shape, MazeType.SIGMA) {
+        BaseShapedMaze<SigmaCell>(width, height, shape) {
 
     /**
      * Sigma maze grid. There number of columns is the same as the maze width, except for

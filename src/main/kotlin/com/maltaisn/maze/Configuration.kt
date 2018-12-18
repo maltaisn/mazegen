@@ -28,11 +28,13 @@ package com.maltaisn.maze
 import com.maltaisn.maze.generator.Generator
 import com.maltaisn.maze.maze.Maze
 import com.maltaisn.maze.render.Canvas
+import com.maltaisn.maze.render.OutputFormat
 import com.maltaisn.maze.render.RasterCanvas
 import com.maltaisn.maze.render.SvgCanvas
 import java.awt.BasicStroke
 import java.awt.Color
 import java.io.File
+import kotlin.reflect.KClass
 
 
 /**
@@ -48,7 +50,8 @@ class Configuration(val mazeSets: List<MazeSet>,
      */
     class MazeSet(var name: String,
                   val count: Int,
-                  val mazeCreator: () -> Maze,
+                  val type: KClass<out Maze>,
+                  val parameters: Array<*>,
                   val generator: Generator,
                   val braiding: Maze.Braiding?,
                   val openings: List<Maze.Opening>,

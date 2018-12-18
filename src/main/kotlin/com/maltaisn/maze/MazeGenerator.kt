@@ -26,7 +26,9 @@
 package com.maltaisn.maze
 
 import com.maltaisn.maze.maze.Maze
+import com.maltaisn.maze.maze.UnicursalOrthogonalMaze
 import java.io.File
+import kotlin.reflect.full.primaryConstructor
 import kotlin.system.measureTimeMillis
 
 
@@ -54,14 +56,14 @@ class MazeGenerator(private val config: Configuration) {
                 if (mazeSet.count > 1) {
                     println(indent1 + "Generating maze $j / ${mazeSet.count}")
                     indent2 += "  "
-                    filename += '-' + j
+                    filename += "-$j"
                 }
 
                 // Generate
                 print(indent2 + "Generating...\r")
-                lateinit var maze: Maze
+                var maze = mazeSet.type.primaryConstructor?.call(*mazeSet.parameters)!!
                 var duration = measureTimeMillis {
-                    maze = createMaze(mazeSet)
+                    maze = generateMaze(maze, mazeSet)
                 }
                 println(indent2 + "Generated in $duration ms")
 
@@ -87,30 +89,32 @@ class MazeGenerator(private val config: Configuration) {
     }
 
     /**
-     * Create, generate, add openings and braid a maze with configuration of [mazeSet].
+     * Generate, add openings and braid a [maze] with configuration of [mazeSet].
      */
-    private fun createMaze(mazeSet: Configuration.MazeSet): Maze {
-        // Create
-        val maze = mazeSet.mazeCreator()
+    private fun generateMaze(maze: Maze, mazeSet: Configuration.MazeSet): Maze {
+        var vmaze = maze
 
         // Generate
-        mazeSet.generator.generate(maze)
+        mazeSet.generator.generate(vmaze)
+        if (vmaze is UnicursalOrthogonalMaze) {
+            vmaze = UnicursalOrthogonalMaze(vmaze)
+        }
 
         // Add openings
         for (opening in mazeSet.openings) {
-            maze.createOpening(opening)
+            vmaze.createOpening(opening)
         }
 
         // Braid
         if (mazeSet.braiding != null) {
-            maze.braid(mazeSet.braiding)
+            vmaze.braid(mazeSet.braiding)
         }
 
-        return maze
+        return vmaze
     }
 
     /**
-     * Write a [maze] to a file named [filename] (without the extension)
+     * Write a [maze] to a file named [filename] (without the extension).
      */
     private fun exportMaze(maze: Maze, filename: String) {
         val output = config.output

@@ -26,7 +26,6 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
-import com.maltaisn.maze.MazeType
 import com.maltaisn.maze.maze.UpsilonCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
@@ -38,9 +37,17 @@ import kotlin.math.sqrt
  * Class for a square and octogon-tiled orthogonal maze with [width] columns and [height] rows.
  */
 class UpsilonMaze(width: Int, height: Int) :
-        BaseOrthogonalMaze<UpsilonCell>(width, height, MazeType.UPSILON) {
+        BaseGridMaze<UpsilonCell>(width, height) {
 
-    override fun createCell(pos: Position2D) = UpsilonCell(this, pos)
+    override val grid: Array<Array<UpsilonCell>>
+
+    init {
+        grid = Array(width) { x ->
+            Array(height) { y ->
+                UpsilonCell(this, Position2D(x, y))
+            }
+        }
+    }
 
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
         val csive = style.cellSize

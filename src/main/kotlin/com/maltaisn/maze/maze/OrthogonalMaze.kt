@@ -26,8 +26,6 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
-import com.maltaisn.maze.MazeType
-import com.maltaisn.maze.maze.OrthogonalCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
 import java.util.*
@@ -36,15 +34,25 @@ import java.util.*
 /**
  * Class for a normal square-tiled orthogonal maze with [width] columns and [height] rows.
  */
-class OrthogonalMaze(width: Int, height: Int) :
-        BaseOrthogonalMaze<OrthogonalCell>(width, height, MazeType.ORTHOGONAL) {
+open class OrthogonalMaze(width: Int, height: Int) :
+        BaseGridMaze<OrthogonalCell>(width, height) {
 
-    override fun createCell(pos: Position2D) = OrthogonalCell(this, pos)
+    final override val grid: Array<Array<OrthogonalCell>>
+
+    init {
+        grid = Array(width) { x ->
+            Array(height) { y ->
+                OrthogonalCell(this, Position2D(x, y))
+            }
+        }
+    }
 
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
+        val w = grid.size
+        val h = grid[0].size
         val csive = style.cellSize
-        canvas.init(width * csive + style.stroke.lineWidth,
-                height * csive + style.stroke.lineWidth)
+        canvas.init(w * csive + style.stroke.lineWidth,
+                h * csive + style.stroke.lineWidth)
 
         // Draw the background
         if (style.backgroundColor != null) {
@@ -59,17 +67,17 @@ class OrthogonalMaze(width: Int, height: Int) :
         canvas.translate = Point(offset, offset)
         canvas.color = style.color
         canvas.stroke = style.stroke
-        for (x in 0..width) {
+        for (x in 0..w) {
             val px = x * csive
-            for (y in 0..height) {
+            for (y in 0..h) {
                 val py = y * csive
                 val cell = cellAt(x, y)
-                if (cell != null && cell.hasSide(Side.NORTH) || cell == null
-                        && cellAt(x, y - 1)?.hasSide(Side.SOUTH) == true) {
+                if (cell != null && cell.hasSide(OrthogonalCell.Side.NORTH) || cell == null
+                        && cellAt(x, y - 1)?.hasSide(OrthogonalCell.Side.SOUTH) == true) {
                     canvas.drawLine(px, py, px + csive, py)
                 }
-                if (cell != null && cell.hasSide(Side.WEST) || cell == null
-                        && cellAt(x - 1, y)?.hasSide(Side.EAST) == true) {
+                if (cell != null && cell.hasSide(OrthogonalCell.Side.WEST) || cell == null
+                        && cellAt(x - 1, y)?.hasSide(OrthogonalCell.Side.EAST) == true) {
                     canvas.drawLine(px, py, px, py + csive)
                 }
             }

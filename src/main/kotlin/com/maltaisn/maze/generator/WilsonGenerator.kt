@@ -25,8 +25,7 @@
 
 package com.maltaisn.maze.generator
 
-import com.maltaisn.maze.MazeType.*
-import com.maltaisn.maze.maze.Maze
+import com.maltaisn.maze.maze.*
 import kotlin.random.Random
 
 
@@ -55,7 +54,8 @@ import kotlin.random.Random
  *
  * Runtime complexity is O(n²) at best and O(∞) at worst. Memory space is O(n).
  */
-class WilsonGenerator : Generator("Wilson's", DELTA, ORTHOGONAL, SIGMA, THETA, UPSILON) {
+class WilsonGenerator : Generator(DeltaMaze::class, OrthogonalMaze::class,
+        UnicursalOrthogonalMaze::class, SigmaMaze::class, ThetaMaze::class, UpsilonMaze::class) {
 
     override fun generate(maze: Maze) {
         super.generate(maze)

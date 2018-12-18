@@ -25,9 +25,7 @@
 
 package com.maltaisn.maze.generator
 
-import com.maltaisn.maze.MazeType.*
-import com.maltaisn.maze.maze.Cell
-import com.maltaisn.maze.maze.Maze
+import com.maltaisn.maze.maze.*
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashSet
@@ -48,7 +46,8 @@ import kotlin.collections.LinkedHashSet
  *
  * Runtime complexity is O(n) and memory space is O(n).
  */
-class KruskalGenerator : Generator("Kruskal's", DELTA, ORTHOGONAL, SIGMA, THETA, UPSILON) {
+class KruskalGenerator : Generator(DeltaMaze::class, OrthogonalMaze::class,
+        UnicursalOrthogonalMaze::class, SigmaMaze::class, ThetaMaze::class, UpsilonMaze::class) {
 
     override fun generate(maze: Maze) {
         super.generate(maze)

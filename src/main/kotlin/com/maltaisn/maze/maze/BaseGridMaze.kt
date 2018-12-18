@@ -25,58 +25,41 @@
 
 package com.maltaisn.maze.maze
 
-import com.maltaisn.maze.MazeType
 import com.maltaisn.maze.ParameterException
 import java.util.*
 import kotlin.random.Random
 
 
 /**
- * Base class for an orthogonal maze represented by 2D grid of cells.
+ * Base class for a maze represented by 2D orthogonal grid of cells.
  * @property width number of rows
  * @property height number of columns
  */
-abstract class BaseOrthogonalMaze<T : Cell>(val width: Int, val height: Int,
-                                            type: MazeType) : Maze(type) {
+abstract class BaseGridMaze<T : Cell>(val width: Int, val height: Int) : Maze() {
 
-    private val grid: Array<Array<T>>
+    protected abstract val grid: Array<Array<T>>
 
     init {
         if (width < 1 || height < 1) {
             throw ParameterException("Dimensions must be at least 1.")
         }
-        @Suppress("UNCHECKED_CAST")
-        grid = Array(width) { x ->
-            Array<Cell>(height) { y ->
-                createCell(Position2D(x, y))
-            }
-        } as Array<Array<T>>
     }
-
-    /**
-     * Create a cell for this maze at [pos].
-     */
-    protected abstract fun createCell(pos: Position2D): T
 
 
     override fun cellAt(pos: Position) =
             cellAt((pos as Position2D).x, pos.y)
 
-    fun cellAt(x: Int, y: Int): T? {
-        if (x < 0 || x >= width || y < 0 || y >= height) return null
-        return grid[x][y]
-    }
+    fun cellAt(x: Int, y: Int): T? = grid.getOrNull(x)?.getOrNull(y)
 
-    override fun getRandomCell(): T {
-        return grid[Random.nextInt(width)][Random.nextInt(height)]
-    }
+    override fun getRandomCell(): T =
+            grid[Random.nextInt(grid.size)][Random.nextInt(grid[0].size)]
 
-    override fun getCellCount(): Int = width * height
+    override fun getCellCount(): Int = grid.size * grid[0].size
 
     override fun getAllCells(): MutableList<T> {
         val set = ArrayList<T>()
-        for (x in 0 until width) {
-            for (y in 0 until height) {
+        for (x in 0 until grid.size) {
+            for (y in 0 until grid[x].size) {
                 set.add(grid[x][y])
             }
         }
@@ -84,8 +67,8 @@ abstract class BaseOrthogonalMaze<T : Cell>(val width: Int, val height: Int,
     }
 
     override fun forEachCell(action: (Cell) -> Unit) {
-        for (x in 0 until width) {
-            for (y in 0 until height) {
+        for (x in 0 until grid.size) {
+            for (y in 0 until grid[x].size) {
                 action(grid[x][y])
             }
         }
@@ -94,21 +77,19 @@ abstract class BaseOrthogonalMaze<T : Cell>(val width: Int, val height: Int,
     override fun getOpeningCell(opening: Opening): T? {
         val x = when (val pos = opening.position[0]) {
             Opening.POS_START -> 0
-            Opening.POS_CENTER -> width / 2
-            Opening.POS_END -> width - 1
+            Opening.POS_CENTER -> grid.size / 2
+            Opening.POS_END -> grid.size - 1
             else -> pos
         }
         val y = when (val pos = opening.position[1]) {
             Opening.POS_START -> 0
-            Opening.POS_CENTER -> height / 2
-            Opening.POS_END -> height - 1
+            Opening.POS_CENTER -> grid[0].size / 2
+            Opening.POS_END -> grid[0].size - 1
             else -> pos
         }
         return cellAt(x, y)
     }
 
-    override fun toString(): String {
-        return "[width: $width, height: $height]"
-    }
+    override fun toString(): String = "[width: $width, height: $height]"
 
 }

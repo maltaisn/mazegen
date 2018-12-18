@@ -25,55 +25,28 @@
 
 package com.maltaisn.maze.generator
 
-import com.maltaisn.maze.Configuration
-import com.maltaisn.maze.MazeType
-import com.maltaisn.maze.OutputFormat
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.Maze
-import com.maltaisn.maze.render.RasterCanvas
-import java.awt.BasicStroke
-import java.awt.Color
-import java.io.File
+import kotlin.reflect.KClass
 
 
 /**
  * Base class for a maze generator. Comparison of generator algorithms can be found
  * [here](http://people.cs.ksu.edu/~ashley78/wiki.ashleycoleman.me/index.php/Perfect_Maze_Generators.html).
  *
- * @property name generator name.
  * @property supportedTypes vararg of supported maze types, empty for all types.
  */
-abstract class Generator(private val name: String,
-                         private vararg val supportedTypes: MazeType) {
+abstract class Generator(private vararg val supportedTypes: KClass<out Maze>) {
 
     /**
-     * Generate a maze into [maze].
+     * Generate a [maze].
      */
     open fun generate(maze: Maze) {
-        // Check if maze was not already generated.
-        if (maze.generated) {
-            throw IllegalStateException("This maze was already generated.")
-        }
-        maze.generated = true
-
         // Make sure this generator supports the maze type
-        if (supportedTypes.isNotEmpty() && maze.type !in supportedTypes) {
-            throw ParameterException("$name generator cannot generate " +
-                    "${maze.type.mazeName.toLowerCase()} mazes.")
+        if (supportedTypes.isNotEmpty() && maze::class !in supportedTypes) {
+            throw ParameterException("${this::class.simpleName} " +
+                    "cannot generate ${maze::class.simpleName}.")
         }
-
-        debugExportStep = 0
-    }
-
-    // Debug exporting for displaying the mazes on each generator step.
-    private var debugExportStep = 0
-
-    protected fun exportMaze(maze: Maze) {
-        val canvas = RasterCanvas(OutputFormat.PNG)
-        maze.drawTo(canvas, Configuration.Style(30f, null, Color.BLACK,
-                BasicStroke(3f), Color.BLUE, BasicStroke(3f), true))
-        canvas.exportTo(File(File(System.getProperty("user.dir")), "mazes\\maze-$debugExportStep.png"))
-        debugExportStep++
     }
 
 }

@@ -29,6 +29,7 @@ import com.maltaisn.maze.Configuration.MazeSet
 import com.maltaisn.maze.generator.*
 import com.maltaisn.maze.maze.*
 import com.maltaisn.maze.render.Canvas
+import com.maltaisn.maze.render.OutputFormat
 import org.json.JSONArray
 import org.json.JSONObject
 import java.awt.BasicStroke
@@ -94,8 +95,8 @@ class ConfigurationParser {
         var algorithm = DEFAULT_MAZE_ALGORITHM
         if (algorithmJson is String) {
             algorithm = algorithmJson
-        } else if (algorithmJson is JSONObject) {
-            if (algorithmJson.has(KEY_MAZE_ALGORITHM_NAME)) {
+        } else {
+            if ((algorithmJson as JSONObject).has(KEY_MAZE_ALGORITHM_NAME)) {
                 algorithm = algorithmJson.getString(KEY_MAZE_ALGORITHM_NAME)
             }
         }
@@ -136,7 +137,7 @@ class ConfigurationParser {
                     val weightsJson = algorithmJson.getJSONArray(KEY_MAZE_ALGORITHM_WEIGHTS)
                     generator.randomWeight = weightsJson[0] as Int
                     generator.newestWeight = weightsJson[1] as Int
-                    generator.oldestWeight = weightsJson[1] as Int
+                    generator.oldestWeight = weightsJson[2] as Int
                 }
             }
         }
@@ -145,10 +146,10 @@ class ConfigurationParser {
         var braiding: Maze.Braiding? = DEFAULT_MAZE_ALGORITHM_BRAID
         if (from.has(KEY_MAZE_BRAID)) {
             val braid = from.get(KEY_MAZE_BRAID)
-            if (braid is Int) {
-                braiding = Maze.Braiding(braid)
-            } else if (braid is String) {
-                braiding = if (braid.endsWith('%')) {
+            braiding = if (braid is Int) {
+                Maze.Braiding(braid)
+            } else {
+                if ((braid as String).endsWith('%')) {
                     Maze.Braiding(parsePercentValue(braid))
                 } else {
                     Maze.Braiding(braid.toInt())
@@ -160,24 +161,18 @@ class ConfigurationParser {
         val type = if (from.has(KEY_MAZE_TYPE)) {
             val typeStr = from.getString(KEY_MAZE_TYPE)
             when (typeStr.toLowerCase()) {
-                "delta" -> MazeType.DELTA
-                "orthogonal" -> MazeType.ORTHOGONAL
-                "sigma" -> MazeType.SIGMA
-                "theta" -> MazeType.THETA
-                "upsilon" -> MazeType.UPSILON
-                "weaveorthogonal" -> MazeType.WEAVE_ORTHOGONAL
-                "zeta" -> MazeType.ZETA
+                "orthogonal" -> OrthogonalMaze::class
+                "weaveorthogonal" -> WeaveOrthogonalMaze::class
+                "unicursalorthogonal" -> UnicursalOrthogonalMaze::class
+                "delta" -> DeltaMaze::class
+                "sigma" -> SigmaMaze::class
+                "theta" -> ThetaMaze::class
+                "upsilon" -> UpsilonMaze::class
+                "zeta" -> ZetaMaze::class
                 else -> throw ParameterException("Invalid maze type '$typeStr'.")
             }
         } else {
             DEFAULT_MAZE_TYPE
-        }
-
-        // Size
-        val size = if (from.has(KEY_MAZE_SIZE)) {
-            from.get(KEY_MAZE_SIZE)
-        } else {
-            throw ParameterException("A size must be specified for the maze.")
         }
 
         // Shape
@@ -194,55 +189,64 @@ class ConfigurationParser {
             DEFAULT_MAZE_SHAPE
         }
 
-        // Maze creator
-        val mazeCreator: () -> Maze = when (type) {
-            MazeType.ORTHOGONAL, MazeType.UPSILON, MazeType.ZETA -> {
-                val width: Int
-                val height: Int
-                if (size is Int) {
-                    width = size
-                    height = size
+        // Size
+        val sizeJson = if (from.has(KEY_MAZE_SIZE)) {
+            from.get(KEY_MAZE_SIZE)
+        } else {
+            throw ParameterException("A size must be specified for the maze.")
+        }
+
+        // Parameters (size + shape)
+        val parameters = when (type) {
+            OrthogonalMaze::class, UnicursalOrthogonalMaze::class,
+            UpsilonMaze::class, ZetaMaze::class -> {
+                var width: Int
+                var height: Int
+                if (sizeJson is Int) {
+                    width = sizeJson
+                    height = sizeJson
                 } else {
-                    val sizeJson = size as JSONObject
+                    sizeJson as JSONObject
                     width = sizeJson.getInt(KEY_MAZE_SIZE_WIDTH)
                     height = sizeJson.getInt(KEY_MAZE_SIZE_HEIGHT)
                 }
-                when (type) {
-                    MazeType.ORTHOGONAL -> ({ OrthogonalMaze(width, height) })
-                    MazeType.UPSILON -> ({ UpsilonMaze(width, height) })
-                    else -> ({ ZetaMaze(width, height) })
+
+                if (type == UnicursalOrthogonalMaze::class) {
+                    if (width % 2 != 0 || height % 2 != 0) {
+                        throw ParameterException("Dimensions of unicursal orthogonal maze must be even.")
+                    }
+                    width /= 2
+                    height /= 2
                 }
+
+                arrayOf(width, height)
             }
-            MazeType.SIGMA, MazeType.DELTA -> {
+            DeltaMaze::class, SigmaMaze::class -> {
                 val width: Int
                 val height: Int
-                if (size is Int) {
-                    width = size
-                    height = size
+                if (sizeJson is Int) {
+                    width = sizeJson
+                    height = sizeJson
                 } else {
                     if (shape == BaseShapedMaze.Shape.HEXAGON
                             || shape == BaseShapedMaze.Shape.TRIANGLE) {
                         throw ParameterException("For hexagon and triangle shaped " +
                                 "delta and sigma mazes, size must be an integer.")
                     }
-                    val sizeJson = size as JSONObject
+                    sizeJson as JSONObject
                     width = sizeJson.getInt(KEY_MAZE_SIZE_WIDTH)
                     height = sizeJson.getInt(KEY_MAZE_SIZE_HEIGHT)
                 }
-                if (type == MazeType.SIGMA) {
-                    { SigmaMaze(width, height, shape) }
-                } else {
-                    { DeltaMaze(width, height, shape) }
-                }
+                arrayOf(width, height, shape)
             }
-            MazeType.THETA -> {
+            ThetaMaze::class -> {
                 val radius: Int
                 var centerRadius = DEFAULT_MAZE_SIZE_CENTER_RADIUS
                 var subdivision = DEFAULT_MAZE_SIZE_SUBDIVISION
-                if (size is Int) {
-                    radius = size
+                if (sizeJson is Int) {
+                    radius = sizeJson
                 } else {
-                    val sizeJson = size as JSONObject
+                    sizeJson as JSONObject
                     radius = sizeJson.getInt(KEY_MAZE_SIZE_RADIUS)
                     if (sizeJson.has(KEY_MAZE_SIZE_CENTER_RADIUS)) {
                         centerRadius = sizeJson.getFloat(KEY_MAZE_SIZE_CENTER_RADIUS)
@@ -251,25 +255,26 @@ class ConfigurationParser {
                         subdivision = sizeJson.getFloat(KEY_MAZE_SIZE_SUBDIVISION)
                     }
                 }
-                { ThetaMaze(radius, centerRadius, subdivision) }
+                arrayOf(radius, centerRadius, subdivision)
             }
-            MazeType.WEAVE_ORTHOGONAL -> {
+            WeaveOrthogonalMaze::class -> {
                 val width: Int
                 val height: Int
                 var maxWeave = DEFAULT_MAZE_SIZE_MAX_WEAVE
-                if (size is Int) {
-                    width = size
-                    height = size
+                if (sizeJson is Int) {
+                    width = sizeJson
+                    height = sizeJson
                 } else {
-                    val sizeJson = size as JSONObject
+                    sizeJson as JSONObject
                     width = sizeJson.getInt(KEY_MAZE_SIZE_WIDTH)
                     height = sizeJson.getInt(KEY_MAZE_SIZE_HEIGHT)
                     if (sizeJson.has(KEY_MAZE_SIZE_MAX_WEAVE)) {
                         maxWeave = sizeJson.getInt(KEY_MAZE_SIZE_MAX_WEAVE)
                     }
                 }
-                { WeaveOrthogonalMaze(width, height, maxWeave) }
+                arrayOf(width, height, maxWeave)
             }
+            else -> throw IllegalStateException()
         }
 
         // Openings
@@ -300,7 +305,8 @@ class ConfigurationParser {
         val solve = if (from.has(KEY_MAZE_SOLVE))
             from.getBoolean(KEY_MAZE_SOLVE) else DEFAULT_MAZE_SOLVE
 
-        return MazeSet(name, count, mazeCreator, generator, braiding, openings, solve)
+        return MazeSet(name, count, type, parameters,
+                generator, braiding, openings, solve)
     }
 
     private fun parseOutput(from: JSONObject?): Configuration.Output {
@@ -432,7 +438,7 @@ class ConfigurationParser {
         private const val DEFAULT_MAZE_COUNT = 1
         private const val DEFAULT_MAZE_ALGORITHM = "rb"
         private val DEFAULT_MAZE_ALGORITHM_BRAID: Maze.Braiding? = null
-        private val DEFAULT_MAZE_TYPE = MazeType.ORTHOGONAL
+        private val DEFAULT_MAZE_TYPE = OrthogonalMaze::class
         private val DEFAULT_MAZE_SHAPE = BaseShapedMaze.Shape.RECTANGLE
         private const val DEFAULT_MAZE_SIZE_CENTER_RADIUS = 1f
         private const val DEFAULT_MAZE_SIZE_SUBDIVISION = 1.5f

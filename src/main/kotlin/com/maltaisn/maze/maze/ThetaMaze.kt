@@ -26,7 +26,6 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
-import com.maltaisn.maze.MazeType
 import com.maltaisn.maze.ParameterException
 import com.maltaisn.maze.maze.ThetaCell.Side
 import com.maltaisn.maze.render.Canvas
@@ -44,7 +43,7 @@ import kotlin.random.Random
  * it is subdivided into multiple cells.
  */
 class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
-                subdivisionFactor: Float = 1.5f) : Maze(MazeType.THETA) {
+                subdivisionFactor: Float = 1.5f) : Maze() {
 
     private val grid: Array<Array<ThetaCell>>
 

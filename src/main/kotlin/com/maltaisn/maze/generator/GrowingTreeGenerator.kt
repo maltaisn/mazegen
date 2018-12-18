@@ -49,7 +49,7 @@ import kotlin.random.Random
  *
  * Runtime complexity is O(n) and memory space is O(n).
  */
-class GrowingTreeGenerator : Generator("Growing tree") {
+class GrowingTreeGenerator : Generator() {
 
     /**
      * Weight for choosing a random cell.

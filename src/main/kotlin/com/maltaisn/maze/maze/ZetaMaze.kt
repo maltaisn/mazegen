@@ -26,7 +26,6 @@
 package com.maltaisn.maze.maze
 
 import com.maltaisn.maze.Configuration
-import com.maltaisn.maze.MazeType
 import com.maltaisn.maze.maze.ZetaCell.Side
 import com.maltaisn.maze.render.Canvas
 import com.maltaisn.maze.render.Point
@@ -40,9 +39,17 @@ import kotlin.math.sqrt
  * Like a [OrthogonalMaze] but cells allow passages at 45 degrees.
  */
 class ZetaMaze(width: Int, height: Int) :
-        BaseOrthogonalMaze<ZetaCell>(width, height, MazeType.ZETA) {
+        BaseGridMaze<ZetaCell>(width, height) {
 
-    override fun createCell(pos: Position2D) = ZetaCell(this, pos)
+    override val grid: Array<Array<ZetaCell>>
+
+    init {
+        grid = Array(width) { x ->
+            Array(height) { y ->
+                ZetaCell(this, Position2D(x, y))
+            }
+        }
+    }
 
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
         val sideSize = style.cellSize  // Size of an octogon wall

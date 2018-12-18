@@ -2,20 +2,15 @@
   "mazes": [
     {
       "name": "maze",
-      "type": "sigma",
-      "count": 1,
-      "size": {
-        "width": 20,
-        "height": 20
-      },
-      "algorithm": {
-        "name": "wi"
-      },
-      "solve": false
+      "type": "unicursalOrthogonal",
+      "size": 20,
+      "algorithm": "rb",
+      "openings": [[0, 0], [0, 1]],
+      "solve": true
     }
   ],
   "output": {
-    "format": "svg",
+    "format": "png",
     "path": "mazes/"
   },
   "style": {
