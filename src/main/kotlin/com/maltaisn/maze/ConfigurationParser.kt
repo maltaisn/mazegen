@@ -278,7 +278,7 @@ class ConfigurationParser {
         }
 
         // Openings
-        val openings = ArrayList<Maze.Opening>()
+        val openings = ArrayList<Position>()
         if (from.has(KEY_MAZE_OPENINGS)) {
             val openingsJson = from.getJSONArray(KEY_MAZE_OPENINGS)
             for (openingJson in openingsJson) {
@@ -288,16 +288,16 @@ class ConfigurationParser {
                     val pos = openingArray[i]
                     position[i] = when (pos) {
                         is String -> when (pos[0].toUpperCase()) {
-                            KEY_MAZE_OPENING_START -> Maze.Opening.POS_START
-                            KEY_MAZE_OPENING_CENTER -> Maze.Opening.POS_CENTER
-                            KEY_MAZE_OPENING_END -> Maze.Opening.POS_END
+                            KEY_MAZE_OPENING_START -> Maze.OPENING_POS_START
+                            KEY_MAZE_OPENING_CENTER -> Maze.OPENING_POS_CENTER
+                            KEY_MAZE_OPENING_END -> Maze.OPENING_POS_END
                             else -> throw ParameterException("Invalid opening position character '$pos'.")
                         }
                         is Int -> pos
                         else -> throw ParameterException("Invalid opening position argument '$pos'.")
                     }
                 }
-                openings.add(Maze.Opening(position))
+                openings.add(Position2D(position[0], position[1]))
             }
         }
 

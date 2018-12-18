@@ -2,10 +2,10 @@
   "mazes": [
     {
       "name": "maze",
-      "type": "unicursalOrthogonal",
+      "type": "weaveOrthogonal",
       "size": 20,
       "algorithm": "rb",
-      "openings": [[0, 0], [0, 1]],
+      "openings": [["S", "S"], ["E", "E"]],
       "solve": true
     }
   ],

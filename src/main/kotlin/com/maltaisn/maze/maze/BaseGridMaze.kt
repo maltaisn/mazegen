@@ -74,17 +74,17 @@ abstract class BaseGridMaze<T : Cell>(val width: Int, val height: Int) : Maze() 
         }
     }
 
-    override fun getOpeningCell(opening: Opening): T? {
-        val x = when (val pos = opening.position[0]) {
-            Opening.POS_START -> 0
-            Opening.POS_CENTER -> grid.size / 2
-            Opening.POS_END -> grid.size - 1
+    override fun getOpeningCell(opening: Position): T? {
+        val x = when (val pos = (opening as Position2D).x) {
+            OPENING_POS_START -> 0
+            OPENING_POS_CENTER -> grid.size / 2
+            OPENING_POS_END -> grid.size - 1
             else -> pos
         }
-        val y = when (val pos = opening.position[1]) {
-            Opening.POS_START -> 0
-            Opening.POS_CENTER -> grid[0].size / 2
-            Opening.POS_END -> grid[0].size - 1
+        val y = when (val pos = opening.y) {
+            OPENING_POS_START -> 0
+            OPENING_POS_CENTER -> grid[0].size / 2
+            OPENING_POS_END -> grid[0].size - 1
             else -> pos
         }
         return cellAt(x, y)

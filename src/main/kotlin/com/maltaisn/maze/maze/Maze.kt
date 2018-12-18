@@ -100,7 +100,7 @@ abstract class Maze {
      * Create an [opening] in the maze. An exception is thrown if the opening position
      * doesn't match any cell or if the opening already exists.
      */
-    fun createOpening(opening: Opening) {
+    fun createOpening(opening: Position) {
         val cell = getOpeningCell(opening)
         if (cell != null) {
             if (openings.contains(cell)) {
@@ -123,7 +123,7 @@ abstract class Maze {
     /**
      * Get the cell described by the [opening] position.
      */
-    abstract fun getOpeningCell(opening: Opening): Cell?
+    abstract fun getOpeningCell(opening: Position): Cell?
 
     /**
      * Find the solution of the maze, starting from the first opening and ending
@@ -146,7 +146,7 @@ abstract class Maze {
      *
      * Runtime complexity is O(n) and memory space is O(n).
      */
-    fun solve() {
+    fun solve(): Boolean {
         if (openings.size < 2) {
             throw ParameterException("Not enough openings to solve this maze.")
         }
@@ -177,7 +177,7 @@ abstract class Maze {
                     currentNode = currentNode.parent
                 }
                 solution = path
-                return
+                return true
             }
 
             for (neighbor in cell.getAccessibleNeighbors()) {
@@ -192,6 +192,7 @@ abstract class Maze {
 
         // All cells were visited, no path was found.
         solution = null
+        return false
     }
 
     private data class Node(val parent: Node?, val cell: Cell,
@@ -250,35 +251,6 @@ abstract class Maze {
      */
     abstract fun drawTo(canvas: Canvas, style: Configuration.Style)
 
-
-    /**
-     * Opening position in a maze.
-     */
-    class Opening(val position: IntArray) {
-
-        companion object {
-            const val POS_START = -3
-            const val POS_CENTER = -2
-            const val POS_END = -1
-        }
-
-        override fun toString(): String {
-            var str = "pos: ("
-            for (pos in position) {
-                str += when (pos) {
-                    POS_START -> "S"
-                    POS_CENTER -> "C"
-                    POS_END -> "E"
-                    else -> pos.toString()
-                } + ", "
-            }
-            str = str.substring(0, str.length - 2)
-            str += ")"
-            return str
-        }
-
-    }
-
     /**
      * Braiding setting for a maze.
      */
@@ -327,6 +299,12 @@ abstract class Maze {
             "${value.toDouble() * 100}% of deadends"
         }
 
+    }
+
+    companion object {
+        const val OPENING_POS_START = Int.MIN_VALUE
+        const val OPENING_POS_CENTER = Int.MIN_VALUE + 1
+        const val OPENING_POS_END = Int.MIN_VALUE + 2
     }
 
 }

@@ -113,17 +113,17 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
         }
     }
 
-    override fun getOpeningCell(opening: Opening): Cell? {
-        val r = when (val pos = opening.position[1]) {
-            Opening.POS_START -> 0
-            Opening.POS_CENTER -> grid.size / 2
-            Opening.POS_END -> grid.size - 1
+    override fun getOpeningCell(opening: Position): Cell? {
+        val r = when (val pos = (opening as Position2D).y) {
+            OPENING_POS_START -> 0
+            OPENING_POS_CENTER -> grid.size / 2
+            OPENING_POS_END -> grid.size - 1
             else -> pos
         }
-        val x = when (val pos = opening.position[0]) {
-            Opening.POS_START -> 0
-            Opening.POS_CENTER -> grid[r].size / 2
-            Opening.POS_END -> grid[r].size - 1
+        val x = when (val pos = opening.x) {
+            OPENING_POS_START -> 0
+            OPENING_POS_CENTER -> grid[r].size / 2
+            OPENING_POS_END -> grid[r].size - 1
             else -> pos
         }
         return cellAt(x, r)
