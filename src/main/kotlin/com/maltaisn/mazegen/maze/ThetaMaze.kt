@@ -42,8 +42,8 @@ import kotlin.random.Random
  * @param subdivisionFactor when a cell has become this many times the base size,
  * it is subdivided into multiple cells.
  */
-class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
-                subdivisionFactor: Float = 1.5f) : Maze() {
+class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
+                subdivisionFactor: Double = 1.5) : Maze() {
 
     private val grid: Array<Array<ThetaCell>>
 
@@ -178,13 +178,13 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
         // Draw the background
         if (style.backgroundColor != null) {
             canvas.color = style.backgroundColor
-            canvas.drawRect(0f, 0f, canvas.width, canvas.height, true)
+            canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
 
         // Draw the maze
         // For each cell, only the inward and clockwise sides are drawn if they are set,
         // except for the last row where the outward side is also drawn.
-        val offset = style.stroke.lineWidth / 2
+        val offset = style.stroke.lineWidth / 2.0
         canvas.translate = Point(offset, offset)
         canvas.color = style.color
         canvas.stroke = style.stroke
@@ -197,8 +197,8 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
                 val startAngle = x * extent
                 val cell = cellAt(x, r)
                 if (cell != null && cell.hasSide(Side.CW)) {
-                    val px = cos(startAngle).toFloat()
-                    val py = -sin(startAngle).toFloat()
+                    val px = cos(startAngle)
+                    val py = -sin(startAngle)
                     canvas.drawLine(center + px * startRadius, center + py * startRadius,
                             center + px * endRadius, center + py * endRadius)
                 }
@@ -232,11 +232,11 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
                     nextAngle = 0.0
                 } else {
                     nextPos = solution[i].position as PositionPolar
-                    nextAngle = (nextPos.x + 0.5f) / nextPos.rowWidth * PI2
+                    nextAngle = (nextPos.x + 0.5) / nextPos.rowWidth * PI2
                 }
 
                 if (currPos != null) {
-                    val centerRadius = (currPos.y + 0.5f + centerRadius - 1) * csize
+                    val centerRadius = (currPos.y + 0.5 + centerRadius - 1) * csize
                     val startAngle = if (prevPos != null && prevPos.y > currPos.y) prevAngle else currAngle
                     val endAngle = if (nextPos != null && nextPos.y > currPos.y) nextAngle else currAngle
 
@@ -248,8 +248,8 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
                     if (prevPos != null && prevPos.y != currPos.y) {
                         // Draw the START line: a line extending last line to the current cell's center
                         val startRadius = centerRadius - (currPos.y - prevPos.y) * csize / 2
-                        val px = cos(startAngle).toFloat()
-                        val py = -sin(startAngle).toFloat()
+                        val px = cos(startAngle)
+                        val py = -sin(startAngle)
                         canvas.drawLine(center + px * startRadius, center + py * startRadius,
                                 center + px * centerRadius, center + py * centerRadius)
 
@@ -260,8 +260,8 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Float = 1f,
                         if (nextPos != null) {
                             // Draw the END line: a line from the current cell's center to its edge
                             val endRadius = centerRadius - (currPos.y - nextPos.y) * csize / 2
-                            val px = cos(endAngle).toFloat()
-                            val py = -sin(endAngle).toFloat()
+                            val px = cos(endAngle)
+                            val py = -sin(endAngle)
                             canvas.drawLine(center + px * centerRadius, center + py * centerRadius,
                                     center + px * endRadius, center + py * endRadius)
                         }

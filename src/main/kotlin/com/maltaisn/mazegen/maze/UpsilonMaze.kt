@@ -51,7 +51,7 @@ class UpsilonMaze(width: Int, height: Int) :
 
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
         val csive = style.cellSize
-        val dsize = sqrt(2f) / 2 * csive // Diagonal wall size
+        val dsize = sqrt(2.0) / 2 * csive // Diagonal wall size
         val centerDistance = dsize + csive
 
         canvas.init(width * centerDistance + dsize + style.stroke.lineWidth,
@@ -60,14 +60,14 @@ class UpsilonMaze(width: Int, height: Int) :
         // Draw the background
         if (style.backgroundColor != null) {
             canvas.color = style.backgroundColor
-            canvas.drawRect(0f, 0f, canvas.width, canvas.height, true)
+            canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
 
         // Draw the maze
         // For each square cell, only the north and west walls are drawn if they are set,
         // except for the first and last rows and columns where other sides may be drawn too.
         // For octogon cells, only draw north, northwest, west and southwest sides.
-        val offset = style.stroke.lineWidth / 2
+        val offset = style.stroke.lineWidth / 2.0
         canvas.translate = Point(offset, offset)
         canvas.color = style.color
         canvas.stroke = style.stroke

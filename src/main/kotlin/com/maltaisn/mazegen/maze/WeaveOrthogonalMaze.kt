@@ -70,10 +70,10 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
         // Draw the background
         if (style.backgroundColor != null) {
             canvas.color = style.backgroundColor
-            canvas.drawRect(0f, 0f, canvas.width, canvas.height, true)
+            canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
 
-        val offset = style.stroke.lineWidth / 2
+        val offset = style.stroke.lineWidth / 2.0
         canvas.translate = Point(offset, offset)
 
         // Draw the solution
@@ -88,8 +88,8 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
 
                 val cell = solution[i]
                 val pos = cell.position as Position2D
-                val cx = (pos.x + 0.5f) * csive
-                val cy = (pos.y + 0.5f) * csive
+                val cx = (pos.x + 0.5) * csive
+                val cy = (pos.y + 0.5) * csive
                 if (prevPoint != null) {
                     canvas.drawLine(prevPoint.x, prevPoint.y, cx, cy)
                 }
@@ -125,9 +125,9 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
         canvas.color = style.color
         canvas.stroke = style.stroke
         for (x in 0 until width) {
-            val cx = (x + 0.5f) * csive
+            val cx = (x + 0.5) * csive
             for (y in 0 until height) {
-                val cy = (y + 0.5f) * csive
+                val cy = (y + 0.5) * csive
                 val cell = cellAt(x, y)!!
                 for (side in cell.getAllSides()) {
                     val hasSide = cell.hasSide(side)
@@ -160,7 +160,7 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
     }
 
     companion object {
-        const val INSET_SIZE_RATIO = 0.15f
+        const val INSET_SIZE_RATIO = 0.15
     }
 
 }

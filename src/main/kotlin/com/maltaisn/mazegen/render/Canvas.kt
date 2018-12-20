@@ -58,7 +58,7 @@ abstract class Canvas(val format: OutputFormat) {
      */
     open var translate: Point? = null
         set(value) {
-            field = if (value != null && value.x == 0f && value.y == 0f) {
+            field = if (value != null && value.x == 0.0 && value.y == 0.0) {
                 null
             } else {
                 value
@@ -71,7 +71,7 @@ abstract class Canvas(val format: OutputFormat) {
      * Initialize the canvas with a width and height.
      * Should only be called once.
      */
-    open fun init(width: Float, height: Float) {
+    open fun init(width: Double, height: Double) {
         if (width == SIZE_UNSET) {
             throw ParameterException("This canvas was already initialized.")
         }
@@ -83,7 +83,7 @@ abstract class Canvas(val format: OutputFormat) {
     /**
      * Draw a line from ([x1], [y1]) to ([x2], [y2]).
      */
-    abstract fun drawLine(x1: Float, y1: Float, x2: Float, y2: Float)
+    abstract fun drawLine(x1: Double, y1: Double, x2: Double, y2: Double)
 
     /**
      * Draw a polyline with [points], a list of points.
@@ -96,14 +96,14 @@ abstract class Canvas(val format: OutputFormat) {
      * Angle are in radians, angle of 0 is at a 3 o'clock position.
      * The arc is drawn counter-clockwise.
      */
-    abstract fun drawArc(x: Float, y: Float, rx: Float, ry: Float,
+    abstract fun drawArc(x: Double, y: Double, rx: Double, ry: Double,
                          start: Double, extent: Double)
 
     /**
      * Draw a rectangle with its top left corner at ([x]; [y]) and with size [width] x [height].
      * @param filled whether to draw a filled rect or just the outline.
      */
-    abstract fun drawRect(x: Float, y: Float, width: Float, height: Float, filled: Boolean)
+    abstract fun drawRect(x: Double, y: Double, width: Double, height: Double, filled: Boolean)
 
     /**
      * Export the canvas image to [file].
@@ -112,7 +112,7 @@ abstract class Canvas(val format: OutputFormat) {
 
 
     companion object {
-        const val SIZE_UNSET = -1f
+        const val SIZE_UNSET = -1.0
 
         /**
          * Parse a hex color string like `#RRGGBB` or `#AARRGGBB` to a [Color].

@@ -84,7 +84,7 @@ class Configuration(val mazeSets: List<MazeSet>,
     /**
      * Style settings for drawing the mazes.
      */
-    class Style(val cellSize: Float,
+    class Style(val cellSize: Double,
                 val backgroundColor: Color?,
                 val color: Color,
                 val stroke: BasicStroke,

@@ -33,17 +33,12 @@ import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
 import kotlin.collections.HashMap
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.min
-import kotlin.math.sin
+import kotlin.math.*
 
 
 /**
  * Canvas for exporting SVG files.
  * SVG path data can be optimized with [optimize] to reduce the file size.
- *
- * FIXME: OPTIMIZATION BROKEN ON THIS COMMIT
  */
 class SvgCanvas : Canvas(OutputFormat.SVG) {
 
@@ -108,25 +103,24 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
     }
 
 
-    override fun drawLine(x1: Float, y1: Float, x2: Float, y2: Float) {
+    override fun drawLine(x1: Double, y1: Double, x2: Double, y2: Double) {
         getLastPath().elements.add(Path.Element.Line(SvgPoint(x1, y1), SvgPoint(x2, y2)))
     }
 
-    override fun drawArc(x: Float, y: Float, rx: Float, ry: Float,
+    override fun drawArc(x: Double, y: Double, rx: Double, ry: Double,
                          start: Double, extent: Double) {
-        getLastPath().elements.add(Path.Element.Arc(
-                x, y, rx, ry, start, min(ArcPoint.PI2, extent)))
+        getLastPath().elements.add(Path.Element.Arc(x, y, rx, ry, start, extent))
     }
 
     override fun drawPolyline(points: LinkedList<Point>) {
-        val polypoint = Path.Element.Polypoint()
+        val polypoint = Path.Element.Polyline()
         for (point in points) {
             polypoint.points.add(SvgPoint(point))
         }
         getLastPath().elements.add(polypoint)
     }
 
-    override fun drawRect(x: Float, y: Float, width: Float, height: Float, filled: Boolean) {
+    override fun drawRect(x: Double, y: Double, width: Double, height: Double, filled: Boolean) {
         shapes.add(Rectangle(currentStyle, x, y, width, height, filled))
     }
 
@@ -161,7 +155,7 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
     }
 
     /**
-     * Optimize path shapes by connecting their individual elements together into polypoints.
+     * Optimize lines in paths to polylines.
      */
     private fun optimize() {
         for (shape in shapes) {
@@ -189,9 +183,7 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
     /**
      * SVG point in a path element.
      */
-    private open class SvgPoint(x: Float, y: Float) : Point(x, y), SvgElement {
-
-        constructor(x: Double, y: Double) : this(x.toFloat(), y.toFloat())
+    private open class SvgPoint(x: Double, y: Double) : Point(x, y), SvgElement {
 
         constructor(point: Point) : this(point.x, point.y)
 
@@ -199,53 +191,6 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
             svg.append(numberFormat.format(this.x))
             svg.append(',')
             svg.append(numberFormat.format(this.y))
-        }
-
-    }
-
-    /**
-     * Arc point in a polypoint. The point defines where the arc ends.
-     * Where the arc start is defined by the previous point in the polypoint.
-     */
-    private class ArcPoint(val cx: Float, val cy: Float,
-                           val end: SvgPoint, val radius: SvgPoint,
-                           val startAngle: Double, extent: Double) :
-            SvgPoint(end.x, end.y) {
-
-        val extent = min(PI2, extent)
-
-        override fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat) {
-            val radiusSb = StringBuilder()
-            radius.appendTo(radiusSb, numberFormat)
-            val radiusStr = radiusSb.toString()
-
-            if (extent == PI2) {
-                // Arc is a whole circle, but SVG can't draw that as a single arc.
-                // So draw two connected half circles.
-                val halfAngle = startAngle + PI
-                svg.append('A')
-                svg.append(radiusStr)
-                svg.append(",0,0,0,")
-                SvgPoint(cx + cos(halfAngle).toFloat() * radius.x,
-                        cy - sin(halfAngle).toFloat() * radius.y).appendTo(svg, numberFormat)
-                svg.append('A')
-                svg.append(radiusStr)
-                svg.append(",0,0,0,")
-                end.appendTo(svg, numberFormat)
-            } else {
-                svg.append('A')
-                svg.append(radiusStr)
-                svg.append(",0,")
-                svg.append(if (extent > PI) '1' else '0')
-                svg.append(',')
-                svg.append(if (extent < 0) '1' else '0')
-                svg.append(',')
-                end.appendTo(svg, numberFormat)
-            }
-        }
-
-        companion object {
-            const val PI2 = PI * 2
         }
 
     }
@@ -259,32 +204,33 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
 
         /**
          * Optimize the elements data:
-         * - Segments that share a point are connected together to make polypoints.
-         * - Segments that together form a longer segment are merged.
+         * - Lines that share a point are connected together to make polylinse.
+         * - Lines that together form a longer line are merged.
          *
-         * For each segment drawn, if one of its point matches the head or the tail of
-         * an existing polypoint, the segment is added to it. If not, a new polypoint is created.
-         * If the line connects two polypoints together, they are merged into one.
+         * For each line drawn, if one of its point matches the head or the tail of
+         * an existing poyline, the segment is added to it. If not, a new poyline is created.
+         * If the line connects two poylines together, they are merged into one.
          *
          * Should not be used with over 40k points, performance is not good.
-         *
-         * FIXME BROKEN!!!
-         * line and arc should both be segments, just with different point types.
-         * two connected arc points should define an unique arc just like two line points do.
-         * that should also make them easily reversible.
+         * Arcs are not optimized because it's too complicated for the purpose of this.
          */
         fun optimize() {
             val newElements = LinkedList<Element>()
 
-            val heads = HashMap<Point, Element.Polypoint>()
-            val tails = HashMap<Point, Element.Polypoint>()
+            val heads = HashMap<Point, Element.Polyline>()
+            val tails = HashMap<Point, Element.Polyline>()
             for (element in elements) {
                 when (element) {
-                    is Element.Polypoint -> {
+                    is Element.Polyline -> {
                         element.optimize()
                         newElements.add(element)
                     }
-                    is Element.Segment -> {
+                    is Element.Arc -> {
+                        // Arcs could be part of the same optimization as lines, but it adds
+                        // a lot of complexity to the code and it's only use for theta mazes anyway.
+                        newElements.add(element)
+                    }
+                    is Element.Line -> {
                         var start = element.start
                         var end = element.end
 
@@ -293,9 +239,9 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
                         if (polypoint == null) {
                             polypoint = heads[end]
                             if (polypoint != null) {
-                                val reversed = element.reverse()
-                                start = reversed.start
-                                end = reversed.end
+                                val temp = start
+                                start = end
+                                end = temp
                             }
                         }
                         if (polypoint != null) {
@@ -328,9 +274,9 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
                             if (polypoint == null) {
                                 polypoint = tails[end]
                                 if (polypoint != null) {
-                                    val reversed = element.reverse()
-                                    start = reversed.start
-                                    end = reversed.end
+                                    val temp = start
+                                    start = end
+                                    end = temp
                                 }
                             }
                             if (polypoint != null) {
@@ -359,7 +305,7 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
 
                             } else {
                                 // No polyline head or tail matches one of the points: create a new polyline.
-                                polypoint = Element.Polypoint()
+                                polypoint = Element.Polyline()
                                 polypoint.points.add(start)
                                 polypoint.points.add(end)
                                 heads[start] = polypoint
@@ -386,24 +332,14 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
         }
 
         /**
-         * A path element.
+         * An element in a path.
          */
         sealed class Element : SvgElement {
-
-            abstract class Segment : Element() {
-                abstract val start: SvgPoint
-                abstract val end: SvgPoint
-
-                /**
-                 * Return the segment inverse to this one.
-                 */
-                abstract fun reverse(): Segment
-            }
 
             /**
              * A line in a path from [start] to [end].
              */
-            class Line(override val start: SvgPoint, override val end: SvgPoint) : Segment() {
+            class Line(val start: SvgPoint, val end: SvgPoint): Element() {
 
                 override fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat) {
                     svg.append('M')
@@ -412,52 +348,60 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
                     end.appendTo(svg, numberFormat)
                 }
 
-                override fun reverse(): Line = Line(end, start)
-
             }
 
             /**
              * An arc in a path. Angles are in radians.
              */
-            class Arc : Segment {
+            class Arc(val cx: Double, val cy: Double, rx: Double, ry: Double,
+                      val startAngle: Double, extent: Double):
+                    Element() {
 
-                override val start: SvgPoint
-                override val end: ArcPoint
-
-                constructor(cx: Float, cy: Float,
-                            rx: Float, ry: Float,
-                            startAngle: Double, extent: Double) {
-                    // Find the starting and ending point of this arc.
-                    val endAngle = startAngle + extent
-                    val radius = SvgPoint(rx, ry)
-                    start = SvgPoint(cx + rx * cos(startAngle),
-                            cy - ry * sin(startAngle))
-                    end = ArcPoint(cx, cy, SvgPoint(cx + rx * cos(endAngle),
-                            cy - ry * sin(endAngle)),
-                            radius, startAngle, extent)
-                }
-
-                private constructor(start: SvgPoint, end: ArcPoint) {
-                    this.start = start
-                    this.end = end
-                }
-
-                override fun reverse(): Segment = Arc(end.end,
-                        ArcPoint(end.cx, end.cy, start, end.radius,
-                                end.startAngle + end.extent, -end.extent))
+                val start = SvgPoint(cx + rx * cos(startAngle),
+                        cy - ry * sin(startAngle))
+                val end = SvgPoint(cx + rx * cos(startAngle + extent),
+                        cy - ry * sin(startAngle + extent))
+                val radius = SvgPoint(rx, ry)
+                val extent = min(extent, PI * 2)
 
                 override fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat) {
                     svg.append('M')
                     start.appendTo(svg, numberFormat)
-                    end.appendTo(svg, numberFormat)
+
+                    val radiusSb = StringBuilder()
+                    radius.appendTo(radiusSb, numberFormat)
+                    val radiusStr = radiusSb.toString()
+
+                    if (extent == PI * 2) {
+                        // Arc is a whole circle, but SVG can't draw that as a single arc.
+                        // So draw two connected half circles.
+                        val halfAngle = startAngle + PI
+                        svg.append('A')
+                        svg.append(radiusStr)
+                        svg.append(",0,0,0,")
+                        SvgPoint(cx + cos(halfAngle) * radius.x,
+                                cy - sin(halfAngle) * radius.y).appendTo(svg, numberFormat)
+                        svg.append('A')
+                        svg.append(radiusStr)
+                        svg.append(",0,0,0,")
+                        end.appendTo(svg, numberFormat)
+                    } else {
+                        svg.append('A')
+                        svg.append(radiusStr)
+                        svg.append(",0,")
+                        svg.append(if (extent > PI) '1' else '0')
+                        svg.append(',')
+                        svg.append(if (extent < 0) '1' else '0')
+                        svg.append(',')
+                        end.appendTo(svg, numberFormat)
+                    }
                 }
             }
 
             /**
-             * A path element made of a points all connected together.
-             * Like a polyline but supporting arcs.
+             * A path element made of a points all connected together by lines.
              */
-            class Polypoint : Element() {
+            class Polyline : Element() {
 
                 val points = LinkedList<SvgPoint>()
 
@@ -484,25 +428,16 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
                  */
                 fun extendWith(with: SvgPoint, first: Boolean) {
                     val lastIndex = if (first) 0 else points.size - 1
-                    val last = if (points.isEmpty()) null else points[lastIndex]
-                    if (with is ArcPoint) {
-                        // Extending with arc point: last must be arc too and have same radii.
-                        if (last is ArcPoint && with.radius == last.radius
-                                && with.cx == last.cx && with.cy == last.cy) {
-                            // New arc point has same radii as last one, merge them.
-                            points[lastIndex] = ArcPoint(with.cx, with.cy, with.end,
-                                    with.radius, last.startAngle, last.extent + with.extent)
-                            return
-                        }
+                    val last = points.getOrNull(lastIndex)
 
-                    } else if (last is SvgPoint) {
-                        // Extending with point: slope between the last and before last point
-                        // must be the same as the slope between the last and the new point.
-                        val beforeLast = if (points.size < 2) null else points[if (first) 1 else points.size - 2]
+                    // Extending with point: slope between the last and before last point
+                    // must be the same as the slope between the last and the new point.
+                    if (last != null) {
+                        val beforeLast = points.getOrNull(if (first) 1 else points.size - 2)
                         if (beforeLast != null) {
                             val lastSlope = (last.y - beforeLast.y) / (last.x - beforeLast.x)
                             val newSlope = (with.y - last.y) / (with.x - last.x)
-                            if (newSlope == lastSlope) {
+                            if ((lastSlope - newSlope).absoluteValue < 0.001) {
                                 // New point extends the last segment in the polyline, merge them.
                                 points[lastIndex] = with
                                 return
@@ -524,9 +459,6 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
                         when {
                             lastPoint == null -> {
                                 svg.append('M')
-                                point.appendTo(svg, numberFormat)
-                            }
-                            point is ArcPoint -> {
                                 point.appendTo(svg, numberFormat)
                             }
                             point.y == lastPoint.y -> {
@@ -557,8 +489,8 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
      * at ([x] ; [y]) and size [width] by [height].
      */
     private class Rectangle(style: Style,
-                            val x: Float, val y: Float,
-                            val width: Float, val height: Float,
+                            val x: Double, val y: Double,
+                            val width: Double, val height: Double,
                             val filled: Boolean) :
             Shape(style) {
 

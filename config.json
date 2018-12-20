@@ -2,8 +2,8 @@
   "mazes": [
     {
       "name": "maze",
-      "type": "weaveOrthogonal",
-      "size": 20,
+      "type": "orthogonal",
+      "size": 10,
       "algorithm": "rb",
       "openings": [["S", "S"], ["E", "E"]],
       "solve": true
@@ -13,9 +13,5 @@
     "format": "png",
     "path": "mazes/"
   },
-  "style": {
-    "cellSize": 30,
-    "strokeWidth": 3,
-    "solutionStrokeWidth": 3
-  }
+  "style": {}
 }

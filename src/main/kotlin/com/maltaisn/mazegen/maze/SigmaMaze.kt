@@ -87,10 +87,10 @@ class SigmaMaze(width: Int, height: Int, shape: Shape) :
 
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
         // Find the empty top padding (minTop) and maximum column rows
-        var maxRow = 0f
-        var minTop = Float.MAX_VALUE
+        var maxRow = 0.0
+        var minTop = Double.MAX_VALUE
         for (x in 0 until grid.size) {
-            val top = rowOffsets[x] + (grid.size - x - 1) / 2f
+            val top = rowOffsets[x] + (grid.size - x - 1) / 2.0
             if (top < minTop) minTop = top
             val row = grid[x].size + top
             if (row > maxRow) maxRow = row
@@ -98,26 +98,26 @@ class SigmaMaze(width: Int, height: Int, shape: Shape) :
         maxRow -= minTop
 
         val csize = style.cellSize
-        val cheight = sqrt(3f) * csize
-        canvas.init((1.5f * (grid.size - 1) + 2) * csize + style.stroke.lineWidth,
+        val cheight = sqrt(3.0) * csize
+        canvas.init((1.5 * (grid.size - 1) + 2) * csize + style.stroke.lineWidth,
                 cheight * maxRow + style.stroke.lineWidth)
 
         // Draw the background
         if (style.backgroundColor != null) {
             canvas.color = style.backgroundColor
-            canvas.drawRect(0f, 0f, canvas.width, canvas.height, true)
+            canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
 
         // Draw the maze
         // Without going into details, only half the sides are drawn
         // for each cell except the bottommost and rightmost cells.
-        val offset = style.stroke.lineWidth / 2
+        val offset = style.stroke.lineWidth / 2.0
         canvas.translate = Point(offset, offset)
         canvas.color = style.color
         canvas.stroke = style.stroke
         var cx = csize
         for (x in 0 until grid.size) {
-            var cy = (rowOffsets[x] - minTop + (grid.size - x - 1) / 2f + 0.5f) * cheight
+            var cy = (rowOffsets[x] - minTop + (grid.size - x - 1) / 2.0 + 0.5) * cheight
             for (y in 0 until grid[x].size) {
                 val cell = grid[x][y]
 
@@ -154,7 +154,7 @@ class SigmaMaze(width: Int, height: Int, shape: Shape) :
 
                 cy += cheight
             }
-            cx += 1.5f * csize
+            cx += 1.5 * csize
         }
 
         // Draw the solution
@@ -165,8 +165,8 @@ class SigmaMaze(width: Int, height: Int, shape: Shape) :
             val points = LinkedList<Point>()
             for (cell in solution!!) {
                 val pos = cell.position as Position2D
-                val px = (1.5f * pos.x + 1f) * csize
-                val py = (pos.y - minTop + (grid.size - pos.x - 1) / 2f + 0.5f) * cheight
+                val px = (1.5 * pos.x + 1.0) * csize
+                val py = (pos.y - minTop + (grid.size - pos.x - 1) / 2.0 + 0.5) * cheight
                 points.add(Point(px, py))
             }
             canvas.drawPolyline(points)

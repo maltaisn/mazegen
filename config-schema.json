@@ -254,6 +254,12 @@
           "default": 3,
           "exclusiveMinimum": 0
         },
+        "strokeCap": {
+          "type": "string",
+          "description": "Stroke cap for drawing the maze and the solution",
+          "enum": ["butt", "round", "square"],
+          "default": "round"
+        },
         "antialiasing": {
           "type": "boolean",
           "title": "Whether to use antialiasing or not when drawing the maze",

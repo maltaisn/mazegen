@@ -29,7 +29,7 @@ package com.maltaisn.mazegen.render
 /**
  * 2D point with double coordinates.
  */
-open class Point(val x: Float, val y: Float) {
+open class Point(val x: Double, val y: Double) {
 
     private var hash = 0
 

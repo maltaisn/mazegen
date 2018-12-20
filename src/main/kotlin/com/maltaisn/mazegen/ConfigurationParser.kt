@@ -249,10 +249,10 @@ class ConfigurationParser {
                     sizeJson as JSONObject
                     radius = sizeJson.getInt(KEY_MAZE_SIZE_RADIUS)
                     if (sizeJson.has(KEY_MAZE_SIZE_CENTER_RADIUS)) {
-                        centerRadius = sizeJson.getFloat(KEY_MAZE_SIZE_CENTER_RADIUS)
+                        centerRadius = sizeJson.getDouble(KEY_MAZE_SIZE_CENTER_RADIUS)
                     }
                     if (sizeJson.has(KEY_MAZE_SIZE_SUBDIVISION)) {
-                        subdivision = sizeJson.getFloat(KEY_MAZE_SIZE_SUBDIVISION)
+                        subdivision = sizeJson.getDouble(KEY_MAZE_SIZE_SUBDIVISION)
                     }
                 }
                 arrayOf(radius, centerRadius, subdivision)
@@ -336,7 +336,7 @@ class ConfigurationParser {
             }
 
             // SVG format settings
-            if (from.has(KEY_OUTPUT_SVG_PRECISION)) {
+            if (from.has(KEY_OUTPUT_SVG_OPTIMIZE)) {
                 svgOptimize = from.getBoolean(KEY_OUTPUT_SVG_OPTIMIZE)
             }
             if (from.has(KEY_OUTPUT_SVG_PRECISION)) {
@@ -357,11 +357,12 @@ class ConfigurationParser {
         var strokeWidth = DEFAULT_STYLE_STROKE_WIDTH
         var solutionColor = DEFAULT_STYLE_SOLUTION_COLOR
         var solutionStrokeWidth = DEFAULT_STYLE_SOLUTION_STROKE_WIDTH
+        var strokeCap = DEFAULT_STYLE_STROKE_CAP
         var antialiasing = DEFAULT_STYLE_ANTIALIASING
 
         if (from != null) {
             if (from.has(KEY_STYLE_CELL_SIZE)) {
-                cellSize = from.getFloat(KEY_STYLE_CELL_SIZE)
+                cellSize = from.getDouble(KEY_STYLE_CELL_SIZE)
             }
             if (from.has(KEY_STYLE_BACKGROUND_COLOR)) {
                 backgroundColor = Canvas.parseColor(
@@ -379,6 +380,15 @@ class ConfigurationParser {
             if (from.has(KEY_STYLE_SOLUTION_COLOR)) {
                 solutionColor = Canvas.parseColor(from.getString(KEY_STYLE_SOLUTION_COLOR))
             }
+            if (from.has(KEY_STYLE_STROKE_CAP)) {
+                val capStr = from.getString(KEY_STYLE_STROKE_CAP)
+                strokeCap = when (capStr.toLowerCase()) {
+                    "butt" -> BasicStroke.CAP_BUTT
+                    "round" -> BasicStroke.CAP_ROUND
+                    "square" -> BasicStroke.CAP_SQUARE
+                    else -> throw ParameterException("Invalid stroke cap '$capStr'.")
+                }
+            }
             if (from.has(KEY_STYLE_ANTIALIASING)) {
                 antialiasing = from.getBoolean(KEY_STYLE_ANTIALIASING)
             }
@@ -389,8 +399,8 @@ class ConfigurationParser {
             backgroundColor = null
         }
 
-        val stroke = BasicStroke(strokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
-        val solutionStroke = BasicStroke(solutionStrokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+        val stroke = BasicStroke(strokeWidth, strokeCap, BasicStroke.JOIN_ROUND)
+        val solutionStroke = BasicStroke(solutionStrokeWidth, strokeCap, BasicStroke.JOIN_ROUND)
 
         return Configuration.Style(cellSize, backgroundColor, color,
                 stroke, solutionColor, solutionStroke, antialiasing)
@@ -440,8 +450,8 @@ class ConfigurationParser {
         private val DEFAULT_MAZE_ALGORITHM_BRAID: Maze.Braiding? = null
         private val DEFAULT_MAZE_TYPE = OrthogonalMaze::class
         private val DEFAULT_MAZE_SHAPE = BaseShapedMaze.Shape.RECTANGLE
-        private const val DEFAULT_MAZE_SIZE_CENTER_RADIUS = 1f
-        private const val DEFAULT_MAZE_SIZE_SUBDIVISION = 1.5f
+        private const val DEFAULT_MAZE_SIZE_CENTER_RADIUS = 1.0
+        private const val DEFAULT_MAZE_SIZE_SUBDIVISION = 1.5
         private const val DEFAULT_MAZE_SIZE_MAX_WEAVE = 1
         private const val DEFAULT_MAZE_SOLVE = false
 
@@ -465,14 +475,16 @@ class ConfigurationParser {
         private const val KEY_STYLE_STROKE_WIDTH = "strokeWidth"
         private const val KEY_STYLE_SOLUTION_COLOR = "solutionColor"
         private const val KEY_STYLE_SOLUTION_STROKE_WIDTH = "solutionStrokeWidth"
+        private const val KEY_STYLE_STROKE_CAP = "strokeCap"
         private const val KEY_STYLE_ANTIALIASING = "antialiasing"
 
-        private const val DEFAULT_STYLE_CELL_SIZE = 30f
+        private const val DEFAULT_STYLE_CELL_SIZE = 30.0
         private val DEFAULT_STYLE_BACKGROUND_COLOR = Canvas.parseColor("#00FFFFFF")
         private val DEFAULT_STYLE_COLOR = Color.BLACK!!
         private const val DEFAULT_STYLE_STROKE_WIDTH = 3f
         private val DEFAULT_STYLE_SOLUTION_COLOR = Color.BLUE!!
         private const val DEFAULT_STYLE_SOLUTION_STROKE_WIDTH = 3f
+        private const val DEFAULT_STYLE_STROKE_CAP = BasicStroke.CAP_ROUND
         private const val DEFAULT_STYLE_ANTIALIASING = true
     }
 

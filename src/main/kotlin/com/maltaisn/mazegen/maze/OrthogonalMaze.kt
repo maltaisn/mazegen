@@ -57,13 +57,13 @@ open class OrthogonalMaze(width: Int, height: Int) :
         // Draw the background
         if (style.backgroundColor != null) {
             canvas.color = style.backgroundColor
-            canvas.drawRect(0f, 0f, canvas.width, canvas.height, true)
+            canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
 
         // Draw the maze
         // For each cell, only the north and west walls are drawn if they are set,
         // except for the last row and column where to south and east walls are also drawn.
-        val offset = style.stroke.lineWidth / 2
+        val offset = style.stroke.lineWidth / 2.0
         canvas.translate = Point(offset, offset)
         canvas.color = style.color
         canvas.stroke = style.stroke
@@ -91,8 +91,8 @@ open class OrthogonalMaze(width: Int, height: Int) :
             val points = LinkedList<Point>()
             for (cell in solution!!) {
                 val pos = cell.position as Position2D
-                val px = (pos.x + 0.5f) * csive
-                val py = (pos.y + 0.5f) * csive
+                val px = (pos.x + 0.5) * csive
+                val py = (pos.y + 0.5) * csive
                 points.add(Point(px, py))
             }
             canvas.drawPolyline(points)

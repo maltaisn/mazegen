@@ -94,7 +94,7 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
             }
         }
 
-    override fun init(width: Float, height: Float) {
+    override fun init(width: Double, height: Double) {
         super.init(width, height)
 
         val type = if (format == OutputFormat.PNG) {
@@ -113,8 +113,8 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
         translate = translate
     }
 
-    override fun drawLine(x1: Float, y1: Float, x2: Float, y2: Float) {
-        graphics.draw(Line2D.Float(x1, y1, x2, y2))
+    override fun drawLine(x1: Double, y1: Double, x2: Double, y2: Double) {
+        graphics.draw(Line2D.Double(x1, y1, x2, y2))
     }
 
     override fun drawPolyline(points: LinkedList<Point>) {
@@ -129,14 +129,14 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
         graphics.drawPolyline(xPoints, yPoints, points.size)
     }
 
-    override fun drawArc(x: Float, y: Float, rx: Float, ry: Float,
+    override fun drawArc(x: Double, y: Double, rx: Double, ry: Double,
                          start: Double, extent: Double) {
-        graphics.draw(Arc2D.Float(x - rx, y - ry, 2 * rx, 2 * ry,
-                Math.toDegrees(start).toFloat(), Math.toDegrees(extent).toFloat(), Arc2D.OPEN))
+        graphics.draw(Arc2D.Double(x - rx, y - ry, 2 * rx, 2 * ry,
+                Math.toDegrees(start), Math.toDegrees(extent), Arc2D.OPEN))
     }
 
-    override fun drawRect(x: Float, y: Float, width: Float, height: Float, filled: Boolean) {
-        val rect = Rectangle2D.Float(x, y, width, height)
+    override fun drawRect(x: Double, y: Double, width: Double, height: Double, filled: Boolean) {
+        val rect = Rectangle2D.Double(x, y, width, height)
         if (filled) {
             graphics.draw(rect)
         } else {

@@ -111,18 +111,18 @@ class DeltaMaze(width: Int, height: Int, shape: Shape) :
         }
 
         val csive = style.cellSize
-        val cheight = sqrt(3f) / 2 * csive
-        canvas.init((grid.size / 2f + 0.5f) * csive + style.stroke.lineWidth,
+        val cheight = sqrt(3.0) / 2 * csive
+        canvas.init((grid.size / 2.0 + 0.5) * csive + style.stroke.lineWidth,
                 maxHeight * cheight + style.stroke.lineWidth)
 
         // Draw the background
         if (style.backgroundColor != null) {
             canvas.color = style.backgroundColor
-            canvas.drawRect(0f, 0f, canvas.width, canvas.height, true)
+            canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
 
         // Draw the maze
-        val offset = style.stroke.lineWidth / 2
+        val offset = style.stroke.lineWidth / 2.0
         canvas.translate = Point(offset, offset)
         canvas.color = style.color
         canvas.stroke = style.stroke
@@ -170,8 +170,8 @@ class DeltaMaze(width: Int, height: Int, shape: Shape) :
             for (cell in solution!!) {
                 val pos = cell.position as Position2D
                 val flatTopped = (pos.x + pos.y) % 2 == 0
-                val px = (pos.x + 1f) * csive / 2f
-                val py = (pos.y + (if (flatTopped) 1 else 2) / 3f) * cheight
+                val px = (pos.x + 1.0) * csive / 2.0
+                val py = (pos.y + (if (flatTopped) 1 else 2) / 3.0) * cheight
                 points.add(Point(px, py))
             }
             canvas.drawPolyline(points)
