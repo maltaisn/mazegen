@@ -1,6 +1,13 @@
 # Maze generator
 Advanced maze generator supporting many different maze types and generation algorithms, configurable in JSON. Mazes can be solved with the A* algorithm, braided, and exported to PNG, JPG, BMP, GIF or SVG.
 
+### Usage
+Just drag-and-drop the configuration file to the executable file or by command line:
+```text
+mazegen config-file [additional-config-files...]
+java -jar mazegen.jar config-file [additional-config-files...]
+```
+
 ### Download
 Coming soon...
 

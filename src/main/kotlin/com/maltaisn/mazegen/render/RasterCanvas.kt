@@ -25,7 +25,6 @@
 
 package com.maltaisn.mazegen.render
 
-import javafx.scene.shape.Polyline
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
@@ -120,7 +119,6 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
     override fun drawPolyline(points: LinkedList<Point>) {
         val xPoints = IntArray(points.size)
         val yPoints = IntArray(points.size)
-        Polyline()
         for (i in 0 until points.size) {
             val point = points[i]
             xPoints[i] = point.x.toInt()

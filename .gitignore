@@ -1,5 +1,7 @@
 out/
+bin/
+.idea/
 META-INF/
-.idea
-todo.txt
 *.iml
+todo.txt
+launch4j-config.xml
