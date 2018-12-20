@@ -1,7 +1,10 @@
-#Maze generator
+# Maze generator
 Advanced maze generator supporting many different maze types and generation algorithms, configurable in JSON. Mazes can be solved with the A* algorithm, braided, and exported to PNG, JPG, BMP, GIF or SVG.
 
-##Maze types
+### Download
+Coming soon...
+
+## Maze types
 - **Orthogonal**: normal maze type, square cells.<br>
 <img src="mazes\orthogonal_rb.png" alt="Orthogonal with Recursive Backtracker" height="200px"/> <img src="mazes\orthogonal_pr.png" alt="Orthogonal with Prim's" height="200px"/>
     - **Weave**: variation that allows passages to go over and under others.<br><img src="mazes\weaveOrthogonal_rb.png" alt="Weave orthogonal with Recursive Backtracker" height="200px"/>
@@ -12,7 +15,7 @@ Advanced maze generator supporting many different maze types and generation algo
 - **Upsilon**: octogon and square cells.<br><img src="mazes\upsilon_rb.png" alt="Upsilon with Recursive Backtracker" height="200px"/> <img src="mazes\upsilon_wi.png" alt="Upsilon with Wilson's" height="200px"/>
 - **Zeta**: like orthogonal but allows diagonal passages.<br><img src="mazes\zeta_rb.png" alt="Zeta with Recursive Backtracker" height="200px"/> <img src="mazes\zeta_pr.png" alt="Zeta with Prim's" height="200px"/>
 
-##Generators
+## Generators
  Name | Supported maze types | Definition | Example
 :---: | :------------------: | ---------  | -------
 **Aldous-Broder's** | All | Performs a random walk, connecting the cells walked to if they were unvisited, until all cells are visited | <img src="mazes\orthogonal_ab.png" width="400px"/>
@@ -27,7 +30,7 @@ Advanced maze generator supporting many different maze types and generation algo
 **Sidewinder** | Orthogonal | For each cell in each row, randomly carve passage east or north | <img src="mazes\orthogonal_sw.png" width="400px"/>
 **Wilson's** | All but zeta and weave orthogonal | Similar to Aldous-Broder's. Performs a random walk until a visited cell is found. Carve the path used to get there and mark the cells as visited. Start walking again from a random cell. | <img src="mazes\orthogonal_wi.png" width="400px"/>
 
-##Configuration
+## Configuration
 The generator is configured with a JSON file. There are many attributes but most of them are optional. In fact, here's the minimal configuration file:
 ```json
 {"mazes": [{"size": 10}]}
@@ -71,7 +74,7 @@ This will generate a 10x10 orthogonal maze with Aldous-Broder's algorithm, expor
 
 More examples of configuration file are available at [`/mazes/config/`](mazes/config).
 
-####Attributes
+#### Attributes
 - **`maze`** (*required*): array of maze set objects. A maze set is a group of mazes with the same properties, each with the following attributes
     - `name`: name of the set and of the file to be exported. Default is `maze`.
     - `count`: number of mazes to generate for this set. Default is `1`.
@@ -111,7 +114,7 @@ More examples of configuration file are available at [`/mazes/config/`](mazes/co
     - `strokeCap`: the stroke cap, one of `butt`, `round` or `square`. Default is `round`.
     - `antialiasing`: whether to use antialiasing or not. Default is `true`.
 
-####JSON schema and validation
+#### JSON schema and validation
 A JSON schema file is available from [`config-schema.json`](config-schema.json) for autocomplete and basic validation. The maze generator itself validates that parameters have a valid value by printing `ERROR: ...`. However, JSON exceptions for wrong types and missing attributes are not caught.
 
 ## Changelog

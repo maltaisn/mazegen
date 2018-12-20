@@ -1,4 +1,4 @@
-##v1.0.0
+## v1.0.0
 - Initial release
 - JSON configuration with schema
 - 7 maze types:

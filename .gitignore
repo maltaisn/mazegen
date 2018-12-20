@@ -1,4 +1,5 @@
 out/
+META-INF/
 .idea
 todo.txt
 *.iml
