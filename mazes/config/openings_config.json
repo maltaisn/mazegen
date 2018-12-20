@@ -1,0 +1,50 @@
+{
+  "_comment": "Configuration file showing common position of openings in different maze types. For most mazes, a specific position like the center of a side or a corner will require using coordinates rather than 'S', 'C' and 'E' relative coordinates.",
+  "mazes": [
+    {
+      "_comment": "Orthogonal maze with openings on all sides and corners. In order, center, top-left corner, top-right corner, bottom-left corner, bottom-right corner, top side, right side, bottom side, left side. The same openings produce the same position in weaveOrthogonal, unicursalOrthogonal, upsilon and zeta mazes too.",
+      "name": "orthogonal",
+      "type": "orthogonal",
+      "size": 21,
+      "openings": [
+        ["C", "C"],
+        ["S", "S"], ["E", "S"], ["S", "E"], ["E", "E"],
+        [10, 0], [10, 20], [0, 10], [20, 10]
+      ]
+    },
+    {
+      "_comment": "Triangle-shaped delta maze with openings on all sides and corners. In order, center, top-left corner, top-right corner, bottom corner, top side, left side, right side. This is similar for sigma mazes.",
+      "name": "delta_triangle",
+      "type": "delta",
+      "size": 21,
+      "shape": "triangle",
+      "openings": [
+        ["C", 6],
+        ["S", "S"], ["C", "E"], ["E", "S"],
+        ["C", "S"], [10, 10], [30, 10]
+      ]
+    },
+    {
+      "_comment": "Hexagon-shaped delta maze with openings on all sides and corners. In order, center, west corner, north-west corner, north corner, north-east corner, east corner, south-east corner, south corner, south-west corner, north-west side, north side, north-east side, south-east side, south side, south-west side. This is similar for sigma mazes.",
+      "name": "delta_hexagon",
+      "type": "delta",
+      "size": 11,
+      "shape": "hexagon",
+      "openings": [
+        ["C", "C"],
+        ["S", "S"], [10, "S"], [32, "S"], ["E", "S"], [32, "E"], [10, "E"],
+        [5, "S"], [21, "S"], [37, "S"], [37, "E"], [21, "E"], [5, "E"]
+      ]
+    },
+    {
+      "_comment": "Theta maze with openings at every 90 degrees on the outer row. In order, center, 0 deg, 90 deg, 180 deg, 270 deg.",
+      "name": "theta",
+      "type": "theta",
+      "size": 10,
+      "openings": [
+        ["S", "S"],
+        ["S", "E"], ["C", "E"], [12, "E"], [36, "E"]
+      ]
+    }
+  ]
+}

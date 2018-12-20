@@ -104,7 +104,7 @@ abstract class Maze {
         val cell = getOpeningCell(opening)
         if (cell != null) {
             if (openings.contains(cell)) {
-                throw ParameterException("Duplicate opening.")
+                throw ParameterException("Duplicate opening for position ${cell.position}.")
             }
 
             for (side in cell.getAllSides()) {

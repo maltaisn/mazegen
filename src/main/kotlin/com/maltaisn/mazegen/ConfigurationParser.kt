@@ -93,11 +93,13 @@ class ConfigurationParser {
         val algorithmJson = if (from.has(KEY_MAZE_ALGORITHM))
             from.get(KEY_MAZE_ALGORITHM) else null
         var algorithm = DEFAULT_MAZE_ALGORITHM
-        if (algorithmJson is String) {
-            algorithm = algorithmJson
-        } else {
-            if ((algorithmJson as JSONObject).has(KEY_MAZE_ALGORITHM_NAME)) {
-                algorithm = algorithmJson.getString(KEY_MAZE_ALGORITHM_NAME)
+        if (algorithmJson != null) {
+            if (algorithmJson is String) {
+                algorithm = algorithmJson
+            } else {
+                if ((algorithmJson as JSONObject).has(KEY_MAZE_ALGORITHM_NAME)) {
+                    algorithm = algorithmJson.getString(KEY_MAZE_ALGORITHM_NAME)
+                }
             }
         }
         val generator = when (algorithm.toLowerCase()) {
@@ -207,8 +209,14 @@ class ConfigurationParser {
                     height = sizeJson
                 } else {
                     sizeJson as JSONObject
-                    width = sizeJson.getInt(KEY_MAZE_SIZE_WIDTH)
-                    height = sizeJson.getInt(KEY_MAZE_SIZE_HEIGHT)
+                    if (sizeJson.has(KEY_MAZE_SIZE)) {
+                        val size = sizeJson.getInt(KEY_MAZE_SIZE)
+                        width = size
+                        height = size
+                    } else {
+                        width = sizeJson.getInt(KEY_MAZE_SIZE_WIDTH)
+                        height = sizeJson.getInt(KEY_MAZE_SIZE_HEIGHT)
+                    }
                 }
 
                 if (type == UnicursalOrthogonalMaze::class) {
@@ -234,8 +242,14 @@ class ConfigurationParser {
                                 "delta and sigma mazes, size must be an integer.")
                     }
                     sizeJson as JSONObject
-                    width = sizeJson.getInt(KEY_MAZE_SIZE_WIDTH)
-                    height = sizeJson.getInt(KEY_MAZE_SIZE_HEIGHT)
+                    if (sizeJson.has(KEY_MAZE_SIZE)) {
+                        val size = sizeJson.getInt(KEY_MAZE_SIZE)
+                        width = size
+                        height = size
+                    } else {
+                        width = sizeJson.getInt(KEY_MAZE_SIZE_WIDTH)
+                        height = sizeJson.getInt(KEY_MAZE_SIZE_HEIGHT)
+                    }
                 }
                 arrayOf(width, height, shape)
             }
@@ -266,8 +280,14 @@ class ConfigurationParser {
                     height = sizeJson
                 } else {
                     sizeJson as JSONObject
-                    width = sizeJson.getInt(KEY_MAZE_SIZE_WIDTH)
-                    height = sizeJson.getInt(KEY_MAZE_SIZE_HEIGHT)
+                    if (sizeJson.has(KEY_MAZE_SIZE)) {
+                        val size = sizeJson.getInt(KEY_MAZE_SIZE)
+                        width = size
+                        height = size
+                    } else {
+                        width = sizeJson.getInt(KEY_MAZE_SIZE_WIDTH)
+                        height = sizeJson.getInt(KEY_MAZE_SIZE_HEIGHT)
+                    }
                     if (sizeJson.has(KEY_MAZE_SIZE_MAX_WEAVE)) {
                         maxWeave = sizeJson.getInt(KEY_MAZE_SIZE_MAX_WEAVE)
                     }

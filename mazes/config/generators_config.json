@@ -1,0 +1,16 @@
+{
+  "_comment": "Configuration file for an orthogonal maze generated using every generator.",
+  "mazes": [
+    {"name": "orthogonal_ab", "algorithm": "ab", "size": 10},
+    {"name": "orthogonal_bt", "algorithm": {"name": "bt", "bias": "ne"}, "size": 10},
+    {"name": "orthogonal_el", "algorithm": {"name": "el", "bias": ["50%", "50%"]}, "size": 10},
+    {"name": "orthogonal_gt", "algorithm": {"name": "gt", "weights": [1, 1, 0]}, "size": 10},
+    {"name": "orthogonal_hk", "algorithm": "hk", "size": 10},
+    {"name": "orthogonal_kr", "algorithm": "kr", "size": 10},
+    {"name": "orthogonal_pr", "algorithm": "pr", "size": 10},
+    {"name": "orthogonal_rb", "algorithm": "rb", "size": 10},
+    {"name": "orthogonal_rd", "algorithm": "rd", "size": 10},
+    {"name": "orthogonal_sw", "algorithm": "sw", "size": 10},
+    {"name": "orthogonal_wi", "algorithm": "wi", "size": 10}
+  ]
+}

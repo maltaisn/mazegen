@@ -1,0 +1,56 @@
+{
+  "_comment": "Configuration file showing all attributes",
+  "mazes": [
+    {
+      "name": "orthogonal_el",
+      "type": "orthogonal",
+      "size": 30,
+      "algorithm": {
+        "name": "el",
+        "bias": ["75%", "25%"]
+      },
+      "braid": "50%",
+      "openings": [["S", "S"], ["E", "E"]],
+      "solve": true
+    },
+    {
+      "name": "delta_gt",
+      "type": "delta",
+      "size": {
+        "width": 50,
+        "height": 30
+      },
+      "shape": "rhombus",
+      "algorithm": {
+        "name": "gt",
+        "weights":  [2, 1, 1]
+      }
+    },
+    {
+      "name": "theta_rb",
+      "type": "theta",
+      "size": {
+        "radius": 20,
+        "centerRadius": 8,
+        "subdivision": 2
+      },
+      "algorithm": "rb"
+    }
+  ],
+  "output": {
+    "format": "svg",
+    "path": "mazes/config",
+    "svgOptimize": true,
+    "svgPrecision": 3
+  },
+  "style": {
+    "cellSize": 10,
+    "backgroundColor": "#00FFFFFF",
+    "color": "#000000",
+    "strokeWidth": 1,
+    "solutionColor": "#55FF55",
+    "solutionStrokeWidth": 1,
+    "strokeCap": "square",
+    "antialiasing": false
+  }
+}

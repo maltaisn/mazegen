@@ -14,6 +14,10 @@
     "colorString": {
       "type": "string",
       "pattern": "^#(?:[0-9A-Fa-f]{2}){3,4}$"
+    },
+    "comment": {
+      "type": "string",
+      "description": "Any comment"
     }
   },
   "type": "object",
@@ -135,10 +139,33 @@
                     "default": [1, 1, 0]
                   },
                   "bias": {
-                    "type": "string",
-                    "enum": ["ne", "nw", "se", "sw"],
-                    "description": "Side bias setting for the binary tree algorithm.",
-                    "default": "ne"
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "enum": ["ne", "nw", "se", "sw"],
+                        "description": "Side bias setting for the binary tree algorithm.",
+                        "default": "ne"
+                      },
+                      {
+                        "type": "array",
+                        "items": [
+                          {
+                            "type": "string",
+                            "description": "Horizontal bias, percentage from 0 to 100%",
+                            "pattern": "^\\d*(\\.\\d)?\\d*%$",
+                            "default": "50%"
+                          },
+                          {
+                            "type": "string",
+                            "description": "Vertical bias, percentage from 0 to 100%",
+                            "pattern": "^\\d*(\\.\\d)?\\d*%$",
+                            "default": "50%"
+                          }
+                        ],
+                        "default": ["50%", "50%"],
+                        "additionalItems": false
+                      }
+                    ]
                   }
                 },
                 "additionalProperties": false
@@ -172,7 +199,8 @@
             "type": "boolean",
             "description": "Whether to show a solution for a maze or not.",
             "default": false
-          }
+          },
+          "_comment":{"$ref": "#/definitions/comment"}
         },
         "additionalProperties": false
       },
@@ -204,7 +232,8 @@
           "default": 2,
           "minimum": 0,
           "maximum": 10
-        }
+        },
+        "_comment":{"$ref": "#/definitions/comment"}
       },
       "additionalProperties": false
     },
@@ -264,10 +293,12 @@
           "type": "boolean",
           "title": "Whether to use antialiasing or not when drawing the maze",
           "default": true
-        }
+        },
+        "_comment":{"$ref": "#/definitions/comment"}
       },
       "additionalProperties": false
-    }
+    },
+    "_comment":{"$ref": "#/definitions/comment"}
   },
   "additionalProperties": false
 }

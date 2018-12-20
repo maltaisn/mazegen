@@ -1,0 +1,13 @@
+{
+  "_comment": "Configuration file showing the effect of the subdivision attribute on theta mazes.",
+  "mazes": [
+    {"name": "theta_sd10", "type": "theta", "size": {"radius": 20, "subdivision": 1.0}},
+    {"name": "theta_sd15", "type": "theta", "size": {"radius": 20, "subdivision": 1.5}},
+    {"name": "theta_sd20", "type": "theta", "size": {"radius": 20, "subdivision": 2.0}},
+    {"name": "theta_sd25", "type": "theta", "size": {"radius": 20, "subdivision": 2.5}},
+    {"name": "theta_sd30", "type": "theta", "size": {"radius": 20, "subdivision": 3.0}},
+    {"name": "theta_sd35", "type": "theta", "size": {"radius": 20, "subdivision": 3.5}},
+    {"name": "theta_sd40", "type": "theta", "size": {"radius": 20, "subdivision": 4.0}},
+    {"name": "theta_sd70", "type": "theta", "size": {"radius": 50, "subdivision": 7.0}}
+  ]
+}
