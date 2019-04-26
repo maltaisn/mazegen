@@ -69,26 +69,25 @@ class ThetaCell(override val maze: ThetaMaze,
         }
     }
 
-    override val accessibleNeighbors: MutableList<ThetaCell>
-        get() {
-            val list = mutableListOf<ThetaCell>()
-            for (side in allSides) {
-                if (side == Side.OUT) {
-                    // There can be many cells in this direction, check them all.
-                    for (neighbor in outwardCells) {
-                        if (!neighbor.hasSide(Side.IN)) {
-                            list.add(neighbor)
-                        }
-                    }
-                } else if (!hasSide(side)) {
-                    val neighbor = getCellOnSide(side)
-                    if (neighbor != null) {
+    override fun findAccessibleNeighbors(): MutableList<ThetaCell> {
+        val list = mutableListOf<ThetaCell>()
+        for (side in allSides) {
+            if (side == Side.OUT) {
+                // There can be many cells in this direction, check them all.
+                for (neighbor in outwardCells) {
+                    if (!neighbor.hasSide(Side.IN)) {
                         list.add(neighbor)
                     }
                 }
+            } else if (!hasSide(side)) {
+                val neighbor = getCellOnSide(side)
+                if (neighbor != null) {
+                    list.add(neighbor)
+                }
             }
-            return list
         }
+        return list
+    }
 
     override fun hasSide(side: Cell.Side): Boolean {
         if (side == Side.OUT && outwardCells.isNotEmpty()) {

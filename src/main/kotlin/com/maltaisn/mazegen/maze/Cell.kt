@@ -39,7 +39,7 @@ abstract class Cell(open val maze: Maze, open val position: Position) {
     /**
      * Cell can be marked as visited by a generator.
      */
-    var visited: Boolean = false
+    var visited = false
 
     /**
      * The cell value encoding which sides are set. Bit field of [Side] values.
@@ -65,19 +65,18 @@ abstract class Cell(open val maze: Maze, open val position: Position) {
      * Returns a list of neighbor cells than are accessible from this cell,
      * meaning the wall they share with this cell is not set.
      */
-    open val accessibleNeighbors: MutableList<out Cell>
-        get() {
-            val list = mutableListOf<Cell>()
-            for (side in allSides) {
-                if (!hasSide(side)) {
-                    val neighbor = getCellOnSide(side)
-                    if (neighbor != null) {
-                        list.add(neighbor)
-                    }
+    open fun findAccessibleNeighbors(): MutableList<out Cell> {
+        val list = mutableListOf<Cell>()
+        for (side in allSides) {
+            if (!hasSide(side)) {
+                val neighbor = getCellOnSide(side)
+                if (neighbor != null) {
+                    list.add(neighbor)
                 }
             }
-            return list
         }
+        return list
+    }
 
     /**
      * Returns the neighbor cell on the [side] of the cell.

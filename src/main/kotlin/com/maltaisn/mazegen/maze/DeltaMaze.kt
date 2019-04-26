@@ -49,6 +49,7 @@ class DeltaMaze(width: Int, height: Int, shape: Shape) :
      */
     override val rowOffsets: IntArray
 
+
     init {
         var gridWith = width * 2 - 1
         val rowsForColumn: (column: Int) -> Int

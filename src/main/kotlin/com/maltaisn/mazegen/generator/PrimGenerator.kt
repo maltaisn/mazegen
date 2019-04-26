@@ -52,7 +52,7 @@ class PrimGenerator : Generator() {
 
         maze.fillAll()
 
-        val initialCell = maze.randomCell
+        val initialCell = maze.getRandomCell()
         initialCell.visited = true
         val set = mutableSetOf(initialCell)
         do {

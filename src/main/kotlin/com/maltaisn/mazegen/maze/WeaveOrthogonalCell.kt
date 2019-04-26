@@ -61,26 +61,25 @@ class WeaveOrthogonalCell(override val maze: WeaveOrthogonalMaze,
             return field
         }
 
-    override val accessibleNeighbors: MutableList<WeaveOrthogonalCell>
-        get() {
-            val list = mutableListOf<WeaveOrthogonalCell>()
-            for (side in allSides) {
-                var pos = position
-                for (i in 0..maze.maxWeave) {
-                    pos += side.relativePos
-                    val cell = maze.cellAt(pos)
-                    if (cell == null || i == 0 && hasSide(side)) {
-                        // Reached maze border or this cell has a wall: there's no neighbors on this side.
-                        break
-                    } else if (!cell.hasTunnel || !cell.hasSide(side)) {
-                        // First cell that is not a tunnel, this is the neighbor on this side.
-                        list.add(cell)
-                        break
-                    }
+    override fun findAccessibleNeighbors(): MutableList<WeaveOrthogonalCell> {
+        val list = mutableListOf<WeaveOrthogonalCell>()
+        for (side in allSides) {
+            var pos = position
+            for (i in 0..maze.maxWeave) {
+                pos += side.relativePos
+                val cell = maze.cellAt(pos)
+                if (cell == null || i == 0 && hasSide(side)) {
+                    // Reached maze border or this cell has a wall: there's no neighbors on this side.
+                    break
+                } else if (!cell.hasTunnel || !cell.hasSide(side)) {
+                    // First cell that is not a tunnel, this is the neighbor on this side.
+                    list.add(cell)
+                    break
                 }
             }
-            return list
         }
+        return list
+    }
 
     override fun connectWith(cell: Cell) {
         cell as WeaveOrthogonalCell

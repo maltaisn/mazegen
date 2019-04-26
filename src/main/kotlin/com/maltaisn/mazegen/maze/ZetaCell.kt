@@ -51,24 +51,23 @@ class ZetaCell(override val maze: ZetaMaze,
             return field
         }
 
-    override val accessibleNeighbors: MutableList<ZetaCell>
-        get() {
-            val list = mutableListOf<ZetaCell>()
-            for (side in allSides) {
-                val cell = getCellOnSide(side) as ZetaCell?
-                if (cell != null) {
-                    if (!hasSide(side) && (!side.isDiagonal || !hasDiagonalPassageOnSide(side))) {
-                        // To be accessible, a cell must be a neighbor and not have the wall on this side.
-                        list.add(cell)
-                    }
-                }
-            }
-            return list
-        }
-
     override val allSides = Side.ALL
 
     override val allSidesValue = Side.ALL_VALUE
+
+    override fun findAccessibleNeighbors(): MutableList<ZetaCell> {
+        val list = mutableListOf<ZetaCell>()
+        for (side in allSides) {
+            val cell = getCellOnSide(side) as ZetaCell?
+            if (cell != null) {
+                if (!hasSide(side) && (!side.isDiagonal || !hasDiagonalPassageOnSide(side))) {
+                    // To be accessible, a cell must be a neighbor and not have the wall on this side.
+                    list.add(cell)
+                }
+            }
+        }
+        return list
+    }
 
     /**
      * Returns true if this cell has a diagonal passage on one of its diagonal [side].

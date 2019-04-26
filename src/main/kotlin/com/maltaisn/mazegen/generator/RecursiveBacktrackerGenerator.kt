@@ -55,7 +55,7 @@ class RecursiveBacktrackerGenerator : Generator() {
         maze.fillAll()
 
         // Get cell on a random starting location
-        var currentCell = maze.randomCell
+        var currentCell = maze.getRandomCell()
         currentCell.visited = true
 
         val stack = LinkedList<Cell>()

@@ -53,7 +53,7 @@ class AldousBroderGenerator : Generator() {
 
         maze.fillAll()
 
-        var currentCell = maze.randomCell
+        var currentCell = maze.getRandomCell()
         currentCell.visited = true
         var remaining = maze.cellCount - 1
         do {

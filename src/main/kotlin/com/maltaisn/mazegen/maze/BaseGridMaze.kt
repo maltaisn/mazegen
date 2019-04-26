@@ -44,24 +44,23 @@ abstract class BaseGridMaze<T : Cell>(val width: Int, val height: Int) : Maze() 
         }
     }
 
-    override val randomCell: T
-        get() = grid[Random.nextInt(grid.size)][Random.nextInt(grid[0].size)]
 
     override val cellCount: Int
         get() = grid.size * grid[0].size
 
-    override val cellList: MutableList<T>
-        get() {
-            val list = mutableListOf<T>()
-            for (x in 0 until grid.size) {
-                for (y in 0 until grid[x].size) {
-                    list.add(grid[x][y])
-                }
+    override val cellList: MutableList<T> by lazy {
+        val list = mutableListOf<T>()
+        for (x in 0 until grid.size) {
+            for (y in 0 until grid[x].size) {
+                list.add(grid[x][y])
             }
-            return list
         }
+        list
+    }
 
     override fun cellAt(pos: Position) = cellAt((pos as Position2D).x, pos.y)
+
+    override fun getRandomCell() = grid[Random.nextInt(grid.size)][Random.nextInt(grid[0].size)]
 
     fun cellAt(x: Int, y: Int): T? = grid.getOrNull(x)?.getOrNull(y)
 

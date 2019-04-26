@@ -54,6 +54,7 @@ abstract class BaseShapedMaze<T : Cell>(val width: Int, height: Int,
      */
     protected abstract val rowOffsets: IntArray
 
+
     init {
         if (width < 1 || height < 1) {
             throw ParameterException("Dimensions must be at least 1.")
@@ -67,34 +68,32 @@ abstract class BaseShapedMaze<T : Cell>(val width: Int, height: Int,
         }
     }
 
-    override val randomCell: T
-        get() {
-            val x = Random.nextInt(grid.size)
-            return grid[x][Random.nextInt(grid[x].size)]
-        }
 
-    override val cellCount: Int
-        get() {
-            var count = 0
-            for (x in 0 until grid.size) {
-                count += grid[x].size
-            }
-            return count
+    override val cellCount: Int by lazy {
+        var count = 0
+        for (x in 0 until grid.size) {
+            count += grid[x].size
         }
+        count
+    }
 
-    override val cellList: MutableList<T>
-        get() {
-            val list = mutableListOf<T>()
-            for (x in 0 until grid.size) {
-                for (y in 0 until grid[x].size) {
-                    list.add(grid[x][y])
-                }
+    override val cellList: MutableList<T> by lazy {
+        val list = mutableListOf<T>()
+        for (x in 0 until grid.size) {
+            for (y in 0 until grid[x].size) {
+                list.add(grid[x][y])
             }
-            return list
         }
+        list
+    }
 
     override fun cellAt(pos: Position) =
             cellAt((pos as Position2D).x, pos.y)
+
+    override fun getRandomCell(): Cell {
+        val x = Random.nextInt(grid.size)
+        return grid[x][Random.nextInt(grid[x].size)]
+    }
 
     fun cellAt(x: Int, y: Int): T? {
         if (x < 0 || x >= grid.size) return null

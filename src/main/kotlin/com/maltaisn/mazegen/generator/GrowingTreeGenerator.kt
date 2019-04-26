@@ -104,7 +104,7 @@ class GrowingTreeGenerator : Generator() {
 
         maze.fillAll()
 
-        val initialCell = maze.randomCell
+        val initialCell = maze.getRandomCell()
         initialCell.visited = true
         val list = mutableListOf(initialCell)
         do {

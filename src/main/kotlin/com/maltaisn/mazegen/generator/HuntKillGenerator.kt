@@ -62,7 +62,7 @@ class HuntKillGenerator : Generator() {
         val visitedCells = mutableListOf<Cell>()
 
         // Get and mark the initial cell as visited
-        var currentCell = maze.randomCell
+        var currentCell = maze.getRandomCell()
         currentCell.visited = true
         visitedCells.add(currentCell)
 

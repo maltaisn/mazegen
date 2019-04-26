@@ -79,7 +79,7 @@ class UnicursalOrthogonalMaze(width: Int, height: Int) :
         cells.add(start)
         while (cells.isNotEmpty()) {
             val cell = cells.removeFirst()
-            for (neighbor in cell.accessibleNeighbors) {
+            for (neighbor in cell.findAccessibleNeighbors()) {
                 if (!neighbor.visited) {
                     cells.add(neighbor as OrthogonalCell)
                     neighbor.visited = true

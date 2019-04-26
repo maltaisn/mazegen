@@ -72,6 +72,11 @@ abstract class Maze {
     abstract fun cellAt(pos: Position): Cell?
 
     /**
+     * Returns a random cell in the maze.
+     */
+    abstract fun getRandomCell(): Cell
+
+    /**
      * Call [action] on every cell.
      */
     abstract fun forEachCell(action: (Cell) -> Unit)
@@ -180,7 +185,7 @@ abstract class Maze {
                 return true
             }
 
-            for (neighbor in cell.accessibleNeighbors) {
+            for (neighbor in cell.findAccessibleNeighbors()) {
                 if (!neighbor.visited) {
                     // Add all unvisited neighbors to the nodes list
                     nodes.add(Node(node, neighbor, node.costFromStart + 1,
@@ -247,11 +252,6 @@ abstract class Maze {
     }
 
     /**
-     * Draw the maze to a [canvas] with [style] settings.
-     */
-    abstract fun drawTo(canvas: Canvas, style: Configuration.Style)
-
-    /**
      * Braiding setting for a maze.
      */
     class Braiding {
@@ -298,7 +298,6 @@ abstract class Maze {
         } else {
             "${value.toDouble() * 100}% of deadends"
         }
-
     }
 
     companion object {
