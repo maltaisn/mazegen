@@ -1,7 +1,8 @@
-out/
-bin/
-.idea/
-META-INF/
-*.iml
 todo.txt
+
+build/
+.idea/
+.gradle/
+
+META-INF/
 launch4j-config.xml
