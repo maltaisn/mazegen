@@ -35,20 +35,20 @@ import kotlin.math.absoluteValue
 class WeaveOrthogonalCell(override val maze: WeaveOrthogonalMaze,
                           override val position: Position2D) : Cell(maze, position) {
 
-    override val neighbors = ArrayList<Cell>()
+    override val neighbors = mutableListOf<Cell>()
         get() {
             // If weaving is disabled, neighbors are always the same.
             if (maze.maxWeave == 0 && field.isNotEmpty()) return field
 
             // Neighbors must be found on every call, they depend on other cells connections.
             field.clear()
-            for (side in getAllSides()) {
+            for (side in allSides) {
                 var pos = position
                 for (i in 0..maze.maxWeave) {
                     pos += side.relativePos
                     val cell = maze.cellAt(pos)
                     if (cell != null) {
-                        if (i == 0 || !cell.hasTunnel()) {
+                        if (i == 0 || !cell.hasTunnel) {
                             field.add(cell)
                             if (cell.hasPassagePerpendicularTo(side)) {
                                 continue
@@ -61,26 +61,26 @@ class WeaveOrthogonalCell(override val maze: WeaveOrthogonalMaze,
             return field
         }
 
-
-    override fun getAccessibleNeighbors(): MutableList<WeaveOrthogonalCell> {
-        val list = ArrayList<WeaveOrthogonalCell>()
-        for (side in getAllSides()) {
-            var pos = position
-            for (i in 0..maze.maxWeave) {
-                pos += side.relativePos
-                val cell = maze.cellAt(pos)
-                if (cell == null || i == 0 && hasSide(side)) {
-                    // Reached maze border or this cell has a wall: there's no neighbors on this side.
-                    break
-                } else if (!cell.hasTunnel() || !cell.hasSide(side)) {
-                    // First cell that is not a tunnel, this is the neighbor on this side.
-                    list.add(cell)
-                    break
+    override val accessibleNeighbors: MutableList<WeaveOrthogonalCell>
+        get() {
+            val list = mutableListOf<WeaveOrthogonalCell>()
+            for (side in allSides) {
+                var pos = position
+                for (i in 0..maze.maxWeave) {
+                    pos += side.relativePos
+                    val cell = maze.cellAt(pos)
+                    if (cell == null || i == 0 && hasSide(side)) {
+                        // Reached maze border or this cell has a wall: there's no neighbors on this side.
+                        break
+                    } else if (!cell.hasTunnel || !cell.hasSide(side)) {
+                        // First cell that is not a tunnel, this is the neighbor on this side.
+                        list.add(cell)
+                        break
+                    }
                 }
             }
+            return list
         }
-        return list
-    }
 
     override fun connectWith(cell: Cell) {
         cell as WeaveOrthogonalCell
@@ -111,7 +111,7 @@ class WeaveOrthogonalCell(override val maze: WeaveOrthogonalMaze,
                 maze.cellAt(pos)?.createTunnel()
             }
 
-            cell.value = cell.value and side.opposite().value.inv()
+            cell.value = cell.value and side.opposite.value.inv()
         }
     }
 
@@ -127,7 +127,8 @@ class WeaveOrthogonalCell(override val maze: WeaveOrthogonalMaze,
     /**
      * Returns true if this cell has a tunnel under it.
      */
-    fun hasTunnel(): Boolean = value and Side.TUNNEL == Side.TUNNEL
+    val hasTunnel: Boolean
+        get() = value and Side.TUNNEL == Side.TUNNEL
 
     /**
      * Make this cell a tunnel.
@@ -136,10 +137,9 @@ class WeaveOrthogonalCell(override val maze: WeaveOrthogonalMaze,
         value = value or Side.TUNNEL
     }
 
+    override val allSides = Side.ALL
 
-    override fun getAllSides(): List<Side> = Side.ALL
-
-    override fun getAllSidesValue(): Int = Side.ALL_VALUE
+    override val allSidesValue = Side.ALL_VALUE
 
     /**
      * Enum class for the sides of a weave square cell.
@@ -147,17 +147,19 @@ class WeaveOrthogonalCell(override val maze: WeaveOrthogonalMaze,
     enum class Side(override val value: Int,
                     override val relativePos: Position2D,
                     override val symbol: String) : Cell.Side {
+
         NORTH(1, Position2D(0, -1), "N"),
         EAST(2, Position2D(1, 0), "E"),
         SOUTH(4, Position2D(0, 1), "S"),
         WEST(8, Position2D(-1, 0), "W");
 
-        override fun opposite(): Side = when (this) {
-            NORTH -> SOUTH
-            SOUTH -> NORTH
-            EAST -> WEST
-            WEST -> EAST
-        }
+        override val opposite: Cell.Side
+            get() = when (this) {
+                NORTH -> SOUTH
+                SOUTH -> NORTH
+                EAST -> WEST
+                WEST -> EAST
+            }
 
         companion object {
             /**

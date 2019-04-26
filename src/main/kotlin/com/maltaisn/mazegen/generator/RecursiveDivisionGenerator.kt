@@ -45,8 +45,7 @@ import kotlin.random.Random
  *
  * Runtime complexity is O(n) and memory space is O(n).
  */
-class RecursiveDivisionGenerator : Generator(
-        OrthogonalMaze::class, UnicursalOrthogonalMaze::class) {
+class RecursiveDivisionGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         super.generate(maze)
@@ -123,6 +122,10 @@ class RecursiveDivisionGenerator : Generator(
             }
         }
     }
+
+    override fun isMazeSupported(maze: Maze) =
+            maze is OrthogonalMaze || maze is UnicursalOrthogonalMaze
+
 
     private data class Area(val x: Int, val y: Int, val w: Int, val h: Int)
 

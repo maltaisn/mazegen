@@ -27,7 +27,6 @@ package com.maltaisn.mazegen.maze
 
 import com.maltaisn.mazegen.ParameterException
 import com.maltaisn.mazegen.maze.BaseShapedMaze.Shape
-import java.util.*
 import kotlin.random.Random
 
 
@@ -68,6 +67,31 @@ abstract class BaseShapedMaze<T : Cell>(val width: Int, height: Int,
         }
     }
 
+    override val randomCell: T
+        get() {
+            val x = Random.nextInt(grid.size)
+            return grid[x][Random.nextInt(grid[x].size)]
+        }
+
+    override val cellCount: Int
+        get() {
+            var count = 0
+            for (x in 0 until grid.size) {
+                count += grid[x].size
+            }
+            return count
+        }
+
+    override val cellList: MutableList<T>
+        get() {
+            val list = mutableListOf<T>()
+            for (x in 0 until grid.size) {
+                for (y in 0 until grid[x].size) {
+                    list.add(grid[x][y])
+                }
+            }
+            return list
+        }
 
     override fun cellAt(pos: Position) =
             cellAt((pos as Position2D).x, pos.y)
@@ -77,29 +101,6 @@ abstract class BaseShapedMaze<T : Cell>(val width: Int, height: Int,
         val actualY = y - rowOffsets[x]
         if (actualY < 0 || actualY >= grid[x].size) return null
         return grid[x][actualY]
-    }
-
-    override fun getRandomCell(): T {
-        val x = Random.nextInt(grid.size)
-        return grid[x][Random.nextInt(grid[x].size)]
-    }
-
-    override fun getCellCount(): Int {
-        var count = 0
-        for (x in 0 until grid.size) {
-            count += grid[x].size
-        }
-        return count
-    }
-
-    override fun getAllCells(): MutableList<T> {
-        val list = ArrayList<T>()
-        for (x in 0 until grid.size) {
-            for (y in 0 until grid[x].size) {
-                list.add(grid[x][y])
-            }
-        }
-        return list
     }
 
     override fun forEachCell(action: (Cell) -> Unit) {
@@ -127,10 +128,8 @@ abstract class BaseShapedMaze<T : Cell>(val width: Int, height: Int,
     }
 
 
-    override fun toString(): String {
-        return "[shape: $shape, ${if (shape == Shape.TRIANGLE || shape == Shape.HEXAGON)
-            "size : $width" else "width: $width, height: $height"}]"
-    }
+    override fun toString() = "[shape: $shape, ${if (shape == Shape.TRIANGLE || shape == Shape.HEXAGON)
+        "size : $width" else "width: $width, height: $height"}]"
 
 
     /**

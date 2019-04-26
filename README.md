@@ -9,11 +9,7 @@ java -jar mazegen.jar config-file [additional-config-files...]
 ```
 
 ### Download
-Lastest version:
- - Windows: [`mazegen-v1.0.0.exe`](https://github.com/maltaisn/mazegen/releases/download/v1.0.0/mazegen-v1.0.0.exe).
- - Others: [`mazegen-v1.0.0.jar`](https://github.com/maltaisn/mazegen/releases/download/v1.0.0/mazegen-v1.0.0.jar).
-
-Older versions available at [releases](https://github.com/maltaisn/mazegen/releases).
+See [releases](https://github.com/maltaisn/mazegen/releases).
 
 ## Maze types
 - **Orthogonal**: normal maze type, square cells.<br>

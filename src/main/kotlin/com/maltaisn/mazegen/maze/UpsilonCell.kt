@@ -36,7 +36,7 @@ class UpsilonCell(override val maze: UpsilonMaze,
     override var value: Int = 0
         set(value) {
             // Diagonal sides can't be set on square cells, prevent it.
-            field = value and getAllSidesValue()
+            field = value and allSidesValue
         }
 
     /**
@@ -53,13 +53,13 @@ class UpsilonCell(override val maze: UpsilonMaze,
         return super.getCellOnSide(side)
     }
 
-    override fun getAllSides(): List<Side> = if (isSquare) {
+    override val allSides = if (isSquare) {
         Side.ALL_SQUARE
     } else {
         Side.ALL_OCTOGON
     }
 
-    override fun getAllSidesValue(): Int = if (isSquare) {
+    override val allSidesValue = if (isSquare) {
         Side.ALL_SQUARE_VALUE
     } else {
         Side.ALL_OCTOGON_VALUE
@@ -72,6 +72,7 @@ class UpsilonCell(override val maze: UpsilonMaze,
                     override val relativePos: Position2D,
                     val isDiagonal: Boolean,
                     override val symbol: String) : Cell.Side {
+
         NORTH(1, Position2D(0, -1), false, "N"),
         EAST(2, Position2D(1, 0), false, "E"),
         SOUTH(4, Position2D(0, 1), false, "S"),
@@ -81,16 +82,17 @@ class UpsilonCell(override val maze: UpsilonMaze,
         SOUTHWEST(64, Position2D(-1, 1), true, "SW"),
         NORTHWEST(128, Position2D(-1, -1), true, "NW");
 
-        override fun opposite(): Side = when (this) {
-            NORTH -> SOUTH
-            SOUTH -> NORTH
-            EAST -> WEST
-            WEST -> EAST
-            NORTHEAST -> SOUTHWEST
-            SOUTHWEST -> NORTHEAST
-            SOUTHEAST -> NORTHWEST
-            NORTHWEST -> SOUTHEAST
-        }
+        override val opposite: Cell.Side
+            get() = when (this) {
+                NORTH -> SOUTH
+                SOUTH -> NORTH
+                EAST -> WEST
+                WEST -> EAST
+                NORTHEAST -> SOUTHWEST
+                SOUTHWEST -> NORTHEAST
+                SOUTHEAST -> NORTHWEST
+                NORTHWEST -> SOUTHEAST
+            }
 
         companion object {
             val ALL_SQUARE = listOf(NORTH, SOUTH, EAST, WEST)

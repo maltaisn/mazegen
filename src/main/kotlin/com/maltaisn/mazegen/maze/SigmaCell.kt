@@ -33,9 +33,9 @@ package com.maltaisn.mazegen.maze
 class SigmaCell(override val maze: SigmaMaze,
                 override val position: Position2D) : Cell(maze, position) {
 
-    override fun getAllSides(): List<Side> = Side.ALL
+    override val allSides = Side.ALL
 
-    override fun getAllSidesValue(): Int = Side.ALL_VALUE
+    override val allSidesValue = Side.ALL_VALUE
 
     /**
      * Enum class for the sides of a hexagonal cell.
@@ -57,18 +57,18 @@ class SigmaCell(override val maze: SigmaMaze,
         SOUTHWEST(16, Position2D(-1, 0), "SW"),
         NORTHWEST(32, Position2D(-1, -1), "NW");
 
-        override fun opposite(): Side = when (this) {
-            NORTH -> SOUTH
-            NORTHEAST -> SOUTHWEST
-            SOUTHEAST -> NORTHWEST
-            SOUTH -> NORTH
-            SOUTHWEST -> NORTHEAST
-            NORTHWEST -> SOUTHEAST
-        }
+        override val opposite: Cell.Side
+            get() = when (this) {
+                NORTH -> SOUTH
+                NORTHEAST -> SOUTHWEST
+                SOUTHEAST -> NORTHWEST
+                SOUTH -> NORTH
+                SOUTHWEST -> NORTHEAST
+                NORTHWEST -> SOUTHEAST
+            }
 
         companion object {
-            val ALL = listOf(Side.NORTH, Side.SOUTH, Side.NORTHEAST,
-                    Side.SOUTHWEST, Side.SOUTHEAST, Side.NORTHWEST)
+            val ALL = listOf(NORTH, SOUTH, NORTHEAST, SOUTHWEST, SOUTHEAST, NORTHWEST)
             const val ALL_VALUE = 63
         }
 

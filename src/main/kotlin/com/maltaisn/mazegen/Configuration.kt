@@ -35,7 +35,6 @@ import com.maltaisn.mazegen.render.SvgCanvas
 import java.awt.BasicStroke
 import java.awt.Color
 import java.io.File
-import kotlin.reflect.KClass
 
 
 /**
@@ -51,8 +50,7 @@ class Configuration(val mazeSets: List<MazeSet>,
      */
     class MazeSet(var name: String,
                   val count: Int,
-                  val type: KClass<out Maze>,
-                  val parameters: Array<*>,
+                  val creator: () -> Maze,
                   val generator: Generator,
                   val braiding: Maze.Braiding?,
                   val openings: List<Position>,

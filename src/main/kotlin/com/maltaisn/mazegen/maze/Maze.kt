@@ -42,34 +42,34 @@ abstract class Maze {
     /**
      * The list of cell with openings in the maze.
      */
-    private val openings = ArrayList<Cell>()
+    private val openings = mutableListOf<Cell>()
 
     /**
      * The maze solution, a list of the path's cells starting from the first
      * opening and ending on the second. Null if no solution was found yet.
      */
-    protected var solution: ArrayList<Cell>? = null
+    protected var solution: MutableList<Cell>? = null
         private set
+
+    /**
+     * Returns a random cell in the maze.
+     */
+    abstract val randomCell: Cell
+
+    /**
+     * Get the total number of cells in this maze.
+     */
+    abstract val cellCount: Int
+
+    /**
+     * Returns a list containing all the cells in this maze.
+     */
+    abstract val cellList: MutableList<out Cell>
 
     /**
      * Returns the cell at [pos] if it exists, otherwise returns null.
      */
     abstract fun cellAt(pos: Position): Cell?
-
-    /**
-     * Returns a random cell in the maze.
-     */
-    abstract fun getRandomCell(): Cell
-
-    /**
-     * Get the total number of cells in this maze.
-     */
-    abstract fun getCellCount(): Int
-
-    /**
-     * Returns a set containing all the cells in this maze.
-     */
-    abstract fun getAllCells(): MutableList<out Cell>
 
     /**
      * Call [action] on every cell.
@@ -91,7 +91,7 @@ abstract class Maze {
      */
     fun fillAll() {
         forEachCell {
-            it.value = it.getAllSidesValue()
+            it.value = it.allSidesValue
             it.visited = false
         }
     }
@@ -107,7 +107,7 @@ abstract class Maze {
                 throw ParameterException("Duplicate opening for position ${cell.position}.")
             }
 
-            for (side in cell.getAllSides()) {
+            for (side in cell.allSides) {
                 if (cell.getCellOnSide(side) == null) {
                     cell.openSide(side)
                     break
@@ -170,7 +170,7 @@ abstract class Maze {
 
             if (cell === end) {
                 // Found path to the end cell
-                val path = ArrayList<Cell>()
+                val path = mutableListOf<Cell>()
                 var currentNode: Node? = node
                 while (currentNode != null) {
                     path.add(0, currentNode.cell)
@@ -180,7 +180,7 @@ abstract class Maze {
                 return true
             }
 
-            for (neighbor in cell.getAccessibleNeighbors()) {
+            for (neighbor in cell.accessibleNeighbors) {
                 if (!neighbor.visited) {
                     // Add all unvisited neighbors to the nodes list
                     nodes.add(Node(node, neighbor, node.costFromStart + 1,
@@ -215,9 +215,9 @@ abstract class Maze {
      * Open a number of deadends set by the braiding [setting].
      */
     fun braid(setting: Braiding) {
-        val deadends = java.util.ArrayList<Cell>()
+        val deadends = mutableListOf<Cell>()
         forEachCell {
-            if (it.countSides() == it.getAllSides().size - 1) {
+            if (it.sidesCount == it.allSides.size - 1) {
                 // A cell is a deadend if it has only one side opened.
                 deadends.add(it)
             }
@@ -231,9 +231,9 @@ abstract class Maze {
             val deadend = deadends[index]
             deadends.removeAt(index)
 
-            for (side in deadend.getAllSides()) {
+            for (side in deadend.allSides) {
                 if (!deadend.hasSide(side)) {
-                    val deadside = side.opposite()
+                    val deadside = side.opposite
                     val other = deadend.getCellOnSide(deadside)
                     if (other != null) {
                         // If the deadside is not a border, open it.

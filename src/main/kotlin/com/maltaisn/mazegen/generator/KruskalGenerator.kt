@@ -25,7 +25,10 @@
 
 package com.maltaisn.mazegen.generator
 
-import com.maltaisn.mazegen.maze.*
+import com.maltaisn.mazegen.maze.Cell
+import com.maltaisn.mazegen.maze.Maze
+import com.maltaisn.mazegen.maze.WeaveOrthogonalMaze
+import com.maltaisn.mazegen.maze.ZetaMaze
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashSet
@@ -46,8 +49,7 @@ import kotlin.collections.LinkedHashSet
  *
  * Runtime complexity is O(n) and memory space is O(n).
  */
-class KruskalGenerator : Generator(DeltaMaze::class, OrthogonalMaze::class,
-        UnicursalOrthogonalMaze::class, SigmaMaze::class, ThetaMaze::class, UpsilonMaze::class) {
+class KruskalGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         super.generate(maze)
@@ -57,7 +59,7 @@ class KruskalGenerator : Generator(DeltaMaze::class, OrthogonalMaze::class,
         // Get all edges and create a tree node for every cell
         val edgesSet = LinkedHashSet<Edge>()
         val nodesMap = HashMap<Cell, Node>()
-        for (cell in maze.getAllCells()) {
+        for (cell in maze.cellList) {
             for (neighbor in cell.neighbors) {
                 edgesSet.add(Edge(cell, neighbor))
             }
@@ -77,6 +79,7 @@ class KruskalGenerator : Generator(DeltaMaze::class, OrthogonalMaze::class,
         }
     }
 
+    override fun isMazeSupported(maze: Maze) = maze !is ZetaMaze && maze !is WeaveOrthogonalMaze
 
     /**
      * A edge for a maze, between two cells, [cell1] and [cell2].

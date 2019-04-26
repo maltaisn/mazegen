@@ -26,7 +26,6 @@
 package com.maltaisn.mazegen.maze
 
 import com.maltaisn.mazegen.ParameterException
-import java.util.*
 import kotlin.random.Random
 
 
@@ -45,26 +44,26 @@ abstract class BaseGridMaze<T : Cell>(val width: Int, val height: Int) : Maze() 
         }
     }
 
+    override val randomCell: T
+        get() = grid[Random.nextInt(grid.size)][Random.nextInt(grid[0].size)]
 
-    override fun cellAt(pos: Position) =
-            cellAt((pos as Position2D).x, pos.y)
+    override val cellCount: Int
+        get() = grid.size * grid[0].size
+
+    override val cellList: MutableList<T>
+        get() {
+            val list = mutableListOf<T>()
+            for (x in 0 until grid.size) {
+                for (y in 0 until grid[x].size) {
+                    list.add(grid[x][y])
+                }
+            }
+            return list
+        }
+
+    override fun cellAt(pos: Position) = cellAt((pos as Position2D).x, pos.y)
 
     fun cellAt(x: Int, y: Int): T? = grid.getOrNull(x)?.getOrNull(y)
-
-    override fun getRandomCell(): T =
-            grid[Random.nextInt(grid.size)][Random.nextInt(grid[0].size)]
-
-    override fun getCellCount(): Int = grid.size * grid[0].size
-
-    override fun getAllCells(): MutableList<T> {
-        val set = ArrayList<T>()
-        for (x in 0 until grid.size) {
-            for (y in 0 until grid[x].size) {
-                set.add(grid[x][y])
-            }
-        }
-        return set
-    }
 
     override fun forEachCell(action: (Cell) -> Unit) {
         for (x in 0 until grid.size) {
@@ -90,6 +89,6 @@ abstract class BaseGridMaze<T : Cell>(val width: Int, val height: Int) : Maze() 
         return cellAt(x, y)
     }
 
-    override fun toString(): String = "[width: $width, height: $height]"
+    override fun toString() = "[width: $width, height: $height]"
 
 }

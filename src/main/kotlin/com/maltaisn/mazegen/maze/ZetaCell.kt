@@ -33,11 +33,11 @@ package com.maltaisn.mazegen.maze
 class ZetaCell(override val maze: ZetaMaze,
                override val position: Position2D) : Cell(maze, position) {
 
-    override val neighbors = ArrayList<Cell>()
+    override val neighbors = mutableListOf<Cell>()
         get() {
             // Neighbors must be found on every call, they depend on other cells connections.
             field.clear()
-            for (side in getAllSides()) {
+            for (side in allSides) {
                 val cell = getCellOnSide(side)
                 if (cell != null) {
                     if (!side.isDiagonal || !hasDiagonalPassageOnSide(side)) {
@@ -51,20 +51,24 @@ class ZetaCell(override val maze: ZetaMaze,
             return field
         }
 
-
-    override fun getAccessibleNeighbors(): MutableList<Cell> {
-        val list = ArrayList<Cell>()
-        for (side in getAllSides()) {
-            val cell = getCellOnSide(side)
-            if (cell != null) {
-                if (!hasSide(side) && (!side.isDiagonal || !hasDiagonalPassageOnSide(side))) {
-                    // To be accessible, a cell must be a neighbor and not have the wall on this side.
-                    list.add(cell)
+    override val accessibleNeighbors: MutableList<ZetaCell>
+        get() {
+            val list = mutableListOf<ZetaCell>()
+            for (side in allSides) {
+                val cell = getCellOnSide(side) as ZetaCell?
+                if (cell != null) {
+                    if (!hasSide(side) && (!side.isDiagonal || !hasDiagonalPassageOnSide(side))) {
+                        // To be accessible, a cell must be a neighbor and not have the wall on this side.
+                        list.add(cell)
+                    }
                 }
             }
+            return list
         }
-        return list
-    }
+
+    override val allSides = Side.ALL
+
+    override val allSidesValue = Side.ALL_VALUE
 
     /**
      * Returns true if this cell has a diagonal passage on one of its diagonal [side].
@@ -77,10 +81,6 @@ class ZetaCell(override val maze: ZetaMaze,
         return !cell1.hasSide(cell1.findSideOfCell(cell2)!!)
     }
 
-    override fun getAllSides(): List<Side> = Side.ALL
-
-    override fun getAllSidesValue(): Int = Side.ALL_VALUE
-
     /**
      * Enum class for the sides of an octogon-like zeta cell.
      */
@@ -88,6 +88,7 @@ class ZetaCell(override val maze: ZetaMaze,
                     override val relativePos: Position2D,
                     val isDiagonal: Boolean,
                     override val symbol: String) : Cell.Side {
+
         NORTH(1, Position2D(0, -1), false, "N"),
         NORTHEAST(2, Position2D(1, -1), true, "NE"),
         EAST(4, Position2D(1, 0), false, "E"),
@@ -97,23 +98,22 @@ class ZetaCell(override val maze: ZetaMaze,
         WEST(64, Position2D(-1, 0), false, "W"),
         NORTHWEST(128, Position2D(-1, -1), true, "NW");
 
-        override fun opposite(): Side = when (this) {
-            NORTH -> SOUTH
-            SOUTH -> NORTH
-            EAST -> WEST
-            WEST -> EAST
-            NORTHEAST -> SOUTHWEST
-            SOUTHWEST -> NORTHEAST
-            SOUTHEAST -> NORTHWEST
-            NORTHWEST -> SOUTHEAST
-        }
+        override val opposite: Cell.Side
+            get() = when (this) {
+                NORTH -> SOUTH
+                SOUTH -> NORTH
+                EAST -> WEST
+                WEST -> EAST
+                NORTHEAST -> SOUTHWEST
+                SOUTHWEST -> NORTHEAST
+                SOUTHEAST -> NORTHWEST
+                NORTHWEST -> SOUTHEAST
+            }
 
         companion object {
-            val ALL = listOf(NORTH, SOUTH, EAST, WEST,
-                    NORTHEAST, SOUTHWEST, SOUTHEAST, NORTHWEST)
+            val ALL = listOf(NORTH, SOUTH, EAST, WEST, NORTHEAST, SOUTHWEST, SOUTHEAST, NORTHWEST)
             const val ALL_VALUE = 255
         }
-
     }
 
 }

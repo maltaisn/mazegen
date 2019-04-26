@@ -46,8 +46,7 @@ import kotlin.random.Random
  *
  * Runtime complexity is O(n) and memory space is O(1).
  */
-class SidewinderGenerator : Generator(
-        OrthogonalMaze::class, UnicursalOrthogonalMaze::class) {
+class SidewinderGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         super.generate(maze)
@@ -56,7 +55,7 @@ class SidewinderGenerator : Generator(
         maze.fillAll()
 
         for (y in 0 until maze.height) {
-            val run = ArrayList<Cell>()
+            val run = mutableListOf<Cell>()
             for (x in 0 until maze.width) {
                 val cell = maze.cellAt(x, y)!!
                 run.add(cell)
@@ -74,5 +73,8 @@ class SidewinderGenerator : Generator(
             }
         }
     }
+
+    override fun isMazeSupported(maze: Maze) =
+            maze is OrthogonalMaze || maze is UnicursalOrthogonalMaze
 
 }

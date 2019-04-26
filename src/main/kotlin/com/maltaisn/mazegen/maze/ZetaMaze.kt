@@ -82,7 +82,7 @@ class ZetaMaze(width: Int, height: Int) :
 
                 val sides = HashMap<Side, Boolean>()
                 val passages = HashMap<Side, Boolean>()
-                for (side in cell.getAllSides()) {
+                for (side in cell.allSides) {
                     if (side.isDiagonal) {
                         val hasSide = cell.hasSide(side)
                         sides[side] = hasSide

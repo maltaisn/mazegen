@@ -28,7 +28,6 @@ package com.maltaisn.mazegen
 import com.maltaisn.mazegen.maze.Maze
 import com.maltaisn.mazegen.maze.UnicursalOrthogonalMaze
 import java.io.File
-import kotlin.reflect.full.primaryConstructor
 import kotlin.system.measureTimeMillis
 
 
@@ -61,7 +60,7 @@ class MazeGenerator(private val config: Configuration) {
 
                 // Generate
                 print(indent2 + "Generating...\r")
-                var maze = mazeSet.type.primaryConstructor?.call(*mazeSet.parameters)!!
+                var maze = mazeSet.creator()
                 var duration = measureTimeMillis {
                     maze = generateMaze(maze, mazeSet)
                 }

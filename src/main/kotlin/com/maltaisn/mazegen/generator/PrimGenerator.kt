@@ -52,7 +52,7 @@ class PrimGenerator : Generator() {
 
         maze.fillAll()
 
-        val initialCell = maze.getRandomCell()
+        val initialCell = maze.randomCell
         initialCell.visited = true
         val set = mutableSetOf(initialCell)
         do {
@@ -70,5 +70,7 @@ class PrimGenerator : Generator() {
             set.remove(currentCell)
         } while (set.isNotEmpty())
     }
+
+    override fun isMazeSupported(maze: Maze) = true
 
 }

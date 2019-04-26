@@ -33,9 +33,9 @@ package com.maltaisn.mazegen.maze
 open class OrthogonalCell(override val maze: OrthogonalMaze,
                           override val position: Position2D) : Cell(maze, position) {
 
-    override fun getAllSides(): List<Side> = Side.ALL
+    override val allSides = Side.ALL
 
-    override fun getAllSidesValue(): Int = Side.ALL_VALUE
+    override val allSidesValue = Side.ALL_VALUE
 
     /**
      * Enum class for the sides of a square cell.
@@ -43,17 +43,19 @@ open class OrthogonalCell(override val maze: OrthogonalMaze,
     enum class Side(override val value: Int,
                     override val relativePos: Position2D,
                     override val symbol: String) : Cell.Side {
+
         NORTH(1, Position2D(0, -1), "N"),
         EAST(2, Position2D(1, 0), "E"),
         SOUTH(4, Position2D(0, 1), "S"),
         WEST(8, Position2D(-1, 0), "W");
 
-        override fun opposite(): Side = when (this) {
-            NORTH -> SOUTH
-            SOUTH -> NORTH
-            EAST -> WEST
-            WEST -> EAST
-        }
+        override val opposite: Cell.Side
+            get() = when (this) {
+                NORTH -> SOUTH
+                SOUTH -> NORTH
+                EAST -> WEST
+                WEST -> EAST
+            }
 
         companion object {
             val ALL = listOf(NORTH, SOUTH, WEST, EAST)

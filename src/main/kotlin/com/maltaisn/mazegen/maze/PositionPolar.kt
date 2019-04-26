@@ -49,6 +49,6 @@ class PositionPolar(x: Int, r: Int, val rowWidth: Int = 0) : Position2D(x, r) {
     override operator fun plus(pos: Position) =
             PositionPolar(x + (pos as PositionPolar).x, y + pos.y)
 
-    override fun toString(): String = "[x: $x, r: $y]"
+    override fun toString() = "[x: $x, r: $y]"
 
 }

@@ -25,7 +25,9 @@
 
 package com.maltaisn.mazegen.generator
 
-import com.maltaisn.mazegen.maze.*
+import com.maltaisn.mazegen.maze.Maze
+import com.maltaisn.mazegen.maze.WeaveOrthogonalMaze
+import com.maltaisn.mazegen.maze.ZetaMaze
 import kotlin.random.Random
 
 
@@ -54,15 +56,14 @@ import kotlin.random.Random
  *
  * Runtime complexity is O(n²) at best and O(∞) at worst. Memory space is O(n).
  */
-class WilsonGenerator : Generator(DeltaMaze::class, OrthogonalMaze::class,
-        UnicursalOrthogonalMaze::class, SigmaMaze::class, ThetaMaze::class, UpsilonMaze::class) {
+class WilsonGenerator : Generator() {
 
     override fun generate(maze: Maze) {
         super.generate(maze)
 
         maze.fillAll()
 
-        val unvisitedCells = maze.getAllCells()
+        val unvisitedCells = maze.cellList
 
         // Make the initial cell visited
         val initialCell = unvisitedCells.removeAt(Random.nextInt(unvisitedCells.size))
@@ -111,5 +112,7 @@ class WilsonGenerator : Generator(DeltaMaze::class, OrthogonalMaze::class,
             }
         }
     }
+
+    override fun isMazeSupported(maze: Maze) = maze !is ZetaMaze && maze !is WeaveOrthogonalMaze
 
 }

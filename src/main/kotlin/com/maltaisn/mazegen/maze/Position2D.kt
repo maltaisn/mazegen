@@ -62,6 +62,6 @@ open class Position2D(val x: Int, val y: Int) : Position {
         return (x shl 16) and y
     }
 
-    override fun toString(): String = "[x: $x, y: $y]"
+    override fun toString() = "[x: $x, y: $y]"
 
 }

@@ -35,8 +35,8 @@ class ThetaCell(override val maze: ThetaMaze,
                 override val position: PositionPolar) : Cell(maze, position) {
 
     override val neighbors: List<Cell> by lazy {
-        val list = ArrayList<Cell>()
-        for (side in getAllSides()) {
+        val list = mutableListOf<Cell>()
+        for (side in allSides) {
             if (side == Side.OUT) {
                 list.addAll(outwardCells)
             } else {
@@ -46,7 +46,7 @@ class ThetaCell(override val maze: ThetaMaze,
                 }
             }
         }
-        list.toList()
+        list
     }
 
     private val outwardCells: List<ThetaCell> by lazy {
@@ -69,25 +69,26 @@ class ThetaCell(override val maze: ThetaMaze,
         }
     }
 
-    override fun getAccessibleNeighbors(): MutableList<Cell> {
-        val list = ArrayList<Cell>()
-        for (side in getAllSides()) {
-            if (side == Side.OUT) {
-                // There can be many cells in this direction, check them all.
-                for (neighbor in outwardCells) {
-                    if (!neighbor.hasSide(Side.IN)) {
+    override val accessibleNeighbors: MutableList<ThetaCell>
+        get() {
+            val list = mutableListOf<ThetaCell>()
+            for (side in allSides) {
+                if (side == Side.OUT) {
+                    // There can be many cells in this direction, check them all.
+                    for (neighbor in outwardCells) {
+                        if (!neighbor.hasSide(Side.IN)) {
+                            list.add(neighbor)
+                        }
+                    }
+                } else if (!hasSide(side)) {
+                    val neighbor = getCellOnSide(side)
+                    if (neighbor != null) {
                         list.add(neighbor)
                     }
                 }
-            } else if (!hasSide(side)) {
-                val neighbor = getCellOnSide(side)
-                if (neighbor != null) {
-                    list.add(neighbor)
-                }
             }
+            return list
         }
-        return list
-    }
 
     override fun hasSide(side: Cell.Side): Boolean {
         if (side == Side.OUT && outwardCells.isNotEmpty()) {
@@ -105,7 +106,7 @@ class ThetaCell(override val maze: ThetaMaze,
 
     override fun findSideOfCell(cell: Cell): Cell.Side? {
         if (cell.maze === maze) {
-            for (side in getAllSides()) {
+            for (side in allSides) {
                 if (side == Side.OUT) {
                     // There can be many cells in this direction, check them all.
                     for (outCell in outwardCells) {
@@ -121,15 +122,16 @@ class ThetaCell(override val maze: ThetaMaze,
         return null
     }
 
-    override fun countSides(): Int {
-        var count = Integer.bitCount(value and Side.OUT.value.inv())
-        if (hasSide(Side.OUT)) count++
-        return count
-    }
+    override val sidesCount: Int
+        get() {
+            var count = Integer.bitCount(value and Side.OUT.value.inv())
+            if (hasSide(Side.OUT)) count++
+            return count
+        }
 
-    override fun getAllSides(): List<Side> = Side.ALL
+    override val allSides: List<Side> = Side.ALL
 
-    override fun getAllSidesValue(): Int = Side.ALL_VALUE
+    override val allSidesValue: Int = Side.ALL_VALUE
 
     /**
      * Enum class for the side a theta cell.
@@ -146,18 +148,18 @@ class ThetaCell(override val maze: ThetaMaze,
         CW(4, PositionPolar(-1, 0), "CW"),
         CCW(8, PositionPolar(1, 0), "CCW");
 
-        override fun opposite(): Side = when (this) {
-            OUT -> IN
-            IN -> OUT
-            CW -> CCW
-            CCW -> CW
-        }
+        override val opposite: Cell.Side
+            get() = when (this) {
+                OUT -> IN
+                IN -> OUT
+                CW -> CCW
+                CCW -> CW
+            }
 
         companion object {
-            val ALL = listOf(Side.OUT, Side.IN, Side.CW, Side.CCW)
+            val ALL = listOf(OUT, IN, CW, CCW)
             const val ALL_VALUE = 15
         }
-
     }
 
 }

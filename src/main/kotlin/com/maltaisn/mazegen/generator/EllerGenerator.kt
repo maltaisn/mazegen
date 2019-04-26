@@ -54,8 +54,7 @@ import kotlin.random.Random
  *
  * Runtime complexity is O(n) and memory space is O(1).
  */
-class EllerGenerator : Generator(
-        OrthogonalMaze::class, UnicursalOrthogonalMaze::class) {
+class EllerGenerator : Generator() {
 
     /**
      * Percentage of the time two adjacent cells are connected, between 0 and 1.
@@ -134,7 +133,7 @@ class EllerGenerator : Generator(
                 for (set in sets) {
                     // Get a random list of cell indexes to carve from in the set.
                     // Also clear the current row cells from the map and set, they're not needed anymore.
-                    val cellsToCarve = ArrayList<Cell>()
+                    val cellsToCarve = mutableListOf<Cell>()
                     for (cell in set) {
                         if (Random.nextDouble(1.0) <= verticalBias) {
                             cellsToCarve.add(cell)
@@ -160,6 +159,9 @@ class EllerGenerator : Generator(
             }
         }
     }
+
+    override fun isMazeSupported(maze: Maze) =
+            maze is OrthogonalMaze || maze is UnicursalOrthogonalMaze
 
     /**
      * ArrayList subclass to prevent expensive equals and hashCode because they're not needed.

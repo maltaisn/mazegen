@@ -53,9 +53,9 @@ class AldousBroderGenerator : Generator() {
 
         maze.fillAll()
 
-        var currentCell = maze.getRandomCell()
+        var currentCell = maze.randomCell
         currentCell.visited = true
-        var remaining = maze.getCellCount() - 1
+        var remaining = maze.cellCount - 1
         do {
             // Choose a random neighbor
             val neighbor = currentCell.neighbors.random()
@@ -68,5 +68,7 @@ class AldousBroderGenerator : Generator() {
             currentCell = neighbor
         } while (remaining > 0)
     }
+
+    override fun isMazeSupported(maze: Maze) = true
 
 }

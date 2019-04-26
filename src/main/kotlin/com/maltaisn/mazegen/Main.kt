@@ -40,9 +40,7 @@ fun main(args: Array<String>) {
                     if (args.size > 1) {
                         println("Configuration file: ${file.absolutePath}")
                     }
-                    val inputStream = FileInputStream(file)
-                    val configJson = JSONObject(JSONTokener(inputStream))
-                    inputStream.close()
+                    val configJson = FileInputStream(file).use { JSONObject(JSONTokener(it)) }
                     MazeGenerator((ConfigurationParser().parse(configJson))).generate()
                 } else {
                     throw ParameterException("Configuration file " +

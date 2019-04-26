@@ -30,7 +30,6 @@ import com.maltaisn.mazegen.ParameterException
 import com.maltaisn.mazegen.maze.ThetaCell.Side
 import com.maltaisn.mazegen.render.Canvas
 import com.maltaisn.mazegen.render.Point
-import java.util.*
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -55,7 +54,7 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
         }
 
         // Create the grid
-        val rows = ArrayList<Array<ThetaCell>>()
+        val rows = mutableListOf<Array<ThetaCell>>()
         var lastWidth = 1.0
         for (r in 0 until radius) {
             var width = if (r == 0) 0.0 else (r + centerRadius - 1) * PI2
@@ -82,28 +81,31 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
         return grid[r][Math.floorMod(x, grid[r].size)]
     }
 
-    override fun getRandomCell(): ThetaCell {
-        val r = Random.nextInt(grid.size)
-        return grid[r][Random.nextInt(grid[r].size)]
-    }
-
-    override fun getCellCount(): Int {
-        var count = 0
-        for (x in 0 until grid.size) {
-            count += grid[x].size
+    override val randomCell: ThetaCell
+        get() {
+            val r = Random.nextInt(grid.size)
+            return grid[r][Random.nextInt(grid[r].size)]
         }
-        return count
-    }
 
-    override fun getAllCells(): MutableList<ThetaCell> {
-        val list = ArrayList<ThetaCell>()
-        for (r in 0 until grid.size) {
-            for (x in 0 until grid[r].size) {
-                list.add(grid[r][x])
+    override val cellCount: Int
+        get() {
+            var count = 0
+            for (x in 0 until grid.size) {
+                count += grid[x].size
             }
+            return count
         }
-        return list
-    }
+
+    override val cellList: MutableList<out Cell>
+        get() {
+            val list = mutableListOf<ThetaCell>()
+            for (r in 0 until grid.size) {
+                for (x in 0 until grid[r].size) {
+                    list.add(grid[r][x])
+                }
+            }
+            return list
+        }
 
     override fun forEachCell(action: (Cell) -> Unit) {
         for (r in 0 until grid.size) {
@@ -160,7 +162,7 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
         } else {
             val nextRow = grid[pos.y + 1]
             val factor = nextRow.size / grid[pos.y].size
-            cells = ArrayList()
+            cells = mutableListOf()
             val start = pos.x * factor
             for (x in start until start + factor) {
                 cells.add(nextRow[x])
@@ -304,9 +306,9 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
         }
     }
 
-    override fun toString(): String {
-        return "[radius: $radius, centerRadius: $centerRadius]"
-    }
+
+    override fun toString() = "[radius: $radius, centerRadius: $centerRadius]"
+
 
     companion object {
         private const val PI2 = PI * 2

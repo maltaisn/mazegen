@@ -56,6 +56,6 @@ open class Point(val x: Double, val y: Double) {
         return hash
     }
 
-    override fun toString(): String = "($x ; $y)"
+    override fun toString() = "($x ; $y)"
 
 }

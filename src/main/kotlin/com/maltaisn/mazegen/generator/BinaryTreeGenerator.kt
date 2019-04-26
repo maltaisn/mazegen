@@ -42,8 +42,7 @@ import kotlin.random.Random
  *
  * Runtime complexity is O(n) and memory space is O(1).
  */
-class BinaryTreeGenerator : Generator(
-        OrthogonalMaze::class, UnicursalOrthogonalMaze::class) {
+class BinaryTreeGenerator : Generator() {
 
     /**
      * Bias setting that decides which two sides to connect for a cell.
@@ -74,6 +73,10 @@ class BinaryTreeGenerator : Generator(
             }
         }
     }
+
+    override fun isMazeSupported(maze: Maze) =
+            maze is OrthogonalMaze || maze is UnicursalOrthogonalMaze
+
 
     enum class Bias(val side1: Side, val side2: Side) {
         NORTH_EAST(Side.NORTH, Side.EAST),

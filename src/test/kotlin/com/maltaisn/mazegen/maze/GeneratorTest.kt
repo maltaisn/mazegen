@@ -29,60 +29,139 @@ import com.maltaisn.mazegen.ParameterException
 import com.maltaisn.mazegen.generator.*
 import org.junit.jupiter.api.Test
 import java.util.*
-import kotlin.reflect.full.primaryConstructor
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 
 class GeneratorTest {
 
+    private var mazesGenerated = 0
+
     /**
-     * For all generators, test all supported maze types 50 times each.
-     * Each maze is then checked for loops and cell accessibility.
+     * For all genenerators, test all maze types on 4 different sizes, 30 times each.
+     * Each maze is then checked for loops and cell accessibility (perfect maze).
+     * In total, 19 400 mazes are generated and checked in 2-4 min.
      */
     @Test
     fun testAllMazesWithAllGenerators() {
         for (generator in GENERATORS) {
-            typeLoop@
-            for (type in MAZE_TYPES) {
-                val allParams = when (type) {
-                    OrthogonalMaze::class, UnicursalOrthogonalMaze::class,
-                    UpsilonMaze::class, ZetaMaze::class -> arrayOf(arrayOf(MAZE_SIZE, MAZE_SIZE))
-                    DeltaMaze::class, SigmaMaze::class -> {
-                        val shapes = BaseShapedMaze.Shape.values()
-                        Array(shapes.size) { arrayOf(MAZE_SIZE, MAZE_SIZE, shapes[it]) }
-                    }
-                    ThetaMaze::class -> arrayOf(arrayOf(MAZE_SIZE, 1f, 1.5f))
-                    WeaveOrthogonalMaze::class -> Array(5) { arrayOf(MAZE_SIZE, MAZE_SIZE, it) }
-                    else -> throw IllegalStateException()
+            println("====== ${generator.javaClass.simpleName} ======")
+
+            // Orthogonal (120 mazes)
+            println("\n=== ORTHOGONAL ===")
+            testMazeType { size ->
+                val maze = OrthogonalMaze(size, size)
+                generator.generate(maze)
+                maze
+            }
+
+            // Upsilon (120 mazes)
+            println("\n=== UPSILON ===")
+            testMazeType { size ->
+                val maze = UpsilonMaze(size, size)
+                generator.generate(maze)
+                maze
+            }
+
+            // Zeta (120 mazes)
+            println("\n=== ZETA ===")
+            testMazeType { size ->
+                val maze = ZetaMaze(size, size)
+                generator.generate(maze)
+                maze
+            }
+
+            // Unicursal orthogonal (120 mazes)
+            println("\n=== UNICURSAL ORTHOGONAL ===")
+            testMazeType { size ->
+                val maze = OrthogonalMaze(size, size)
+                generator.generate(maze)
+                UnicursalOrthogonalMaze(maze)
+            }
+
+            // Weave orthogonal (600 mazes)
+            println("\n=== WEAVE ORTHOGONAL ===")
+            for (maxWeave in 0..4) {
+                testMazeType { size ->
+                    val maze = WeaveOrthogonalMaze(size, size, maxWeave)
+                    generator.generate(maze)
+                    maze
                 }
+            }
 
-                for (params in allParams) {
-                    println("${generator::class.simpleName} on ${type.simpleName}, " +
-                            "params: ${Arrays.toString(params)}")
-                    for (i in 0 until REPEAT) {
-                        var maze = type.primaryConstructor?.call(*params)!!
-                        try {
-                            generator.generate(maze)
-                        } catch (e: ParameterException) {
-                            // Generator doesn't support this maze type
-                            continue@typeLoop
-                        }
-                        if (maze is UnicursalOrthogonalMaze) {
-                            maze = UnicursalOrthogonalMaze(maze)
-                        }
+            // Delta (480 mazes)
+            println("\n=== DELTA ===")
+            for (shape in BaseShapedMaze.Shape.values()) {
+                println("SHAPE = ${shape.toString().toLowerCase()}")
+                testMazeType { size ->
+                    val maze = DeltaMaze(size, size, shape)
+                    generator.generate(maze)
+                    maze
+                }
+            }
 
-                        // Make sure maze is perfect
-                        assertPerfectMaze(maze)
+            // Sigma (480 mazes)
+            println("\n=== SIGMA ===")
+            for (shape in BaseShapedMaze.Shape.values()) {
+                println("SHAPE = ${shape.toString().toLowerCase()}")
+                testMazeType { size ->
+                    val maze = SigmaMaze(size, size, shape)
+                    generator.generate(maze)
+                    maze
+                }
+            }
 
-                        // Try to solve the maze, must have a solution
-                        maze.createOpening(Position2D(Maze.OPENING_POS_START, Maze.OPENING_POS_START))
-                        maze.createOpening(Position2D(Maze.OPENING_POS_END, Maze.OPENING_POS_END))
-                        assertTrue(maze.solve(), "Maze has no solution")
+            // Theta (800 mazes)
+            println("\n=== THETA ===")
+            for (centerRadius in 1..4) {
+                println("CENTER RADIUS = $centerRadius")
+                for (subdivisionFactor in THETA_SUBDIVISIONS) {
+                    println("SUBDIVISION = $subdivisionFactor")
+                    testMazeType(10) { size ->
+                        val maze = ThetaMaze(size, centerRadius.toDouble(), subdivisionFactor)
+                        generator.generate(maze)
+                        maze
                     }
                 }
             }
+
+            println()
         }
+
+        println("Done. $mazesGenerated mazes generated.")
+    }
+
+    /**
+     * Test mazes created by a lambda on many sizes, 30 times each.
+     */
+    private fun testMazeType(count: Int = 30, mazeCreator: (Int) -> Maze) {
+        for (size in MAZE_SIZES) {
+            repeat(count) {
+                val maze = try {
+                    mazeCreator(size)
+                } catch (e: ParameterException) {
+                    // Maze type not supported by the generator.
+                    return
+                }
+
+                if (it == 0) {
+                    println("SIZE = $size")
+                }
+                println("Maze ${it + 1} / $count")
+
+                // Make sure maze is perfect
+                assertPerfectMaze(maze)
+
+                // Try to solve the maze, must have a solution
+                maze.createOpening(Position2D(Maze.OPENING_POS_START, Maze.OPENING_POS_START))
+                maze.createOpening(Position2D(Maze.OPENING_POS_END, Maze.OPENING_POS_END))
+                assertTrue(maze.solve(), "Maze has no solution")
+
+                mazesGenerated++
+            }
+            println()
+        }
+        println()
     }
 
     /**
@@ -93,14 +172,14 @@ class GeneratorTest {
     private fun assertPerfectMaze(maze: Maze) {
         maze.forEachCell { it.visited = false }
         val cells = LinkedList<Cell>()
-        var unvisited = maze.getCellCount() - 1
-        val start = maze.getRandomCell()
+        var unvisited = maze.cellCount - 1
+        val start = maze.randomCell
         start.visited = true
         cells.add(start)
         while (cells.isNotEmpty()) {
             val cell = cells.removeFirst()
             var visitedCount = 0
-            for (neighbor in cell.getAccessibleNeighbors()) {
+            for (neighbor in cell.accessibleNeighbors) {
                 if (neighbor.visited) {
                     visitedCount++
                 } else {
@@ -117,21 +196,10 @@ class GeneratorTest {
     }
 
     companion object {
-        private const val MAZE_SIZE = 20
-        private const val REPEAT = 50
+        private val MAZE_SIZES = listOf(2, 5, 10, 20)
+        private val THETA_SUBDIVISIONS = listOf(0.5, 1.0, 1.5, 2.5, 4.0)
 
-        private val MAZE_TYPES = arrayOf(
-                DeltaMaze::class,
-                OrthogonalMaze::class,
-                UnicursalOrthogonalMaze::class,
-                WeaveOrthogonalMaze::class,
-                SigmaMaze::class,
-                ThetaMaze::class,
-                UpsilonMaze::class,
-                ZetaMaze::class
-        )
-
-        private val GENERATORS = arrayOf(
+        private val GENERATORS = listOf(
                 AldousBroderGenerator(),
                 BinaryTreeGenerator(),
                 EllerGenerator(),

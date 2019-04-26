@@ -129,7 +129,7 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
             for (y in 0 until height) {
                 val cy = (y + 0.5) * csive
                 val cell = cellAt(x, y)!!
-                for (side in cell.getAllSides()) {
+                for (side in cell.allSides) {
                     val hasSide = cell.hasSide(side)
                     val pos = side.relativePos
                     val ex = 1 - pos.x.absoluteValue
@@ -140,7 +140,7 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
                                 cx + (pos.x + ex) * inSize,
                                 cy + (pos.y + ey) * inSize)
                     }
-                    if (cell.hasTunnel() || !hasSide) {
+                    if (cell.hasTunnel || !hasSide) {
                         canvas.drawLine(cx + (pos.x - ex) * inSize,
                                 cy + (pos.y - ey) * inSize,
                                 cx + (pos.x - ex) * (inSize + ey * outSize),
@@ -155,9 +155,8 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
         }
     }
 
-    override fun toString(): String {
-        return "[${super.toString()}, maxWeave: $maxWeave]"
-    }
+    override fun toString() = super.toString().dropLast(1) + ", maxWeave: $maxWeave]"
+
 
     companion object {
         const val INSET_SIZE_RATIO = 0.15

@@ -59,10 +59,10 @@ class HuntKillGenerator : Generator() {
 
         maze.fillAll()
 
-        val visitedCells = ArrayList<Cell>()
+        val visitedCells = mutableListOf<Cell>()
 
         // Get and mark the initial cell as visited
-        var currentCell = maze.getRandomCell()
+        var currentCell = maze.randomCell
         currentCell.visited = true
         visitedCells.add(currentCell)
 
@@ -107,5 +107,7 @@ class HuntKillGenerator : Generator() {
             }
         }
     }
+
+    override fun isMazeSupported(maze: Maze) = true
 
 }

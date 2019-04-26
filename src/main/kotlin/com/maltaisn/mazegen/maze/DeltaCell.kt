@@ -37,15 +37,14 @@ class DeltaCell(override val maze: DeltaMaze,
         if (side == Side.BASE) {
             // The cell on the base side can be either up or down, depending on the X position.
             val flatTopped = (position.x + position.y) % 2 == 0
-            return maze.cellAt(position
-                    + Position2D(0, if (flatTopped) -1 else 1))
+            return maze.cellAt(position + Position2D(0, if (flatTopped) -1 else 1))
         }
         return super.getCellOnSide(side)
     }
 
-    override fun getAllSides(): List<Side> = Side.ALL
+    override val allSides = Side.ALL
 
-    override fun getAllSidesValue(): Int = Side.ALL_VALUE
+    override val allSidesValue = Side.ALL_VALUE
 
     /**
      * Enum class for the sides of a delta cell.
@@ -53,21 +52,22 @@ class DeltaCell(override val maze: DeltaMaze,
     enum class Side(override val value: Int,
                     override val relativePos: Position2D?,
                     override val symbol: String) : Cell.Side {
+
         BASE(1, null, "B"),
         EAST(2, Position2D(1, 0), "E"),
         WEST(4, Position2D(-1, 0), "W");
 
-        override fun opposite(): Side = when (this) {
-            BASE -> BASE
-            EAST -> WEST
-            WEST -> EAST
-        }
+        override val opposite: Cell.Side
+            get() = when (this) {
+                BASE -> BASE
+                EAST -> WEST
+                WEST -> EAST
+            }
 
         companion object {
-            val ALL = listOf(Side.BASE, Side.EAST, Side.WEST)
+            val ALL = listOf(BASE, EAST, WEST)
             const val ALL_VALUE = 7
         }
-
     }
 
 }

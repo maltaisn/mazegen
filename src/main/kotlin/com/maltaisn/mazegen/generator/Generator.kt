@@ -27,26 +27,28 @@ package com.maltaisn.mazegen.generator
 
 import com.maltaisn.mazegen.ParameterException
 import com.maltaisn.mazegen.maze.Maze
-import kotlin.reflect.KClass
 
 
 /**
  * Base class for a maze generator. Comparison of generator algorithms can be found
  * [here](http://people.cs.ksu.edu/~ashley78/wiki.ashleycoleman.me/index.php/Perfect_Maze_Generators.html).
- *
- * @property supportedTypes vararg of supported maze types, empty for all types.
  */
-abstract class Generator(private vararg val supportedTypes: KClass<out Maze>) {
+abstract class Generator {
 
     /**
      * Generate a [maze].
      */
     open fun generate(maze: Maze) {
         // Make sure this generator supports the maze type
-        if (supportedTypes.isNotEmpty() && maze::class !in supportedTypes) {
-            throw ParameterException("${this::class.simpleName} " +
-                    "cannot generate ${maze::class.simpleName}.")
+        if (!isMazeSupported(maze)) {
+            throw ParameterException("${this.javaClass.simpleName} " +
+                    "cannot generate ${maze.javaClass.simpleName}.")
         }
     }
+
+    /**
+     * Returns whether a [maze]'s type is supported or not by the generator.
+     */
+    abstract fun isMazeSupported(maze: Maze): Boolean
 
 }

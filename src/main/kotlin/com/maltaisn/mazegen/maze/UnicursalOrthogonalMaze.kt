@@ -46,7 +46,7 @@ class UnicursalOrthogonalMaze(width: Int, height: Int) :
         for (x in 0 until maze.width) {
             for (y in 0 until maze.height) {
                 val cell = maze.cellAt(x, y)!!
-                for (side in cell.getAllSides()) {
+                for (side in cell.allSides) {
                     val nwCell = grid[2 * x][2 * y]
                     val neCell = grid[2 * x + 1][2 * y]
                     val swCell = grid[2 * x][2 * y + 1]
@@ -79,7 +79,7 @@ class UnicursalOrthogonalMaze(width: Int, height: Int) :
         cells.add(start)
         while (cells.isNotEmpty()) {
             val cell = cells.removeFirst()
-            for (neighbor in cell.getAccessibleNeighbors()) {
+            for (neighbor in cell.accessibleNeighbors) {
                 if (!neighbor.visited) {
                     cells.add(neighbor as OrthogonalCell)
                     neighbor.visited = true

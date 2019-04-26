@@ -51,15 +51,33 @@ abstract class Cell(open val maze: Maze, open val position: Position) {
      * All neighbors must be able to validly connect with this cell.
      */
     open val neighbors: List<Cell> by lazy {
-        val list = ArrayList<Cell>()
-        for (side in getAllSides()) {
+        val list = mutableListOf<Cell>()
+        for (side in allSides) {
             val cell = getCellOnSide(side)
             if (cell != null) {
                 list.add(cell)
             }
         }
-        list.toList()
+        list
     }
+
+    /**
+     * Returns a list of neighbor cells than are accessible from this cell,
+     * meaning the wall they share with this cell is not set.
+     */
+    open val accessibleNeighbors: MutableList<out Cell>
+        get() {
+            val list = mutableListOf<Cell>()
+            for (side in allSides) {
+                if (!hasSide(side)) {
+                    val neighbor = getCellOnSide(side)
+                    if (neighbor != null) {
+                        list.add(neighbor)
+                    }
+                }
+            }
+            return list
+        }
 
     /**
      * Returns the neighbor cell on the [side] of the cell.
@@ -68,23 +86,6 @@ abstract class Cell(open val maze: Maze, open val position: Position) {
     open fun getCellOnSide(side: Side): Cell? {
         if (side.relativePos == null) return null
         return maze.cellAt(position + side.relativePos!!)
-    }
-
-    /**
-     * Returns a list of neighbor cells than are accessible from this cell,
-     * meaning the wall they share with this cell is not set.
-     */
-    open fun getAccessibleNeighbors(): MutableList<out Cell> {
-        val list = ArrayList<Cell>()
-        for (side in getAllSides()) {
-            if (!hasSide(side)) {
-                val neighbor = getCellOnSide(side)
-                if (neighbor != null) {
-                    list.add(neighbor)
-                }
-            }
-        }
-        return list
     }
 
     /**
@@ -115,7 +116,7 @@ abstract class Cell(open val maze: Maze, open val position: Position) {
     private inline fun changeSide(side: Side, operation: (v: Int, s: Int) -> Int) {
         val cell = getCellOnSide(side)
         if (cell != null) {
-            cell.value = operation(cell.value, side.opposite().value)
+            cell.value = operation(cell.value, side.opposite.value)
         }
         value = operation(value, side.value)
     }
@@ -127,7 +128,7 @@ abstract class Cell(open val maze: Maze, open val position: Position) {
     open fun connectWith(cell: Cell) {
         val side = findSideOfCell(cell)
         if (side != null) {
-            cell.value = cell.value and side.opposite().value.inv()
+            cell.value = cell.value and side.opposite.value.inv()
             value = value and side.value.inv()
         }
     }
@@ -138,7 +139,7 @@ abstract class Cell(open val maze: Maze, open val position: Position) {
      */
     open fun findSideOfCell(cell: Cell): Side? {
         if (cell.maze === maze) {
-            for (side in getAllSides()) {
+            for (side in allSides) {
                 if (getCellOnSide(side) == cell) {
                     return side
                 }
@@ -148,19 +149,20 @@ abstract class Cell(open val maze: Maze, open val position: Position) {
     }
 
     /**
-     * Return the number of sides set on this cell.
+     * Returns the number of sides set on this cell.
      */
-    open fun countSides(): Int = Integer.bitCount(value)
+    open val sidesCount: Int
+        get() = Integer.bitCount(value)
 
     /**
      * Returns a list of all possible side values.
      */
-    abstract fun getAllSides(): List<Side>
+    abstract val allSides: List<Side>
 
     /**
      * Returns the value of a cell with all sides set.
      */
-    abstract fun getAllSidesValue(): Int
+    abstract val allSidesValue: Int
 
 
     override fun toString(): String {
@@ -169,7 +171,7 @@ abstract class Cell(open val maze: Maze, open val position: Position) {
         if (value == 0) {
             sb.append("NONE")
         } else {
-            for (side in getAllSides()) {
+            for (side in allSides) {
                 if (hasSide(side)) {
                     sb.append(side.symbol)
                     sb.append(",")
@@ -212,9 +214,9 @@ abstract class Cell(open val maze: Maze, open val position: Position) {
         val symbol: String
 
         /**
-         * Get the side opposite to this side.
+         * The side opposite to this side.
          */
-        fun opposite(): Side
+        val opposite: Side
     }
 
 }
