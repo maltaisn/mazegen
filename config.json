@@ -1,17 +1,16 @@
 {
   "mazes": [
     {
-      "name": "sigma_rb_cm",
-      "type": "delta",
-      "shape": "hexagon",
-      "size": 10,
+      "name": "upsilon_rb_cm",
+      "type": "upsilon",
+      "size": 20,
       "algorithm": "rb",
       "colorMap": true,
       "colorMapStart": "random"
     }
   ],
   "output": {
-    "format": "svg",
+    "format": "png",
     "path": "testMazes/"
   },
   "style": {

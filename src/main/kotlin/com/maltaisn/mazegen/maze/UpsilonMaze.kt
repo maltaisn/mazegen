@@ -50,9 +50,9 @@ class UpsilonMaze(width: Int, height: Int) :
     }
 
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
-        val csive = style.cellSize
-        val dsize = sqrt(2.0) / 2 * csive // Diagonal wall size
-        val centerDistance = dsize + csive
+        val csize = style.cellSize
+        val dsize = sqrt(2.0) / 2 * csize // Diagonal wall size
+        val centerDistance = dsize + csize
 
         canvas.init(width * centerDistance + dsize + style.stroke.lineWidth,
                 height * centerDistance + dsize + style.stroke.lineWidth)
@@ -63,12 +63,42 @@ class UpsilonMaze(width: Int, height: Int) :
             canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
 
+        val offset = style.stroke.lineWidth / 2.0
+        canvas.translate = Point(offset, offset)
+
+        // Draw the color map
+        if (hasColorMap) {
+            val colorMapColors = style.generateColorMapColors(this)
+            for (x in 0 until width) {
+                val px = x * centerDistance + dsize
+                for (y in 0 until height) {
+                    canvas.color = colorMapColors[grid[x][y].colorMapDistance]
+
+                    val py = y * centerDistance + dsize
+                    if ((x + y) % 2 != 0) {
+                        // Square cell
+                        canvas.drawRect(px, py, csize, csize, true)
+                    } else {
+                        // Octogon cell
+                        canvas.drawPolygon(listOf(
+                                Point(px, py - dsize),
+                                Point(px + csize, py - dsize),
+                                Point(px + csize + dsize, py),
+                                Point(px + csize + dsize, py + csize),
+                                Point(px + csize, py + csize + dsize),
+                                Point(px, py + csize + dsize),
+                                Point(px - dsize, py + csize),
+                                Point(px - dsize, py)
+                        ), true)
+                    }
+                }
+            }
+        }
+
         // Draw the maze
         // For each square cell, only the north and west walls are drawn if they are set,
         // except for the first and last rows and columns where other sides may be drawn too.
         // For octogon cells, only draw north, northwest, west and southwest sides.
-        val offset = style.stroke.lineWidth / 2.0
-        canvas.translate = Point(offset, offset)
         canvas.color = style.color
         canvas.stroke = style.stroke
         for (x in 0..width) {
@@ -80,17 +110,17 @@ class UpsilonMaze(width: Int, height: Int) :
                     // Square cell
                     if (cell != null && cell.hasSide(Side.NORTH) || cell == null
                             && cellAt(x, y - 1)?.hasSide(Side.SOUTH) == true) {
-                        canvas.drawLine(px, py, px + csive, py)
+                        canvas.drawLine(px, py, px + csize, py)
                     }
                     if (cell != null && cell.hasSide(Side.WEST) || cell == null
                             && cellAt(x - 1, y)?.hasSide(Side.EAST) == true) {
-                        canvas.drawLine(px, py, px, py + csive)
+                        canvas.drawLine(px, py, px, py + csize)
                     }
                 } else {
                     // Octogon cell
                     if (cell != null && cell.hasSide(Side.NORTH) || cell == null
                             && cellAt(x, y - 1)?.hasSide(Side.SOUTH) == true) {
-                        canvas.drawLine(px, py - dsize, px + csive, py - dsize)
+                        canvas.drawLine(px, py - dsize, px + csize, py - dsize)
                     }
                     if (cell != null && cell.hasSide(Side.NORTHWEST) || cell == null
                             && cellAt(x - 1, y - 1)?.hasSide(Side.SOUTHEAST) == true) {
@@ -98,11 +128,11 @@ class UpsilonMaze(width: Int, height: Int) :
                     }
                     if (cell != null && cell.hasSide(Side.WEST) || cell == null
                             && cellAt(x - 1, y)?.hasSide(Side.EAST) == true) {
-                        canvas.drawLine(px - dsize, py, px - dsize, py + csive)
+                        canvas.drawLine(px - dsize, py, px - dsize, py + csize)
                     }
                     if (cell != null && cell.hasSide(Side.SOUTHWEST) || cell == null
                             && cellAt(x - 1, y + 1)?.hasSide(Side.NORTHEAST) == true) {
-                        canvas.drawLine(px - dsize, py + csive, px, py + csive + dsize)
+                        canvas.drawLine(px - dsize, py + csize, px, py + csize + dsize)
                     }
                 }
             }
@@ -116,8 +146,8 @@ class UpsilonMaze(width: Int, height: Int) :
             val points = LinkedList<Point>()
             for (cell in solution!!) {
                 val pos = cell.position as Position2D
-                val px = pos.x * centerDistance + dsize + csive / 2
-                val py = pos.y * centerDistance + dsize + csive / 2
+                val px = pos.x * centerDistance + dsize + csize / 2
+                val py = pos.y * centerDistance + dsize + csize / 2
                 points.add(Point(px, py))
             }
             canvas.drawPolyline(points)
