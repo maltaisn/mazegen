@@ -106,6 +106,11 @@ abstract class Canvas(val format: OutputFormat) {
     abstract fun drawRect(x: Double, y: Double, width: Double, height: Double, filled: Boolean)
 
     /**
+     * Draw [text] centered at ([x]; [y]), for debug purposes only.
+     */
+    abstract fun drawText(text: String, x: Double, y: Double)
+
+    /**
      * Export the canvas image to [file].
      */
     abstract fun exportTo(file: File)
@@ -113,21 +118,6 @@ abstract class Canvas(val format: OutputFormat) {
 
     companion object {
         const val SIZE_UNSET = -1.0
-
-        /**
-         * Parse a hex color string like `#RRGGBB` or `#AARRGGBB` to a [Color].
-         */
-        fun parseColor(color: String): Color {
-            if (color.startsWith('#')) {
-                val value = color.substring(1).toLong(16).toInt()
-                if (color.length == 7) {
-                    return Color(value)
-                } else if (color.length == 9) {
-                    return Color(value, true)
-                }
-            }
-            throw ParameterException("Invalid color string '$color'.")
-        }
     }
 
 }

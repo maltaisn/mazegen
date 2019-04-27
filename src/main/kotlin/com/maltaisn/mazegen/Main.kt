@@ -41,7 +41,7 @@ fun main(args: Array<String>) {
                         println("Configuration file: ${file.absolutePath}")
                     }
                     val configJson = FileInputStream(file).use { JSONObject(JSONTokener(it)) }
-                    MazeGenerator((ConfigurationParser().parse(configJson))).generate()
+                    MazeGenerator((ConfigurationParser.parse(configJson))).generate()
                 } else {
                     throw ParameterException("Configuration file " +
                             "at ${file.absolutePath} doesn't exists.")

@@ -77,29 +77,29 @@ abstract class BaseShapedMaze<T : Cell>(val width: Int, height: Int,
         count
     }
 
-    override val cellList: MutableList<T> by lazy {
-        val list = mutableListOf<T>()
-        for (x in 0 until grid.size) {
-            for (y in 0 until grid[x].size) {
-                list.add(grid[x][y])
-            }
-        }
-        list
-    }
-
     override fun cellAt(pos: Position) =
             cellAt((pos as Position2D).x, pos.y)
-
-    override fun getRandomCell(): Cell {
-        val x = Random.nextInt(grid.size)
-        return grid[x][Random.nextInt(grid[x].size)]
-    }
 
     fun cellAt(x: Int, y: Int): T? {
         if (x < 0 || x >= grid.size) return null
         val actualY = y - rowOffsets[x]
         if (actualY < 0 || actualY >= grid[x].size) return null
         return grid[x][actualY]
+    }
+
+    override fun getRandomCell(): Cell {
+        val x = Random.nextInt(grid.size)
+        return grid[x][Random.nextInt(grid[x].size)]
+    }
+
+    override fun getAllCells(): MutableList<out Cell> {
+        val list = mutableListOf<T>()
+        for (x in 0 until grid.size) {
+            for (y in 0 until grid[x].size) {
+                list.add(grid[x][y])
+            }
+        }
+        return list
     }
 
     override fun forEachCell(action: (Cell) -> Unit) {

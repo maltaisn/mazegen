@@ -35,6 +35,8 @@ import com.maltaisn.mazegen.render.SvgCanvas
 import java.awt.BasicStroke
 import java.awt.Color
 import java.io.File
+import java.lang.Math.floor
+import kotlin.math.max
 
 
 /**
@@ -54,7 +56,9 @@ class Configuration(val mazeSets: List<MazeSet>,
                   val generator: Generator,
                   val braiding: Maze.Braiding?,
                   val openings: List<Position>,
-                  val solve: Boolean)
+                  val solve: Boolean,
+                  val colorMap: Boolean,
+                  val colorMapStart: Position?)
 
     /**
      * Output settings.
@@ -88,6 +92,61 @@ class Configuration(val mazeSets: List<MazeSet>,
                 val stroke: BasicStroke,
                 val solutionColor: Color,
                 val solutionStroke: BasicStroke,
-                val antialiasing: Boolean)
+                val colorMapRange: Int,
+                val colorMapColors: List<Color>,
+                val antialiasing: Boolean) {
+
+        /**
+         * Generate the list of colors for each distance in the [maze].
+         * If [range] is automatic, there will be as many colors as the greatest distance.
+         * If [range] is smaller than the greatest distance, the colors will be looped.
+         */
+        fun generateColorMapColors(maze: Maze): List<Color> {
+            assert(maze.hasColorMap)
+
+            // Find greatest distance in the maze
+            var maxDistance = 0
+            maze.forEachCell {
+                if (it.colorMapDistance > maxDistance) {
+                    maxDistance = it.colorMapDistance
+                }
+            }
+
+            val colorCount = colorMapColors.size
+            val range = if (colorMapRange == COLOR_MAP_RANGE_AUTO) {
+                maxDistance + 1
+            } else {
+                max(colorMapRange, colorCount - 1)
+            }
+
+            // Interpolate all colors in the list over the range
+            val colors = mutableListOf<Color>()
+            for (i in 0..maxDistance) {
+                val progress = i.toDouble() / range * (colorCount - 1)
+                val index = floor(progress).toInt() % colorCount
+                colors += interpolateColors(colorMapColors[index],
+                        colorMapColors[(index + 1) % colorCount], (progress % 1).toFloat())
+            }
+            return colors
+        }
+
+        private fun interpolateColors(start: Color, end: Color, percent: Float): Color {
+            val inversePercent = 1 - percent
+            val r = start.red * inversePercent + end.red * percent
+            val g = start.green * inversePercent + end.green * percent
+            val b = start.blue * inversePercent + end.blue * percent
+            val a = start.alpha * inversePercent + end.alpha * percent
+            return Color(r.toInt(), g.toInt(), b.toInt(), a.toInt())
+        }
+
+        companion object {
+            /**
+             * Use for [colorMapRange] to indicate that the colors should be
+             * divided over the longest path length, each being used exactly once.
+             */
+            const val COLOR_MAP_RANGE_AUTO = 0
+        }
+
+    }
 
 }

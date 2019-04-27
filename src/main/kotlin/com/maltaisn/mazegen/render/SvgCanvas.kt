@@ -124,6 +124,10 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
         shapes.add(Rectangle(currentStyle, x, y, width, height, filled))
     }
 
+    override fun drawText(text: String, x: Double, y: Double) {
+       throw UnsupportedOperationException()
+    }
+
     private fun getLastPath(): Path {
         val last = shapes.lastOrNull()
         return if (last is Path && last.style === currentStyle) {

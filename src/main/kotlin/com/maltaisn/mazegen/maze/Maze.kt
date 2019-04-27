@@ -48,23 +48,19 @@ abstract class Maze {
      * The maze solution, a list of the path's cells starting from the first
      * opening and ending on the second. Null if no solution was found yet.
      */
-    protected var solution: MutableList<Cell>? = null
+    var solution: List<Cell>? = null
         private set
 
     /**
-     * Returns a random cell in the maze.
+     * Whether a color map has been generated or not.
      */
-    abstract val randomCell: Cell
+    var hasColorMap = false
+        private set
 
     /**
      * Get the total number of cells in this maze.
      */
     abstract val cellCount: Int
-
-    /**
-     * Returns a list containing all the cells in this maze.
-     */
-    abstract val cellList: MutableList<out Cell>
 
     /**
      * Returns the cell at [pos] if it exists, otherwise returns null.
@@ -77,28 +73,39 @@ abstract class Maze {
     abstract fun getRandomCell(): Cell
 
     /**
+     * Creates and returns a list containing all the cells in this maze.
+     */
+    abstract fun getAllCells(): MutableList<out Cell>
+
+    /**
      * Call [action] on every cell.
      */
     abstract fun forEachCell(action: (Cell) -> Unit)
 
     /**
-     * Clears all sides of all cells in the maze, resets all visited flags.
+     * Clears all sides of all cells in the maze, resets all visited and color map flags.
      */
     fun resetAll() {
         forEachCell {
             it.value = 0
             it.visited = false
+            it.colorMapDistance = -1
         }
+        solution = null
+        openings.clear()
     }
 
     /**
-     * Sets all sides of all cells in the maze, resets all visited flags.
+     * Sets all sides of all cells in the maze, resets all visited and color map flags.
      */
     fun fillAll() {
         forEachCell {
             it.value = it.allSidesValue
             it.visited = false
+            it.colorMapDistance = -1
         }
+        solution = null
+        openings.clear()
     }
 
     /**
@@ -131,8 +138,8 @@ abstract class Maze {
     abstract fun getOpeningCell(opening: Position): Cell?
 
     /**
-     * Find the solution of the maze, starting from the first opening and ending
-     * on the second opening. The solution is a list of cells in the path, starting
+     * Find the solution of the maze between two cells.
+     * The solution is a list of cells in the path, starting
      * from the start cell, or null if there's no solution.
      *
      * This uses the A* star algorithm as described
@@ -150,16 +157,12 @@ abstract class Maze {
      *    when the cell of the node selected at step 2 is the end cell.
      *
      * Runtime complexity is O(n) and memory space is O(n).
+     *
+     * @param start Start cell for solving.
+     * @param end End cell for solving.
      */
-    fun solve(): Boolean {
-        if (openings.size < 2) {
-            throw ParameterException("Not enough openings to solve this maze.")
-        }
-
+    fun solve(start: Cell = openings[0], end: Cell = openings[1]): Boolean {
         forEachCell { it.visited = false }
-
-        val start = openings[0]
-        val end = openings[1]
 
         val nodes = PriorityQueue<Node>()
 
@@ -203,8 +206,8 @@ abstract class Maze {
     private data class Node(val parent: Node?, val cell: Cell,
                             val costFromStart: Int, val costToEnd: Int) : Comparable<Node> {
 
-        override operator fun compareTo(other: Node): Int = (costFromStart + costToEnd)
-                .compareTo(other.costFromStart + other.costToEnd)
+        override operator fun compareTo(other: Node): Int =
+                (costFromStart + costToEnd).compareTo(other.costFromStart + other.costToEnd)
 
         override fun equals(other: Any?): Boolean {
             if (other === this) return true
@@ -218,14 +221,18 @@ abstract class Maze {
 
     /**
      * Open a number of deadends set by the braiding [setting].
+     * Color map is removed and will need to be regenerated after braiding.
      */
     fun braid(setting: Braiding) {
+        hasColorMap = false
+
         val deadends = mutableListOf<Cell>()
         forEachCell {
             if (it.sidesCount == it.allSides.size - 1) {
                 // A cell is a deadend if it has only one side opened.
                 deadends.add(it)
             }
+            it.colorMapDistance = -1
         }
 
         val count = setting.getNumberOfDeadendsToRemove(deadends.size)
@@ -299,6 +306,79 @@ abstract class Maze {
             "${value.toDouble() * 100}% of deadends"
         }
     }
+
+    /**
+     * Generate the color map on this maze, using Dijkstra's algorithm to find
+     * the shortest distance to every cell in the map, starting from [startPos].
+     * See [this page](https://en.wikipedia.org/wiki/Dijkstra's_algorithm) for the algorithm.
+     *
+     * 1. Assign an arbitrarly high distance to all cells but the start cell, which is assigned a distance of 0.
+     * 2. Create a list of unvisited cells containing all cells.
+     * 3. Remove the cell with the lowest distance in the list. For each of its accessible
+     *      neighbors, take the smallest distance between their current one and the
+     *      one calculated from the removed cell.
+     * 4. Repeat step 3 until the list is empty.
+     *
+     * Runtime complexity is O(n²) and memory space is O(n).
+     * Implementation would be probably faster using a Fibonnaci heap.
+     *
+     * @param startPos Starting position (distance of zero), can be `null` for a random cell.
+     */
+    fun generateColorMap(startPos: Position? = null) {
+        val inf = Int.MAX_VALUE - 1
+        forEachCell {
+            it.visited = false
+            it.colorMapDistance = inf
+        }
+
+        val startCell = if (startPos == null) {
+            getRandomCell()
+        } else {
+            getOpeningCell(startPos) ?: throw ParameterException(
+                    "Color map start position describes no cell in the maze.")
+        }
+        startCell.colorMapDistance = 0
+
+        val cellList = getAllCells()
+        while (cellList.isNotEmpty()) {
+            // Get and remove the cell with the lowest distance
+            var minIndex = 0
+            for (i in 1 until cellList.size) {
+                val cell = cellList[i]
+                if (cell.colorMapDistance < cellList[minIndex].colorMapDistance) {
+                    minIndex = i
+                }
+            }
+
+            val minCell = cellList.removeAt(minIndex)
+            minCell.visited = true
+
+            if (minCell.colorMapDistance == inf) {
+                // This means the only cells left are inaccessible from the start cell.
+                // The color map can't be generated completely.
+                error { "Could not generate color map, maze has inaccessible cells." }
+            }
+
+            // Compare unvisited accessible neighbors distance calculated from this cell with
+            // their current distance. If new distance is smaller, update it.
+            for (neighbor in minCell.findAccessibleNeighbors()) {
+                if (!neighbor.visited) {
+                    val newDistance = minCell.colorMapDistance + 1
+                    if (newDistance < neighbor.colorMapDistance) {
+                        neighbor.colorMapDistance = newDistance
+                    }
+                }
+            }
+        }
+
+        hasColorMap = true
+    }
+
+    /**
+     * Draw the maze to a [canvas] with [style] settings.
+     */
+    abstract fun drawTo(canvas: Canvas, style: Configuration.Style)
+
 
     companion object {
         const val OPENING_POS_START = Int.MIN_VALUE

@@ -59,7 +59,7 @@ class KruskalGenerator : Generator() {
         // Get all edges and create a tree node for every cell
         val edgesSet = LinkedHashSet<Edge>()
         val nodesMap = HashMap<Cell, Node>()
-        for (cell in maze.cellList) {
+        for (cell in maze.getAllCells()) {
             for (neighbor in cell.neighbors) {
                 edgesSet.add(Edge(cell, neighbor))
             }

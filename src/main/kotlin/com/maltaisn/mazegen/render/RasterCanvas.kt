@@ -25,10 +25,7 @@
 
 package com.maltaisn.mazegen.render
 
-import java.awt.BasicStroke
-import java.awt.Color
-import java.awt.Graphics2D
-import java.awt.RenderingHints
+import java.awt.*
 import java.awt.geom.AffineTransform
 import java.awt.geom.Arc2D
 import java.awt.geom.Line2D
@@ -103,6 +100,7 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
         }
         buffImage = BufferedImage(ceil(width).toInt(), ceil(height).toInt(), type)
         graphics = buffImage.createGraphics()
+        graphics.font = Font("Arial", Font.PLAIN, 12)
         transform = graphics.transform
 
         // Set all settings again now that graphics is created
@@ -136,10 +134,15 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
     override fun drawRect(x: Double, y: Double, width: Double, height: Double, filled: Boolean) {
         val rect = Rectangle2D.Double(x, y, width, height)
         if (filled) {
-            graphics.draw(rect)
-        } else {
             graphics.fill(rect)
+        } else {
+            graphics.draw(rect)
         }
+    }
+
+    override fun drawText(text: String, x: Double, y: Double) {
+        val bounds = graphics.fontMetrics.getStringBounds(text, graphics)
+        graphics.drawString(text, (x - bounds.centerX).toFloat(), (y - bounds.centerY).toFloat())
     }
 
     override fun exportTo(file: File) {

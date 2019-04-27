@@ -81,16 +81,6 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
         count
     }
 
-    override val cellList: MutableList<ThetaCell> by lazy {
-        val list = mutableListOf<ThetaCell>()
-        for (r in 0 until grid.size) {
-            for (x in 0 until grid[r].size) {
-                list.add(grid[r][x])
-            }
-        }
-        list
-    }
-
     override fun cellAt(pos: Position) =
             cellAt((pos as PositionPolar).x, pos.y)
 
@@ -102,6 +92,16 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
     override fun getRandomCell(): Cell {
         val r = Random.nextInt(grid.size)
         return grid[r][Random.nextInt(grid[r].size)]
+    }
+
+    override fun getAllCells(): MutableList<ThetaCell> {
+        val list = mutableListOf<ThetaCell>()
+        for (r in 0 until grid.size) {
+            for (x in 0 until grid[r].size) {
+                list.add(grid[r][x])
+            }
+        }
+        return list
     }
 
     override fun forEachCell(action: (Cell) -> Unit) {

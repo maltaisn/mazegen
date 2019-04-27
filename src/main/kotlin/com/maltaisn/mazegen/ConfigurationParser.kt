@@ -28,7 +28,6 @@ package com.maltaisn.mazegen
 import com.maltaisn.mazegen.Configuration.MazeSet
 import com.maltaisn.mazegen.generator.*
 import com.maltaisn.mazegen.maze.*
-import com.maltaisn.mazegen.render.Canvas
 import com.maltaisn.mazegen.render.OutputFormat
 import org.json.JSONArray
 import org.json.JSONObject
@@ -40,7 +39,7 @@ import java.io.File
 /**
  * Parser for the JSON configuration file into a [Configuration] object.
  */
-class ConfigurationParser {
+object ConfigurationParser {
 
     fun parse(from: JSONObject): Configuration {
         // Parse maze sets
@@ -178,12 +177,11 @@ class ConfigurationParser {
         }
 
         // Creator (type + parameters)
-        val type = if (from.has(KEY_MAZE_TYPE)) {
+        val creator: () -> Maze = when (val type = if (from.has(KEY_MAZE_TYPE)) {
             from.getString(KEY_MAZE_TYPE).toLowerCase()
         } else {
             DEFAULT_MAZE_TYPE
-        }
-        val creator: () -> Maze = when (type) {
+        }) {
             MAZE_ORTHOGONAL, MAZE_UNICURSAL_ORTHOGONAL, MAZE_UPSILON, MAZE_ZETA -> {
                 {
                     var width: Int
@@ -212,7 +210,8 @@ class ConfigurationParser {
                     }
 
                     when (type) {
-                        MAZE_ORTHOGONAL, MAZE_UNICURSAL_ORTHOGONAL -> OrthogonalMaze(width, height)
+                        MAZE_ORTHOGONAL -> OrthogonalMaze(width, height)
+                        MAZE_UNICURSAL_ORTHOGONAL -> UnicursalOrthogonalMaze(width, height)
                         MAZE_UPSILON -> UpsilonMaze(width, height)
                         MAZE_ZETA -> ZetaMaze(width, height)
                         else -> throw IllegalStateException()
@@ -303,21 +302,7 @@ class ConfigurationParser {
         if (from.has(KEY_MAZE_OPENINGS)) {
             val openingsJson = from.getJSONArray(KEY_MAZE_OPENINGS)
             for (openingJson in openingsJson) {
-                val openingArray = openingJson as JSONArray
-                val position = IntArray(openingArray.length())
-                for (i in 0 until openingArray.length()) {
-                    val pos = openingArray[i]
-                    position[i] = when (pos) {
-                        is String -> when (pos[0].toUpperCase()) {
-                            KEY_MAZE_OPENING_START -> Maze.OPENING_POS_START
-                            KEY_MAZE_OPENING_CENTER -> Maze.OPENING_POS_CENTER
-                            KEY_MAZE_OPENING_END -> Maze.OPENING_POS_END
-                            else -> throw ParameterException("Invalid opening position character '$pos'.")
-                        }
-                        is Int -> pos
-                        else -> throw ParameterException("Invalid opening position argument '$pos'.")
-                    }
-                }
+                val position = parsePosition(openingJson as JSONArray)
                 openings.add(Position2D(position[0], position[1]))
             }
         }
@@ -326,7 +311,24 @@ class ConfigurationParser {
         val solve = if (from.has(KEY_MAZE_SOLVE))
             from.getBoolean(KEY_MAZE_SOLVE) else DEFAULT_MAZE_SOLVE
 
-        return MazeSet(name, count, creator, generator, braiding, openings, solve)
+        // Color map
+        val colorMap = if (from.has(KEY_MAZE_COLOR_MAP))
+            from.getBoolean(KEY_MAZE_COLOR_MAP) else DEFAULT_MAZE_COLOR_MAP
+
+        val colorMapStart = if (from.has(KEY_MAZE_CM_START)) {
+            val value = from.get(KEY_MAZE_CM_START)
+            if (value is String && value == "random") {
+                null
+            } else {
+                val pos = parsePosition(from.getJSONArray(KEY_MAZE_CM_START))
+                Position2D(pos[0], pos[1])
+            }
+        } else {
+            DEFAULT_MAZE_CM_START
+        }
+
+        return MazeSet(name, count, creator, generator, braiding,
+                openings, solve, colorMap, colorMapStart)
     }
 
     private fun parseOutput(from: JSONObject?): Configuration.Output {
@@ -378,6 +380,8 @@ class ConfigurationParser {
         var solutionColor = DEFAULT_STYLE_SOLUTION_COLOR
         var solutionStrokeWidth = DEFAULT_STYLE_SOLUTION_STROKE_WIDTH
         var strokeCap = DEFAULT_STYLE_STROKE_CAP
+        var colorMapRange = DEFAULT_STYLE_CM_RANGE
+        var colorMapColors = DEFAULT_STYLE_CM_COLORS
         var antialiasing = DEFAULT_STYLE_ANTIALIASING
 
         if (from != null) {
@@ -385,20 +389,19 @@ class ConfigurationParser {
                 cellSize = from.getDouble(KEY_STYLE_CELL_SIZE)
             }
             if (from.has(KEY_STYLE_BACKGROUND_COLOR)) {
-                backgroundColor = Canvas.parseColor(
-                        from.getString(KEY_STYLE_BACKGROUND_COLOR))
+                backgroundColor = parseColor(from.getString(KEY_STYLE_BACKGROUND_COLOR))
             }
             if (from.has(KEY_STYLE_STROKE_WIDTH)) {
                 strokeWidth = from.getFloat(KEY_STYLE_STROKE_WIDTH)
             }
             if (from.has(KEY_STYLE_COLOR)) {
-                color = Canvas.parseColor(from.getString(KEY_STYLE_COLOR))
+                color = parseColor(from.getString(KEY_STYLE_COLOR))
             }
             if (from.has(KEY_STYLE_SOLUTION_STROKE_WIDTH)) {
                 solutionStrokeWidth = from.getFloat(KEY_STYLE_SOLUTION_STROKE_WIDTH)
             }
             if (from.has(KEY_STYLE_SOLUTION_COLOR)) {
-                solutionColor = Canvas.parseColor(from.getString(KEY_STYLE_SOLUTION_COLOR))
+                solutionColor = parseColor(from.getString(KEY_STYLE_SOLUTION_COLOR))
             }
             if (from.has(KEY_STYLE_STROKE_CAP)) {
                 val capStr = from.getString(KEY_STYLE_STROKE_CAP)
@@ -408,6 +411,21 @@ class ConfigurationParser {
                     "square" -> BasicStroke.CAP_SQUARE
                     else -> throw ParameterException("Invalid stroke cap '$capStr'.")
                 }
+            }
+            if (from.has(KEY_STYLE_SOLUTION_COLOR)) {
+                solutionColor = parseColor(from.getString(KEY_STYLE_SOLUTION_COLOR))
+            }
+            if (from.has(KEY_STYLE_CM_RANGE)) {
+                val value = from.get(KEY_STYLE_CM_RANGE)
+                colorMapRange = if (value is String && value == "auto") {
+                    Configuration.Style.COLOR_MAP_RANGE_AUTO
+                } else {
+                    from.getInt(KEY_STYLE_CM_RANGE)
+                }
+            }
+            if (from.has(KEY_STYLE_CM_COLORS)) {
+                val colors = from.getJSONArray(KEY_STYLE_CM_COLORS)
+                colorMapColors = List(colors.length()) { parseColor(colors[it] as String) }
             }
             if (from.has(KEY_STYLE_ANTIALIASING)) {
                 antialiasing = from.getBoolean(KEY_STYLE_ANTIALIASING)
@@ -422,8 +440,29 @@ class ConfigurationParser {
         val stroke = BasicStroke(strokeWidth, strokeCap, BasicStroke.JOIN_ROUND)
         val solutionStroke = BasicStroke(solutionStrokeWidth, strokeCap, BasicStroke.JOIN_ROUND)
 
-        return Configuration.Style(cellSize, backgroundColor, color,
-                stroke, solutionColor, solutionStroke, antialiasing)
+        return Configuration.Style(cellSize, backgroundColor, color, stroke, solutionColor,
+                solutionStroke, colorMapRange, colorMapColors, antialiasing)
+    }
+
+    /**
+     * Parse a cell position array.
+     */
+    private fun parsePosition(posArray: JSONArray): IntArray {
+        val position = IntArray(posArray.length())
+        for (i in 0 until posArray.length()) {
+            val pos = posArray[i]
+            position[i] = when (pos) {
+                is String -> when (pos[0].toUpperCase()) {
+                    KEY_MAZE_OPENING_START -> Maze.OPENING_POS_START
+                    KEY_MAZE_OPENING_CENTER -> Maze.OPENING_POS_CENTER
+                    KEY_MAZE_OPENING_END -> Maze.OPENING_POS_END
+                    else -> throw ParameterException("Invalid opening position character '$pos'.")
+                }
+                is Int -> pos
+                else -> throw ParameterException("Invalid opening position argument '$pos'.")
+            }
+        }
+        return position
     }
 
     /**
@@ -436,85 +475,106 @@ class ConfigurationParser {
         throw ParameterException("Percentage value expected, got '$value'")
     }
 
-    companion object {
-        private const val MAZE_ORTHOGONAL = "orthogonal"
-        private const val MAZE_WEAVE_ORTHOGONAL = "weaveorthogonal"
-        private const val MAZE_UNICURSAL_ORTHOGONAL = "unicursalorthogonal"
-        private const val MAZE_DELTA = "delta"
-        private const val MAZE_SIGMA = "sigma"
-        private const val MAZE_THETA = "theta"
-        private const val MAZE_UPSILON = "upsilon"
-        private const val MAZE_ZETA = "zeta"
-
-        // Maze set keys and defaults
-        private const val KEY_MAZE = "mazes"
-        private const val KEY_MAZE_NAME = "name"
-        private const val KEY_MAZE_COUNT = "count"
-        private const val KEY_MAZE_TYPE = "type"
-        private const val KEY_MAZE_SHAPE = "shape"
-        private const val KEY_MAZE_BRAID = "braid"
-        private const val KEY_MAZE_SOLVE = "solve"
-
-        private const val KEY_MAZE_OPENINGS = "openings"
-        private const val KEY_MAZE_OPENING_START = 'S'
-        private const val KEY_MAZE_OPENING_CENTER = 'C'
-        private const val KEY_MAZE_OPENING_END = 'E'
-
-        private const val KEY_MAZE_SIZE = "size"
-        private const val KEY_MAZE_SIZE_WIDTH = "width"
-        private const val KEY_MAZE_SIZE_HEIGHT = "height"
-        private const val KEY_MAZE_SIZE_RADIUS = "radius"
-        private const val KEY_MAZE_SIZE_CENTER_RADIUS = "centerRadius"
-        private const val KEY_MAZE_SIZE_SUBDIVISION = "subdivision"
-        private const val KEY_MAZE_SIZE_MAX_WEAVE = "maxWeave"
-
-        private const val KEY_MAZE_ALGORITHM = "algorithm"
-        private const val KEY_MAZE_ALGORITHM_NAME = "name"
-        private const val KEY_MAZE_ALGORITHM_WEIGHTS = "weights"
-        private const val KEY_MAZE_ALGORITHM_BIAS = "bias"
-
-        private const val DEFAULT_MAZE_NAME = "maze"
-        private const val DEFAULT_MAZE_COUNT = 1
-        private const val DEFAULT_MAZE_ALGORITHM = "rb"
-        private val DEFAULT_MAZE_ALGORITHM_BRAID: Maze.Braiding? = null
-        private val DEFAULT_MAZE_TYPE = MAZE_ORTHOGONAL
-        private val DEFAULT_MAZE_SHAPE = BaseShapedMaze.Shape.RECTANGLE
-        private const val DEFAULT_MAZE_SIZE_CENTER_RADIUS = 1.0
-        private const val DEFAULT_MAZE_SIZE_SUBDIVISION = 1.5
-        private const val DEFAULT_MAZE_SIZE_MAX_WEAVE = 1
-        private const val DEFAULT_MAZE_SOLVE = false
-
-        // Output keys and defaults
-        private const val KEY_OUTPUT = "output"
-        private const val KEY_OUTPUT_PATH = "path"
-        private const val KEY_OUTPUT_FORMAT = "format"
-        private const val KEY_OUTPUT_SVG_OPTIMIZE = "svgOptimize"
-        private const val KEY_OUTPUT_SVG_PRECISION = "svgPrecision"
-
-        private val DEFAULT_OUTPUT_FORMAT = OutputFormat.PNG
-        private val DEFAULT_OUTPUT_PATH = File(System.getProperty("user.dir"))
-        private const val DEFAULT_OUTPUT_SVG_OPTIMIZE = false
-        private const val DEFAULT_OUTPUT_SVG_PRECISION = 2
-
-        // Style keys and defaults
-        private const val KEY_STYLE = "style"
-        private const val KEY_STYLE_CELL_SIZE = "cellSize"
-        private const val KEY_STYLE_BACKGROUND_COLOR = "backgroundColor"
-        private const val KEY_STYLE_COLOR = "color"
-        private const val KEY_STYLE_STROKE_WIDTH = "strokeWidth"
-        private const val KEY_STYLE_SOLUTION_COLOR = "solutionColor"
-        private const val KEY_STYLE_SOLUTION_STROKE_WIDTH = "solutionStrokeWidth"
-        private const val KEY_STYLE_STROKE_CAP = "strokeCap"
-        private const val KEY_STYLE_ANTIALIASING = "antialiasing"
-
-        private const val DEFAULT_STYLE_CELL_SIZE = 30.0
-        private val DEFAULT_STYLE_BACKGROUND_COLOR = Canvas.parseColor("#00FFFFFF")
-        private val DEFAULT_STYLE_COLOR = Color.BLACK!!
-        private const val DEFAULT_STYLE_STROKE_WIDTH = 3f
-        private val DEFAULT_STYLE_SOLUTION_COLOR = Color.BLUE!!
-        private const val DEFAULT_STYLE_SOLUTION_STROKE_WIDTH = 3f
-        private const val DEFAULT_STYLE_STROKE_CAP = BasicStroke.CAP_ROUND
-        private const val DEFAULT_STYLE_ANTIALIASING = true
+    /**
+     * Parse a hex color string like `#RRGGBB` or `#AARRGGBB` to a [Color].
+     */
+    private fun parseColor(color: String): Color {
+        if (color.startsWith('#')) {
+            val value = color.substring(1).toLong(16).toInt()
+            if (color.length == 7) {
+                return Color(value)
+            } else if (color.length == 9) {
+                return Color(value, true)
+            }
+        }
+        throw ParameterException("Invalid color string '$color'.")
     }
+
+    private const val MAZE_ORTHOGONAL = "orthogonal"
+    private const val MAZE_WEAVE_ORTHOGONAL = "weaveorthogonal"
+    private const val MAZE_UNICURSAL_ORTHOGONAL = "unicursalorthogonal"
+    private const val MAZE_DELTA = "delta"
+    private const val MAZE_SIGMA = "sigma"
+    private const val MAZE_THETA = "theta"
+    private const val MAZE_UPSILON = "upsilon"
+    private const val MAZE_ZETA = "zeta"
+
+    // Maze set keys and defaults
+    private const val KEY_MAZE = "mazes"
+    private const val KEY_MAZE_NAME = "name"
+    private const val KEY_MAZE_COUNT = "count"
+    private const val KEY_MAZE_TYPE = "type"
+    private const val KEY_MAZE_SHAPE = "shape"
+    private const val KEY_MAZE_BRAID = "braid"
+    private const val KEY_MAZE_SOLVE = "solve"
+    private const val KEY_MAZE_COLOR_MAP = "colorMap"
+    private const val KEY_MAZE_CM_START = "colorMapStart"
+
+    private const val KEY_MAZE_OPENINGS = "openings"
+    private const val KEY_MAZE_OPENING_START = 'S'
+    private const val KEY_MAZE_OPENING_CENTER = 'C'
+    private const val KEY_MAZE_OPENING_END = 'E'
+
+    private const val KEY_MAZE_SIZE = "size"
+    private const val KEY_MAZE_SIZE_WIDTH = "width"
+    private const val KEY_MAZE_SIZE_HEIGHT = "height"
+    private const val KEY_MAZE_SIZE_RADIUS = "radius"
+    private const val KEY_MAZE_SIZE_CENTER_RADIUS = "centerRadius"
+    private const val KEY_MAZE_SIZE_SUBDIVISION = "subdivision"
+    private const val KEY_MAZE_SIZE_MAX_WEAVE = "maxWeave"
+
+    private const val KEY_MAZE_ALGORITHM = "algorithm"
+    private const val KEY_MAZE_ALGORITHM_NAME = "name"
+    private const val KEY_MAZE_ALGORITHM_WEIGHTS = "weights"
+    private const val KEY_MAZE_ALGORITHM_BIAS = "bias"
+
+    private const val DEFAULT_MAZE_NAME = "maze"
+    private const val DEFAULT_MAZE_COUNT = 1
+    private const val DEFAULT_MAZE_ALGORITHM = "rb"
+    private val DEFAULT_MAZE_ALGORITHM_BRAID: Maze.Braiding? = null
+    private val DEFAULT_MAZE_TYPE = MAZE_ORTHOGONAL
+    private val DEFAULT_MAZE_SHAPE = BaseShapedMaze.Shape.RECTANGLE
+    private const val DEFAULT_MAZE_SIZE_CENTER_RADIUS = 1.0
+    private const val DEFAULT_MAZE_SIZE_SUBDIVISION = 1.5
+    private const val DEFAULT_MAZE_SIZE_MAX_WEAVE = 1
+    private const val DEFAULT_MAZE_SOLVE = false
+    private const val DEFAULT_MAZE_COLOR_MAP = false
+    private val DEFAULT_MAZE_CM_START: Position? = null
+
+    // Output keys and defaults
+    private const val KEY_OUTPUT = "output"
+    private const val KEY_OUTPUT_PATH = "path"
+    private const val KEY_OUTPUT_FORMAT = "format"
+    private const val KEY_OUTPUT_SVG_OPTIMIZE = "svgOptimize"
+    private const val KEY_OUTPUT_SVG_PRECISION = "svgPrecision"
+
+    private val DEFAULT_OUTPUT_FORMAT = OutputFormat.PNG
+    private val DEFAULT_OUTPUT_PATH = File(System.getProperty("user.dir"))
+    private const val DEFAULT_OUTPUT_SVG_OPTIMIZE = false
+    private const val DEFAULT_OUTPUT_SVG_PRECISION = 2
+
+    // Style keys and defaults
+    private const val KEY_STYLE = "style"
+    private const val KEY_STYLE_CELL_SIZE = "cellSize"
+    private const val KEY_STYLE_BACKGROUND_COLOR = "backgroundColor"
+    private const val KEY_STYLE_COLOR = "color"
+    private const val KEY_STYLE_STROKE_WIDTH = "strokeWidth"
+    private const val KEY_STYLE_SOLUTION_COLOR = "solutionColor"
+    private const val KEY_STYLE_SOLUTION_STROKE_WIDTH = "solutionStrokeWidth"
+    private const val KEY_STYLE_STROKE_CAP = "strokeCap"
+    private const val KEY_STYLE_CM_RANGE = "colorMapRange"
+    private const val KEY_STYLE_CM_COLORS = "colorMapColors"
+    private const val KEY_STYLE_ANTIALIASING = "antialiasing"
+
+    private const val DEFAULT_STYLE_CELL_SIZE = 30.0
+    private val DEFAULT_STYLE_BACKGROUND_COLOR = parseColor("#00FFFFFF")
+    private val DEFAULT_STYLE_COLOR: Color = Color.BLACK
+    private const val DEFAULT_STYLE_STROKE_WIDTH = 3f
+    private val DEFAULT_STYLE_SOLUTION_COLOR: Color = Color.BLUE
+    private const val DEFAULT_STYLE_SOLUTION_STROKE_WIDTH = 3f
+    private const val DEFAULT_STYLE_STROKE_CAP = BasicStroke.CAP_ROUND
+    private const val DEFAULT_STYLE_CM_RANGE = Configuration.Style.COLOR_MAP_RANGE_AUTO
+    private val DEFAULT_STYLE_CM_COLORS = listOf(Color.WHITE, Color.BLACK)
+    private const val DEFAULT_STYLE_ANTIALIASING = true
 
 }

@@ -44,7 +44,13 @@ abstract class Cell(open val maze: Maze, open val position: Position) {
     /**
      * The cell value encoding which sides are set. Bit field of [Side] values.
      */
-    open var value: Int = 0
+    open var value = 0
+
+    /**
+     * If a color map was generated, the minimum
+     * distance of this cell from the starting cell.
+     */
+    var colorMapDistance = -1
 
     /**
      * The list of cells adjacent to this cell, but not necessarily connected.

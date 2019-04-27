@@ -63,7 +63,7 @@ class WilsonGenerator : Generator() {
 
         maze.fillAll()
 
-        val unvisitedCells = maze.cellList
+        val unvisitedCells = maze.getAllCells()
 
         // Make the initial cell visited
         val initialCell = unvisitedCells.removeAt(Random.nextInt(unvisitedCells.size))

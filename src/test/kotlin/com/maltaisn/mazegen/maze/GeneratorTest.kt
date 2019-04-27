@@ -74,7 +74,7 @@ class GeneratorTest {
             // Unicursal orthogonal (120 mazes)
             println("\n=== UNICURSAL ORTHOGONAL ===")
             testMazeType { size ->
-                val maze = OrthogonalMaze(size, size)
+                val maze = UnicursalOrthogonalMaze(size, size)
                 generator.generate(maze)
                 UnicursalOrthogonalMaze(maze)
             }
@@ -173,13 +173,13 @@ class GeneratorTest {
         maze.forEachCell { it.visited = false }
         val cells = LinkedList<Cell>()
         var unvisited = maze.cellCount - 1
-        val start = maze.randomCell
+        val start = maze.getRandomCell()
         start.visited = true
         cells.add(start)
         while (cells.isNotEmpty()) {
             val cell = cells.removeFirst()
             var visitedCount = 0
-            for (neighbor in cell.accessibleNeighbors) {
+            for (neighbor in cell.findAccessibleNeighbors()) {
                 if (neighbor.visited) {
                     visitedCount++
                 } else {

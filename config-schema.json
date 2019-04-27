@@ -11,6 +11,17 @@
       ],
       "default": "rb"
     },
+    "mazePosition": {
+      "type": "array",
+      "items": {
+        "type": ["string", "integer"],
+        "description": "Opening position. Either start, center, end or a specific coordinate.",
+        "oneOf": [
+          {"type": "string", "enum": ["S", "C", "E"]},
+          {"type": "integer"}
+        ]
+      }
+    },
     "colorString": {
       "type": "string",
       "pattern": "^#(?:[0-9A-Fa-f]{2}){3,4}$"
@@ -175,17 +186,7 @@
           "openings": {
             "type": "array",
             "description": "Openings to carve",
-            "items": {
-              "type": "array",
-              "items": {
-                "type": ["string", "integer"],
-                "description": "Opening position. Either start, center, end or a specific coordinate.",
-                "oneOf": [
-                  {"type": "string", "enum": ["S", "C", "E"]},
-                  {"type": "integer"}
-                ]
-              }
-            },
+            "items": {"$ref": "#/definitions/mazePosition"},
             "default": []
           },
           "braid": {
@@ -200,7 +201,23 @@
             "description": "Whether to show a solution for a maze or not.",
             "default": false
           },
-          "_comment":{"$ref": "#/definitions/comment"}
+          "colorMap": {
+            "type": "boolean",
+            "title": "Whether to generate and draw a color map",
+            "default": false
+          },
+          "colorMapStart": {
+            "title": "The starting cell for the color map flooding algorithm. Use \"random\" for a random cell",
+            "oneOf": [
+              {"$ref": "#/definitions/mazePosition"},
+              {
+                "type": "string",
+                "enum": ["random"]
+              }
+            ],
+            "default": "random"
+          },
+          "_comment": {"$ref": "#/definitions/comment"}
         },
         "additionalProperties": false
       },
@@ -233,7 +250,7 @@
           "minimum": 0,
           "maximum": 10
         },
-        "_comment":{"$ref": "#/definitions/comment"}
+        "_comment": {"$ref": "#/definitions/comment"}
       },
       "additionalProperties": false
     },
@@ -289,16 +306,36 @@
           "enum": ["butt", "round", "square"],
           "default": "round"
         },
+        "colorMapRange": {
+          "title": "The distance in cells over which the color map colors are divided into a gradient. Use \"auto\" for auto range",
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "string",
+              "enum": ["auto"]
+            }
+          ],
+          "default": "auto"
+        },
+        "colorMapColors": {
+          "type": "array",
+          "title": "The list of colors used for the color map gradient",
+          "items": {"$ref": "#/definitions/colorString"},
+          "default": ["#ffffff", "#000000"]
+        },
         "antialiasing": {
           "type": "boolean",
           "title": "Whether to use antialiasing or not when drawing the maze",
           "default": true
         },
-        "_comment":{"$ref": "#/definitions/comment"}
+        "_comment": {"$ref": "#/definitions/comment"}
       },
       "additionalProperties": false
     },
-    "_comment":{"$ref": "#/definitions/comment"}
+    "_comment": {"$ref": "#/definitions/comment"}
   },
   "additionalProperties": false
 }
