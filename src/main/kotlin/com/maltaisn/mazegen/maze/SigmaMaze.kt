@@ -108,53 +108,61 @@ class SigmaMaze(width: Int, height: Int, shape: Shape) :
             canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
 
+        val offset = style.stroke.lineWidth / 2.0
+        canvas.translate = Point(offset, offset)
+
+        // Draw the color map
+        if (hasColorMap) {
+            val colorMapColors = style.generateColorMapColors(this)
+            drawForEachCell(style, minTop) { cell, cx, cy ->
+                canvas.color = colorMapColors[cell.colorMapDistance]
+                canvas.drawPolygon(listOf(
+                        Point(cx + csize / 2, cy - cheight / 2),
+                        Point(cx - csize / 2, cy - cheight / 2),
+                        Point(cx - csize, cy),
+                        Point(cx - csize / 2, cy + cheight / 2),
+                        Point(cx + csize / 2, cy + cheight / 2),
+                        Point(cx + csize, cy)
+                ), true)
+            }
+        }
+
         // Draw the maze
         // Without going into details, only half the sides are drawn
         // for each cell except the bottommost and rightmost cells.
-        val offset = style.stroke.lineWidth / 2.0
-        canvas.translate = Point(offset, offset)
         canvas.color = style.color
         canvas.stroke = style.stroke
-        var cx = csize
-        for (x in 0 until grid.size) {
-            var cy = (rowOffsets[x] - minTop + (grid.size - x - 1) / 2.0 + 0.5) * cheight
-            for (y in 0 until grid[x].size) {
-                val cell = grid[x][y]
-
-                // Draw north, northwest and southwest for every cell
-                if (cell.hasSide(Side.NORTH)) {
-                    canvas.drawLine(cx + csize / 2, cy - cheight / 2,
-                            cx - csize / 2, cy - cheight / 2)
-                }
-                if (cell.hasSide(Side.NORTHWEST)) {
-                    canvas.drawLine(cx - csize / 2, cy - cheight / 2,
-                            cx - csize, cy)
-                }
-                if (cell.hasSide(Side.SOUTHWEST)) {
-                    canvas.drawLine(cx - csize, cy,
-                            cx - csize / 2, cy + cheight / 2)
-                }
-
-                // Only draw the remaining sides if there's no cell on the side
-                if (cell.hasSide(Side.SOUTH)
-                        && cell.getCellOnSide(Side.SOUTH) == null) {
-                    canvas.drawLine(cx - csize / 2, cy + cheight / 2,
-                            cx + csize / 2, cy + cheight / 2)
-                }
-                if (cell.hasSide(Side.SOUTHEAST)
-                        && cell.getCellOnSide(Side.SOUTHEAST) == null) {
-                    canvas.drawLine(cx + csize / 2, cy + cheight / 2,
-                            cx + csize, cy)
-                }
-                if (cell.hasSide(Side.NORTHEAST)
-                        && cell.getCellOnSide(Side.NORTHEAST) == null) {
-                    canvas.drawLine(cx + csize, cy,
-                            cx + csize / 2, cy - cheight / 2)
-                }
-
-                cy += cheight
+        drawForEachCell(style, minTop) { cell, cx, cy ->
+            // Draw north, northwest and southwest for every cell
+            if (cell.hasSide(Side.NORTH)) {
+                canvas.drawLine(cx + csize / 2, cy - cheight / 2,
+                        cx - csize / 2, cy - cheight / 2)
             }
-            cx += 1.5 * csize
+            if (cell.hasSide(Side.NORTHWEST)) {
+                canvas.drawLine(cx - csize / 2, cy - cheight / 2,
+                        cx - csize, cy)
+            }
+            if (cell.hasSide(Side.SOUTHWEST)) {
+                canvas.drawLine(cx - csize, cy,
+                        cx - csize / 2, cy + cheight / 2)
+            }
+
+            // Only draw the remaining sides if there's no cell on the side
+            if (cell.hasSide(Side.SOUTH)
+                    && cell.getCellOnSide(Side.SOUTH) == null) {
+                canvas.drawLine(cx - csize / 2, cy + cheight / 2,
+                        cx + csize / 2, cy + cheight / 2)
+            }
+            if (cell.hasSide(Side.SOUTHEAST)
+                    && cell.getCellOnSide(Side.SOUTHEAST) == null) {
+                canvas.drawLine(cx + csize / 2, cy + cheight / 2,
+                        cx + csize, cy)
+            }
+            if (cell.hasSide(Side.NORTHEAST)
+                    && cell.getCellOnSide(Side.NORTHEAST) == null) {
+                canvas.drawLine(cx + csize, cy,
+                        cx + csize / 2, cy - cheight / 2)
+            }
         }
 
         // Draw the solution
@@ -170,6 +178,24 @@ class SigmaMaze(width: Int, height: Int, shape: Shape) :
                 points.add(Point(px, py))
             }
             canvas.drawPolyline(points)
+        }
+    }
+
+    /**
+     * For each cell, call [draw] with the cell and its center position.
+     */
+    private inline fun drawForEachCell(style: Configuration.Style, minTop: Double,
+                                       draw: (cell: SigmaCell, cx: Double, cy: Double) -> Unit) {
+        val csize = style.cellSize
+        val cheight = csize * sqrt(3.0)
+        var cx = style.cellSize
+        for (x in 0 until grid.size) {
+            var cy = (rowOffsets[x] - minTop + (grid.size - x - 1) / 2.0 + 0.5) * cheight
+            for (y in 0 until grid[x].size) {
+                draw(grid[x][y], cx, cy)
+                cy += cheight
+            }
+            cx += 1.5 * csize
         }
     }
 

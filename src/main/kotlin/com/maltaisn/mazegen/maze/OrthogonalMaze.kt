@@ -60,6 +60,9 @@ open class OrthogonalMaze(width: Int, height: Int) :
             canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
 
+        val offset = style.stroke.lineWidth / 2.0
+        canvas.translate = Point(offset, offset)
+
         // Draw the color map
         if (hasColorMap) {
             val colorMapColors = style.generateColorMapColors(this)
@@ -67,7 +70,7 @@ open class OrthogonalMaze(width: Int, height: Int) :
                 for (y in 0 until h) {
                     val px = x * csive
                     val py = y * csive
-                    canvas.color = colorMapColors[cellAt(x, y)!!.colorMapDistance]
+                    canvas.color = colorMapColors[grid[x][y].colorMapDistance]
                     canvas.drawRect(px, py, px + csive, py + csive, true)
                 }
             }
@@ -76,8 +79,6 @@ open class OrthogonalMaze(width: Int, height: Int) :
         // Draw the maze
         // For each cell, only the north and west walls are drawn if they are set,
         // except for the last row and column where to south and east walls are also drawn.
-        val offset = style.stroke.lineWidth / 2.0
-        canvas.translate = Point(offset, offset)
         canvas.color = style.color
         canvas.stroke = style.stroke
         for (x in 0..w) {

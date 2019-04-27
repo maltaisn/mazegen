@@ -1,30 +1,17 @@
 {
   "mazes": [
-    {"name": "orthogonal_ab", "size": 30, "algorithm": "ab"},
-    {"name": "orthogonal_bt", "size": 30, "algorithm": "bt"},
-    {"name": "orthogonal_el", "size": 30, "algorithm": "el"},
-    {"name": "orthogonal_gt", "size": 30, "algorithm": "gt"},
-    {"name": "orthogonal_hk", "size": 30, "algorithm": "hk"},
-    {"name": "orthogonal_kr", "size": 30, "algorithm": "kr"},
-    {"name": "orthogonal_pr", "size": 30, "algorithm": "pr"},
-    {"name": "orthogonal_rb", "size": 30, "algorithm": "rb"},
-    {"name": "orthogonal_rd", "size": 30, "algorithm": "rd"},
-    {"name": "orthogonal_sw", "size": 30, "algorithm": "sw"},
-    {"name": "orthogonal_wi", "size": 30, "algorithm": "wi"},
-    {"name": "orthogonal_ab_cm", "size": 30, "algorithm": "ab", "colorMap": true, "colorMapStart": ["S", "S"]},
-    {"name": "orthogonal_bt_cm", "size": 30, "algorithm": "bt", "colorMap": true, "colorMapStart": ["S", "S"]},
-    {"name": "orthogonal_el_cm", "size": 30, "algorithm": "el", "colorMap": true, "colorMapStart": ["S", "S"]},
-    {"name": "orthogonal_gt_cm", "size": 30, "algorithm": "gt", "colorMap": true, "colorMapStart": ["S", "S"]},
-    {"name": "orthogonal_hk_cm", "size": 30, "algorithm": "hk", "colorMap": true, "colorMapStart": ["S", "S"]},
-    {"name": "orthogonal_kr_cm", "size": 30, "algorithm": "kr", "colorMap": true, "colorMapStart": ["S", "S"]},
-    {"name": "orthogonal_pr_cm", "size": 30, "algorithm": "pr", "colorMap": true, "colorMapStart": ["S", "S"]},
-    {"name": "orthogonal_rb_cm", "size": 30, "algorithm": "rb", "colorMap": true, "colorMapStart": ["S", "S"]},
-    {"name": "orthogonal_rd_cm", "size": 30, "algorithm": "rd", "colorMap": true, "colorMapStart": ["S", "S"]},
-    {"name": "orthogonal_sw_cm", "size": 30, "algorithm": "sw", "colorMap": true, "colorMapStart": ["S", "S"]},
-    {"name": "orthogonal_wi_cm", "size": 30, "algorithm": "wi", "colorMap": true, "colorMapStart": ["S", "S"]}
+    {
+      "name": "sigma_rb_cm",
+      "type": "delta",
+      "shape": "hexagon",
+      "size": 10,
+      "algorithm": "rb",
+      "colorMap": true,
+      "colorMapStart": "random"
+    }
   ],
   "output": {
-    "format": "png",
+    "format": "svg",
     "path": "testMazes/"
   },
   "style": {

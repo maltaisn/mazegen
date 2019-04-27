@@ -29,7 +29,6 @@ import com.maltaisn.mazegen.ParameterException
 import java.awt.BasicStroke
 import java.awt.Color
 import java.io.File
-import java.util.*
 
 
 /**
@@ -88,7 +87,13 @@ abstract class Canvas(val format: OutputFormat) {
     /**
      * Draw a polyline with [points], a list of points.
      */
-    abstract fun drawPolyline(points: LinkedList<Point>)
+    abstract fun drawPolyline(points: List<Point>)
+
+    /**
+     * Draw a polygon with [vertices], a list of vertex points.
+     * @param filled whether to draw filled polygon or just the outline.
+     */
+    abstract fun drawPolygon(vertices: List<Point>, filled: Boolean)
 
     /**
      * Draw an arc centered at ([x]; [y]) of an ellipse with x-radius [rx] and y-radius [ry].

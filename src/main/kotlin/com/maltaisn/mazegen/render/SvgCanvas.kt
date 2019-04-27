@@ -98,7 +98,7 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
     }
 
     private fun updateStyle() {
-        val translatePoint = if (translate != null) SvgPoint(translate!!) else null
+        val translatePoint = if (translate != null) translate?.toSvgPoint() else null
         currentStyle = Style(stroke, color, translatePoint, antialiasing)
     }
 
@@ -112,12 +112,16 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
         getLastPath().elements.add(Path.Element.Arc(x, y, rx, ry, start, extent))
     }
 
-    override fun drawPolyline(points: LinkedList<Point>) {
+    override fun drawPolyline(points: List<Point>) {
         val polypoint = Path.Element.Polyline()
         for (point in points) {
-            polypoint.points.add(SvgPoint(point))
+            polypoint.points.add(point.toSvgPoint())
         }
         getLastPath().elements.add(polypoint)
+    }
+
+    override fun drawPolygon(vertices: List<Point>, filled: Boolean) {
+        shapes.add(Polygon(currentStyle, vertices.map { it.toSvgPoint() }, filled))
     }
 
     override fun drawRect(x: Double, y: Double, width: Double, height: Double, filled: Boolean) {
@@ -189,15 +193,15 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
      */
     private open class SvgPoint(x: Double, y: Double) : Point(x, y), SvgElement {
 
-        constructor(point: Point) : this(point.x, point.y)
-
         override fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat) {
-            svg.append(numberFormat.format(this.x))
+            svg.append(numberFormat.format(x))
             svg.append(',')
-            svg.append(numberFormat.format(this.y))
+            svg.append(numberFormat.format(y))
         }
 
     }
+
+    private fun Point.toSvgPoint() = SvgPoint(this.x, this.y)
 
     /**
      * Path shape that can contain lines and arcs.
@@ -489,8 +493,7 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
     }
 
     /**
-     * Shape for a rectangle with a top left corner
-     * at ([x] ; [y]) and size [width] by [height].
+     * Shape for a rectangle with a top left corner at ([x] ; [y]) and size [width] by [height].
      */
     private class Rectangle(style: Style,
                             val x: Double, val y: Double,
@@ -504,6 +507,27 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
             svg.append("y=\"${numberFormat.format(y)}\" ")
             svg.append("width=\"${numberFormat.format(width)}\" ")
             svg.append("height=\"${numberFormat.format(height)}\" ")
+            style.appendTo(svg, numberFormat, filled)
+            svg.append("/>")
+        }
+    }
+
+    /**
+     * Shape for a polygon with [vertices].
+     */
+    private class Polygon(style: Style,
+                          val vertices: List<SvgPoint>,
+                          val filled: Boolean) :
+            Shape(style) {
+
+        override fun appendTo(svg: StringBuilder, numberFormat: DecimalFormat) {
+            svg.append("<polygon ")
+            svg.append("points=\"")
+            for (point in vertices) {
+                point.appendTo(svg, numberFormat)
+                svg.append(' ')
+            }
+            svg.append("\" ")
             style.appendTo(svg, numberFormat, filled)
             svg.append("/>")
         }
@@ -527,7 +551,11 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
                     .toUpperCase().padStart(6, '0')
             if (filled) {
                 svg.append("stroke:none;")
-                svg.append("fill:$colorStr")
+                svg.append("fill:$colorStr;")
+                if (antialiasing) {
+                    svg.append("stroke:$colorStr;")
+                    svg.append("stroke-width:1;")  // This is really awful
+                }
             } else {
                 svg.append("stroke:$colorStr;")
                 svg.append("stroke-width:${numberFormat.format(stroke.lineWidth)};")

@@ -33,9 +33,9 @@ open class Point(val x: Double, val y: Double) {
 
     private var hash = 0
 
-    operator fun plus(point: Point): Point = Point(x + point.x, y + point.y)
+    operator fun plus(point: Point) = Point(x + point.x, y + point.y)
 
-    operator fun minus(point: Point): Point = Point(x - point.x, y - point.y)
+    operator fun minus(point: Point) = Point(x - point.x, y - point.y)
 
     override fun equals(other: Any?): Boolean {
         if (other === this) return true

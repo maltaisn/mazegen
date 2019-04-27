@@ -122,42 +122,56 @@ class DeltaMaze(width: Int, height: Int, shape: Shape) :
             canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
 
-        // Draw the maze
         val offset = style.stroke.lineWidth / 2.0
         canvas.translate = Point(offset, offset)
+
+        // Draw the color map
+        if (hasColorMap) {
+            val colorMapColors = style.generateColorMapColors(this)
+            drawForEachCell { cell, x, y, flatTopped ->
+                canvas.color = colorMapColors[cell.colorMapDistance]
+                val vertices = if (flatTopped) {
+                    listOf(Point(x * csive / 2, y * cheight),
+                            Point((x + 2) * csive / 2, y * cheight),
+                            Point((x + 1) * csive / 2, (y + 1) * cheight))
+                } else {
+                    listOf(Point(x * csive / 2, (y + 1) * cheight),
+                            Point((x + 2) * csive / 2, (y + 1) * cheight),
+                            Point((x + 1) * csive / 2, y * cheight))
+                }
+                canvas.drawPolygon(vertices, true)
+            }
+        }
+
+        // Draw the maze
         canvas.color = style.color
         canvas.stroke = style.stroke
-        for (x in 0 until grid.size) {
-            for (y in 0 until grid[x].size) {
-                val cell = grid[x][y]
-                val actualY = y + rowOffsets[x]
-                val flatTopped = (x + actualY) % 2 == 0
-                if (cell.hasSide(Side.BASE)) {
-                    if (flatTopped) {
-                        canvas.drawLine(x * csive / 2, actualY * cheight,
-                                (x + 2) * csive / 2, actualY * cheight)
-                    } else if (cell.getCellOnSide(Side.BASE) == null) {
-                        canvas.drawLine(x * csive / 2, (actualY + 1) * cheight,
-                                (x + 2) * csive / 2, (actualY + 1) * cheight)
-                    }
+        drawForEachCell { cell, x, y, flatTopped ->
+            if (cell.hasSide(Side.BASE)) {
+                if (flatTopped) {
+                    canvas.drawLine(x * csive / 2, y * cheight,
+                            (x + 2) * csive / 2, y * cheight)
+                } else if (cell.getCellOnSide(Side.BASE) == null) {
+                    canvas.drawLine(x * csive / 2, (y + 1) * cheight,
+                            (x + 2) * csive / 2, (y + 1) * cheight)
                 }
-                if (cell.hasSide(Side.EAST)) {
-                    if (flatTopped) {
-                        canvas.drawLine((x + 2) * csive / 2, actualY * cheight,
-                                (x + 1) * csive / 2, (actualY + 1) * cheight)
-                    } else if (cell.getCellOnSide(Side.EAST) == null) {
-                        canvas.drawLine((x + 1) * csive / 2, actualY * cheight,
-                                (x + 2) * csive / 2, (actualY + 1) * cheight)
-                    }
+            }
+            if (cell.hasSide(Side.EAST)) {
+                if (flatTopped) {
+                    canvas.drawLine((x + 2) * csive / 2, y * cheight,
+                            (x + 1) * csive / 2, (y + 1) * cheight)
+                } else if (cell.getCellOnSide(Side.EAST) == null) {
+                    canvas.drawLine((x + 1) * csive / 2, y * cheight,
+                            (x + 2) * csive / 2, (y + 1) * cheight)
                 }
-                if (cell.hasSide(Side.WEST)) {
-                    if (flatTopped) {
-                        canvas.drawLine(x * csive / 2, actualY * cheight,
-                                (x + 1) * csive / 2, (actualY + 1) * cheight)
-                    } else if (cell.getCellOnSide(Side.WEST) == null) {
-                        canvas.drawLine((x + 1) * csive / 2, actualY * cheight,
-                                x * csive / 2, (actualY + 1) * cheight)
-                    }
+            }
+            if (cell.hasSide(Side.WEST)) {
+                if (flatTopped) {
+                    canvas.drawLine(x * csive / 2, y * cheight,
+                            (x + 1) * csive / 2, (y + 1) * cheight)
+                } else if (cell.getCellOnSide(Side.WEST) == null) {
+                    canvas.drawLine((x + 1) * csive / 2, y * cheight,
+                            x * csive / 2, (y + 1) * cheight)
                 }
             }
         }
@@ -176,6 +190,18 @@ class DeltaMaze(width: Int, height: Int, shape: Shape) :
                 points.add(Point(px, py))
             }
             canvas.drawPolyline(points)
+        }
+    }
+
+    /**
+     * For each cell, call [draw] with the cell and some parameters.
+     */
+    private inline fun drawForEachCell(draw: (cell: DeltaCell, x: Int, y: Int, flatTopped: Boolean) -> Unit) {
+        for (x in 0 until grid.size) {
+            for (y in 0 until grid[x].size) {
+                val actualY = y + rowOffsets[x]
+                draw(grid[x][y], x, actualY, (x + actualY) % 2 == 0)
+            }
         }
     }
 

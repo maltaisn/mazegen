@@ -26,13 +26,9 @@
 package com.maltaisn.mazegen.render
 
 import java.awt.*
-import java.awt.geom.AffineTransform
-import java.awt.geom.Arc2D
-import java.awt.geom.Line2D
-import java.awt.geom.Rectangle2D
+import java.awt.geom.*
 import java.awt.image.BufferedImage
 import java.io.File
-import java.util.*
 import javax.imageio.ImageIO
 import kotlin.math.ceil
 
@@ -114,7 +110,7 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
         graphics.draw(Line2D.Double(x1, y1, x2, y2))
     }
 
-    override fun drawPolyline(points: LinkedList<Point>) {
+    override fun drawPolyline(points: List<Point>) {
         val xPoints = IntArray(points.size)
         val yPoints = IntArray(points.size)
         for (i in 0 until points.size) {
@@ -123,6 +119,37 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
             yPoints[i] = point.y.toInt()
         }
         graphics.drawPolyline(xPoints, yPoints, points.size)
+    }
+
+    override fun drawPolygon(vertices: List<Point>, filled: Boolean) {
+        val polygon = Polygon2D(vertices)
+        if (filled) {
+            if (antialiasing) {
+                // To avoid gaps in color maps, outline and fill must be drawn
+                graphics.stroke = BasicStroke(1.5f)
+                graphics.draw(polygon)
+                graphics.stroke = stroke
+            }
+            graphics.fill(polygon)
+        } else {
+            graphics.draw(polygon)
+        }
+    }
+
+    /**
+     * There's no [java.awt.Polygon] equivalent that takes double values,
+     * unlike other shapes, so here it is.
+     */
+    private class Polygon2D(vertices: List<Point>) : Path2D.Double() {
+        init {
+            var point = vertices.first()
+            moveTo(point.x, point.y)
+            for (i in 1 until vertices.size) {
+                point = vertices[i]
+                lineTo(point.x, point.y)
+            }
+            closePath()
+        }
     }
 
     override fun drawArc(x: Double, y: Double, rx: Double, ry: Double,
@@ -148,5 +175,6 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
     override fun exportTo(file: File) {
         ImageIO.write(buffImage, format.extension, file)
     }
+
 
 }
