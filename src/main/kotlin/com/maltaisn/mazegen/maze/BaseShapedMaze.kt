@@ -25,8 +25,8 @@
 
 package com.maltaisn.mazegen.maze
 
-import com.maltaisn.mazegen.ParameterException
 import com.maltaisn.mazegen.maze.BaseShapedMaze.Shape
+import com.maltaisn.mazegen.paramError
 import kotlin.random.Random
 
 
@@ -57,7 +57,7 @@ abstract class BaseShapedMaze<T : Cell>(val width: Int, height: Int,
 
     init {
         if (width < 1 || height < 1) {
-            throw ParameterException("Dimensions must be at least 1.")
+            paramError("Dimensions must be at least 1.")
         }
         if (shape == Shape.TRIANGLE
                 || shape == Shape.HEXAGON) {

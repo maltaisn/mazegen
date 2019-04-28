@@ -45,6 +45,7 @@ class SigmaCell(override val maze: SigmaMaze,
      *   SW -> \__/  <- SE
      *      S ->
      * ```
+     * Relative positions are given in Y-down system.
      */
     enum class Side(override val value: Int,
                     override val relativePos: Position2D,

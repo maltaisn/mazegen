@@ -1,7 +1,7 @@
 # Maze generator
 Advanced maze generator supporting many different maze types and generation algorithms, 
 configurable in JSON. Mazes can be solved with the A* algorithm, braided, 
-color mapped, and exported to PNG, JPG, BMP, GIF or SVG.
+distance mapped, and exported to PNG, JPG, BMP, GIF or SVG.
 
 ### Usage
 Just drag-and-drop the configuration file on the executable file or by command line:
@@ -25,19 +25,19 @@ See [releases](https://github.com/maltaisn/mazegen/releases).
 - **Zeta**: like orthogonal but allows diagonal passages.<br><img src="mazes\zeta_rb.png" alt="Zeta with Recursive Backtracker" height="200px"/> <img src="mazes\zeta_pr.png" alt="Zeta with Prim's" height="200px"/>
 
 ## Generators
- Name | Supported maze types | Definition | Example | Color map |
+ Name | Supported maze types | Definition | Example | Distance map |
 :---: | :------------------: | ---------  | ------- | --------- |
 **Aldous-Broder's** | All | Performs a random walk, connecting the cells walked to if they were unvisited, until all cells are visited | <img src="mazes\orthogonal_ab.png" width="300px"/> | <img src="mazes\orthogonal_ab_cm.png" width="300px"/>
 **Binary Tree** | Orthogonal | Repeatedly carve passage north and east for each cell. The side bias can be changed. | <img src="mazes\orthogonal_bt.png" width="300px"/> | <img src="mazes\orthogonal_bt_cm.png" width="300px"/>
 **Eller's** | Orthogonal | Assign each cell of the first row to a different cell. For each row, randomly connect cells together if they are not in the same set, then carve at least one passage down for each set. | <img src="mazes\orthogonal_el.png" width="300px"/> | <img src="mazes\orthogonal_el_cm.png" width="300px"/>
 **Growing Tree** | All | Randomly walk around, connecting cells together, adding cells to a stack. When stuck, go back to a cell in the stack. The cell is chosen randomly between the newest, the oldest or a random cell. | <img src="mazes\orthogonal_gt.png" width="300px"/> | <img src="mazes\orthogonal_gt_cm.png" width="300px"/>
-**Hunt-and-kill** | All | Randomly walk around, connecting cells together. When stuck, scan the maze for an unvisited cell next to a visited cell and start again from there. | <img src="mazes\orthogonal_hk.png" width="300px"/>  | <img src="mazes\orthogonal_hk_cm.png" width="300px"/>
-**Kruskal's** | All but zeta and weave orthogonal | Each cell start in a different set. Randomly remove walls between cells of different sets, merging their sets together. | <img src="mazes\orthogonal_kr.png" width="300px"/>  | <img src="mazes\orthogonal_kr_cm.png" width="300px"/>
-**Prim's** | All | Starting with a random cell, add all of its unvisited neighbors to a "frontier" set, and connect it with one of them. Repeat that with a cell from the set until the maze is complete | <img src="mazes\orthogonal_pr.png" width="300px"/>  | <img src="mazes\orthogonal_pr_cm.png" width="300px"/>
-**Recursive Backtracker** | All | Randomly walk around, connecting cells together, adding cells to a stack. When stuck, pop a cell from the stack and continue walking. | <img src="mazes\orthogonal_rb.png" width="300px"/>  | <img src="mazes\orthogonal_rb_cm.png" width="300px"/>
-**Recursive Division** | Orthogonal | Recursively divide the maze area in two, carving a passage in the wall made. | <img src="mazes\orthogonal_rd.png" width="300px"/>  | <img src="mazes\orthogonal_rd_cm.png" width="300px"/>
-**Sidewinder** | Orthogonal | For each cell in each row, randomly carve passage east or north | <img src="mazes\orthogonal_sw.png" width="300px"/>  | <img src="mazes\orthogonal_sw_cm.png" width="300px"/>
-**Wilson's** | All but zeta and weave orthogonal | Similar to Aldous-Broder's. Performs a random walk until a visited cell is found. Carve the path used to get there and mark the cells as visited. Start walking again from a random cell. | <img src="mazes\orthogonal_wi.png" width="300px"/>  | <img src="mazes\orthogonal_wi_cm.png" width="300px"/>
+**Hunt-and-kill** | All | Randomly walk around, connecting cells together. When stuck, scan the maze for an unvisited cell next to a visited cell and start again from there. | <img src="mazes\orthogonal_hk.png" width="300px"/> | <img src="mazes\orthogonal_hk_cm.png" width="300px"/>
+**Kruskal's** | All but zeta and weave orthogonal | Each cell start in a different set. Randomly remove walls between cells of different sets, merging their sets together. | <img src="mazes\orthogonal_kr.png" width="300px"/> | <img src="mazes\orthogonal_kr_cm.png" width="300px"/>
+**Prim's** | All | Starting with a random cell, add all of its unvisited neighbors to a "frontier" set, and connect it with one of them. Repeat that with a cell from the set until the maze is complete | <img src="mazes\orthogonal_pr.png" width="300px"/> | <img src="mazes\orthogonal_pr_cm.png" width="300px"/>
+**Recursive Backtracker** | All | Randomly walk around, connecting cells together, adding cells to a stack. When stuck, pop a cell from the stack and continue walking. | <img src="mazes\orthogonal_rb.png" width="300px"/> | <img src="mazes\orthogonal_rb_cm.png" width="300px"/>
+**Recursive Division** | Orthogonal | Recursively divide the maze area in two, carving a passage in the wall made. | <img src="mazes\orthogonal_rd.png" width="300px"/> | <img src="mazes\orthogonal_rd_cm.png" width="300px"/>
+**Sidewinder** | Orthogonal | For each cell in each row, randomly carve passage east or north | <img src="mazes\orthogonal_sw.png" width="300px"/> | <img src="mazes\orthogonal_sw_cm.png" width="300px"/>
+**Wilson's** | All but zeta and weave orthogonal | Similar to Aldous-Broder's. Performs a random walk until a visited cell is found. Carve the path used to get there and mark the cells as visited. Start walking again from a random cell. | <img src="mazes\orthogonal_wi.png" width="300px"/> | <img src="mazes\orthogonal_wi_cm.png" width="300px"/>
 
 ## Configuration
 The generator is configured with a JSON file. There are many attributes but most of them are optional. 
@@ -60,8 +60,8 @@ Here's another more complete example:
       "braid": "50%",
       "openings": [["S", "S"], ["E", "E"]],
       "solve": true,
-      "colorMap": true,
-      "colorMapStart": ["S", "S"]
+      "distanceMap": true,
+      "distanceMapStart": ["S", "S"]
     }
   ],
   "output": {
@@ -78,20 +78,20 @@ Here's another more complete example:
     "solutionColor": "#0000FF",
     "solutionStrokeWidth": 3,
     "strokeCap": "round",
-    "colorMapRange": "auto",
-    "colorMapColors": ["#ffffff", "#000000"],
+    "distanceMapRange": "auto",
+    "distanceMapColors": ["#ffffff", "#000000"],
     "antialiasing": true
   }
 }
 ```
 This will generate a 10x10 orthogonal maze with Aldous-Broder's algorithm, export it to `mazes/labyrinth.svg` in optimized SVG format. 
 Maze will be solved for the top-left to the bottom-right corners. Half deadends will be removed (braid).
-A color map will be generated starting from the top-left cell.
+A distance map will be generated starting from the top-left cell.
 Custom styling settings are used, but in this case they all match default ones.
 
 More examples of configuration file are available at [`/mazes/config/`](mazes/config).
 
-#### Attributes
+### Attributes
 - **`maze`** (*required*): array of maze set objects. A maze set is a group of mazes with the same properties, each with the following attributes
     - `name`: name of the set and of the file to be exported. Default is `maze`.
     - `count`: number of mazes to generate for this set. Default is `1`.
@@ -114,8 +114,8 @@ More examples of configuration file are available at [`/mazes/config/`](mazes/co
     - `braid`: braiding setting, either an integer or a percent string, for example `50%`. Braiding removes a certain number of deadends from the maze by connecting them with neighbouring cells. Default is `0`.
     - `openings`: array of openings to carve in the maze. An opening is described by a position, which is another array. For example `["S", "S"]` describes a position at the horizontal and vertical start of the maze. Valid letters are `S` for start, `C` for center and `E` for end. Absolute position can also be described with coordinates, for example `[0, 0]`, which is the top-left corner in an orthogonal maze but also is the center cell in a theta maze. Openings position must be unique and valid.
     - `solve`: whether to solve the maze or not, a boolean. Default is `false`. Solving requires at least two openings, and if more are present, only the solution for the two first openings is displayed.
-    - `colorMap`: whether to generate a color ma por not, a boolean. Default is `false`.
-    - `colorMapStart`: the starting cell for the color map (for Dijkstra's). Can either be in the same format as an opening in `openings`, or `random` for a random position. Default is `random`.
+    - `distanceMap`: whether to generate a color ma por not, a boolean. Default is `false`.
+    - `distanceMapStart`: the starting cell for the distance map (for Dijkstra's). Can either be in the same format as an opening in `openings`, or `random` for a random position. Default is `random`.
 <br><br>
 - **`output`**: Output settings, with the following attributes:
     - `format`: output format, one of `png`, `jpg`, `bmp`, `gif`, `svg`. Default is `png`.
@@ -131,11 +131,11 @@ More examples of configuration file are available at [`/mazes/config/`](mazes/co
     - `solutionColor`: the color to draw the solution with, a hex color string. Default is blue, `#0000FF`.
     - `solutionSrokeWidth`: the stroke width to draw the solution with. Default is `3`.
     - `strokeCap`: the stroke cap, one of `butt`, `round` or `square`. Default is `round`.
-    - `colorMapRange`: the distance range over which the color map colors are distributed in a gradient. Default is `auto` for automatic range matching the maze longest path.
-    - `colorMapColors`: the array of the color map gradient colors. Default is `["#ffffff", "#000000"]`.
+    - `distanceMapRange`: the distance range over which the distance map colors are distributed in a gradient. Default is `auto` for automatic range matching the maze longest path.
+    - `distanceMapColors`: the array of the distance map gradient colors. Default is `["#ffffff", "#000000"]`.
     - `antialiasing`: whether to use antialiasing or not. Default is `true`.
 
-#### JSON schema and validation
+### JSON schema and validation
 A JSON schema file is available from [`config-schema.json`](config-schema.json) for autocomplete and basic validation. 
 The maze generator itself validates that parameters have a valid value by printing `ERROR: ...`. 
 However, JSON exceptions for wrong types and missing attributes are not caught.

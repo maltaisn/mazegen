@@ -39,6 +39,7 @@ open class OrthogonalCell(override val maze: OrthogonalMaze,
 
     /**
      * Enum class for the sides of a square cell.
+     * Relative positions are given in Y-down system.
      */
     enum class Side(override val value: Int,
                     override val relativePos: Position2D,

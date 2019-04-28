@@ -68,9 +68,9 @@ class ZetaMaze(width: Int, height: Int) :
         val offset = style.stroke.lineWidth / 2.0
         canvas.translate = Point(offset, offset)
 
-        // Draw the color map
-        if (hasColorMap) {
-            val colorMapColors = style.generateColorMapColors(this)
+        // Draw the distance map
+        if (hasDistanceMap) {
+            val distMapColors = style.generateDistanceMapColors(this)
             for (x in 0 until width) {
                 val px = x * csize
                 val cx = px + csize / 2
@@ -131,7 +131,7 @@ class ZetaMaze(width: Int, height: Int) :
                         }
                     }
 
-                    canvas.color = colorMapColors[cell.colorMapDistance]
+                    canvas.color = distMapColors[cell.distanceMapValue]
                     canvas.drawPolygon(vertices, true)
                 }
             }

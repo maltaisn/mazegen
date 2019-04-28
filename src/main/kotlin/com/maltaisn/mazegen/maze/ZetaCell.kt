@@ -82,6 +82,7 @@ class ZetaCell(override val maze: ZetaMaze,
 
     /**
      * Enum class for the sides of an octogon-like zeta cell.
+     * Relative positions are given in Y-down system.
      */
     enum class Side(override val value: Int,
                     override val relativePos: Position2D,

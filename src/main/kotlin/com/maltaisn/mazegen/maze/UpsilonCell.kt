@@ -67,6 +67,7 @@ class UpsilonCell(override val maze: UpsilonMaze,
 
     /**
      * Enum class for the side of both octogonal and square cells.
+     * Relative positions are given in Y-down system.
      */
     enum class Side(override val value: Int,
                     override val relativePos: Position2D,

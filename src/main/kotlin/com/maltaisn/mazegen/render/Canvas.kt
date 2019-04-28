@@ -25,7 +25,7 @@
 
 package com.maltaisn.mazegen.render
 
-import com.maltaisn.mazegen.ParameterException
+import com.maltaisn.mazegen.paramError
 import java.awt.BasicStroke
 import java.awt.Color
 import java.io.File
@@ -33,6 +33,7 @@ import java.io.File
 
 /**
  * Interface for a class that draws graphics and output it to a file.
+ * Canvas has an Y-down coordinate system and `(0,0)` is the top left corner.
  */
 abstract class Canvas(val format: OutputFormat) {
 
@@ -72,7 +73,7 @@ abstract class Canvas(val format: OutputFormat) {
      */
     open fun init(width: Double, height: Double) {
         if (width == SIZE_UNSET) {
-            throw ParameterException("This canvas was already initialized.")
+            paramError("This canvas was already initialized.")
         }
 
         this.width = width

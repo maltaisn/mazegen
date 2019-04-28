@@ -26,8 +26,8 @@
 package com.maltaisn.mazegen.maze
 
 import com.maltaisn.mazegen.Configuration
-import com.maltaisn.mazegen.ParameterException
 import com.maltaisn.mazegen.maze.ThetaCell.Side
+import com.maltaisn.mazegen.paramError
 import com.maltaisn.mazegen.render.Canvas
 import com.maltaisn.mazegen.render.Point
 import kotlin.math.*
@@ -48,16 +48,16 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
 
     init {
         when {
-            radius < 1 -> throw ParameterException("Radius must be at least 1.")
-            centerRadius <= 0 -> throw ParameterException("Center radius must be greater than 0.")
-            subdivisionFactor <= 0 -> throw ParameterException("Subdivision factor must be greater than 0.")
+            radius < 1 -> paramError("Radius must be at least 1.")
+            centerRadius <= 0 -> paramError("Center radius must be greater than 0.")
+            subdivisionFactor <= 0 -> paramError("Subdivision factor must be greater than 0.")
         }
 
         // Create the grid
         val rows = mutableListOf<Array<ThetaCell>>()
         var lastWidth = 1.0
         for (r in 0 until radius) {
-            var width = if (r == 0) 0.0 else (r + centerRadius - 1) * PI2
+            var width = if (r == 0) 0.0 else (r + centerRadius - 1) * TAU
             if (width < lastWidth * subdivisionFactor) {
                 // Only subdivide when circumference is a certain times greater than last.
                 width = lastWidth
@@ -192,7 +192,7 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
             val endRadius = startRadius + csize
             val width = grid[min(grid.size - 1, r)].size
             for (x in 0 until width) {
-                val extent = 1.0 / width * PI2
+                val extent = 1.0 / width * TAU
                 val startAngle = x * extent
                 val cell = cellAt(x, r)
                 if (cell != null && cell.hasSide(Side.CW)) {
@@ -231,7 +231,7 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
                     nextAngle = 0.0
                 } else {
                     nextPos = solution[i].position as PositionPolar
-                    nextAngle = (nextPos.x + 0.5) / nextPos.rowWidth * PI2
+                    nextAngle = (nextPos.x + 0.5) / nextPos.rowWidth * TAU
                 }
 
                 if (currPos != null) {
@@ -273,9 +273,9 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
                                 // The previous cell is not on the same row as current cell.
                                 // Find the smallest arc between the START and END lines.
                                 if (extent < -PI) {
-                                    extent += PI2
+                                    extent += TAU
                                 } else if (extent > PI) {
-                                    extent -= PI2
+                                    extent -= TAU
                                 }
                             } else {
                                 // Previous and current cells are on the same row.
@@ -287,7 +287,7 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
                                         || prevPos.x == 0 && currPos.x == 1) 1 else -1
                                 if (sign(extent).toInt() != direction) {
                                     // Extent is in the wrong direction, change it.
-                                    extent += direction * PI2
+                                    extent += direction * TAU
                                 }
                             }
                             canvas.drawArc(center, center, centerRadius, centerRadius, arcStartAngle, extent)
@@ -308,7 +308,7 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
 
 
     companion object {
-        private const val PI2 = PI * 2
+        private const val TAU = PI * 2
     }
 
 }

@@ -111,11 +111,11 @@ class SigmaMaze(width: Int, height: Int, shape: Shape) :
         val offset = style.stroke.lineWidth / 2.0
         canvas.translate = Point(offset, offset)
 
-        // Draw the color map
-        if (hasColorMap) {
-            val colorMapColors = style.generateColorMapColors(this)
+        // Draw the distance map
+        if (hasDistanceMap) {
+            val distMapColors = style.generateDistanceMapColors(this)
             drawForEachCell(style, minTop) { cell, cx, cy ->
-                canvas.color = colorMapColors[cell.colorMapDistance]
+                canvas.color = distMapColors[cell.distanceMapValue]
                 canvas.drawPolygon(listOf(
                         Point(cx + csize / 2, cy - cheight / 2),
                         Point(cx - csize / 2, cy - cheight / 2),

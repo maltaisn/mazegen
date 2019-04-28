@@ -57,8 +57,8 @@ class Configuration(val mazeSets: List<MazeSet>,
                   val braiding: Maze.Braiding?,
                   val openings: List<Position>,
                   val solve: Boolean,
-                  val colorMap: Boolean,
-                  val colorMapStart: Position?)
+                  val distanceMap: Boolean,
+                  val distanceMapStart: Position?)
 
     /**
      * Output settings.
@@ -92,8 +92,8 @@ class Configuration(val mazeSets: List<MazeSet>,
                 val stroke: BasicStroke,
                 val solutionColor: Color,
                 val solutionStroke: BasicStroke,
-                val colorMapRange: Int,
-                val colorMapColors: List<Color>,
+                val distanceMapRange: Int,
+                val distanceMapColors: List<Color>,
                 val antialiasing: Boolean) {
 
         /**
@@ -101,22 +101,22 @@ class Configuration(val mazeSets: List<MazeSet>,
          * If [range] is automatic, there will be as many colors as the greatest distance.
          * If [range] is smaller than the greatest distance, the colors will be looped.
          */
-        fun generateColorMapColors(maze: Maze): List<Color> {
-            assert(maze.hasColorMap)
+        fun generateDistanceMapColors(maze: Maze): List<Color> {
+            assert(maze.hasDistanceMap)
 
             // Find greatest distance in the maze
             var maxDistance = 0
             maze.forEachCell {
-                if (it.colorMapDistance > maxDistance) {
-                    maxDistance = it.colorMapDistance
+                if (it.distanceMapValue > maxDistance) {
+                    maxDistance = it.distanceMapValue
                 }
             }
 
-            val colorCount = colorMapColors.size
-            val range = if (colorMapRange == COLOR_MAP_RANGE_AUTO) {
+            val colorCount = distanceMapColors.size
+            val range = if (distanceMapRange == DISTANCE_MAP_RANGE_AUTO) {
                 maxDistance + 1
             } else {
-                max(colorMapRange, colorCount - 1)
+                max(distanceMapRange, colorCount - 1)
             }
 
             // Interpolate all colors in the list over the range
@@ -124,8 +124,8 @@ class Configuration(val mazeSets: List<MazeSet>,
             for (i in 0..maxDistance) {
                 val progress = i.toDouble() / range * (colorCount - 1)
                 val index = floor(progress).toInt() % colorCount
-                colors += interpolateColors(colorMapColors[index],
-                        colorMapColors[(index + 1) % colorCount], (progress % 1).toFloat())
+                colors += interpolateColors(distanceMapColors[index],
+                        distanceMapColors[(index + 1) % colorCount], (progress % 1).toFloat())
             }
             return colors
         }
@@ -141,10 +141,10 @@ class Configuration(val mazeSets: List<MazeSet>,
 
         companion object {
             /**
-             * Use for [colorMapRange] to indicate that the colors should be
+             * Use for [distanceMapRange] to indicate that the colors should be
              * divided over the longest path length, each being used exactly once.
              */
-            const val COLOR_MAP_RANGE_AUTO = 0
+            const val DISTANCE_MAP_RANGE_AUTO = 0
         }
 
     }

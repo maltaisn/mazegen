@@ -43,12 +43,11 @@ fun main(args: Array<String>) {
                     val configJson = FileInputStream(file).use { JSONObject(JSONTokener(it)) }
                     MazeGenerator((ConfigurationParser.parse(configJson))).generate()
                 } else {
-                    throw ParameterException("Configuration file " +
-                            "at ${file.absolutePath} doesn't exists.")
+                    paramError("Configuration file at ${file.absolutePath} doesn't exists.")
                 }
             }
         } else {
-            throw ParameterException("No configuration file provided.")
+            paramError("No configuration file provided.")
         }
     } catch (exception: ParameterException) {
         println("ERROR: ${exception.message}")

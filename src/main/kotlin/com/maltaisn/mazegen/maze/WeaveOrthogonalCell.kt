@@ -36,10 +36,10 @@ class WeaveOrthogonalCell(override val maze: WeaveOrthogonalMaze,
                           override val position: Position2D) : Cell(maze, position) {
 
     /**
-     * If a color map was generated, the minimum distance of this cell from
+     * If a distance map was generated, the minimum distance of this cell from
      * the starting cell for the tunnel on this cell if it has one.
      */
-    var colorMapDistanceTunnel = -1
+    var distanceMapTunnelValue = -1
 
     /**
      * Returns a list of immediate neighbors as well as neighbors connectable with a tunnel.
@@ -152,6 +152,7 @@ class WeaveOrthogonalCell(override val maze: WeaveOrthogonalMaze,
 
     /**
      * Enum class for the sides of a weave square cell.
+     * Relative positions are given in Y-down system.
      */
     enum class Side(override val value: Int,
                     override val relativePos: Position2D,
@@ -176,6 +177,7 @@ class WeaveOrthogonalCell(override val maze: WeaveOrthogonalMaze,
              */
             const val TUNNEL = 16
 
+            // Must be in clockwise order!
             val ALL = listOf(NORTH, EAST, SOUTH, WEST)
             const val ALL_VALUE = 15
 

@@ -25,8 +25,8 @@
 
 package com.maltaisn.mazegen.generator
 
-import com.maltaisn.mazegen.ParameterException
 import com.maltaisn.mazegen.maze.Maze
+import com.maltaisn.mazegen.paramError
 
 
 /**
@@ -41,7 +41,7 @@ abstract class Generator {
     open fun generate(maze: Maze) {
         // Make sure this generator supports the maze type
         if (!isMazeSupported(maze)) {
-            throw ParameterException("${this.javaClass.simpleName} " +
+            paramError("${this.javaClass.simpleName} " +
                     "cannot generate ${maze.javaClass.simpleName}.")
         }
     }

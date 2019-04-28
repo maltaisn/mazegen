@@ -25,12 +25,12 @@
 
 package com.maltaisn.mazegen.generator
 
-import com.maltaisn.mazegen.ParameterException
 import com.maltaisn.mazegen.maze.Cell
 import com.maltaisn.mazegen.maze.Maze
 import com.maltaisn.mazegen.maze.OrthogonalCell.Side
 import com.maltaisn.mazegen.maze.OrthogonalMaze
 import com.maltaisn.mazegen.maze.UnicursalOrthogonalMaze
+import com.maltaisn.mazegen.paramError
 import kotlin.random.Random
 
 
@@ -79,7 +79,7 @@ class EllerGenerator : Generator() {
 
     private fun checkBiasValue(value: Double) {
         if (value <= 0 || value > 1) {
-            throw ParameterException("Bias for Eller's generator must be between 0% and 100%")
+            paramError("Bias for Eller's generator must be between 0% and 100%")
         }
     }
 

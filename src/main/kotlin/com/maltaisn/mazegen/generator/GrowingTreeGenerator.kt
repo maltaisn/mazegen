@@ -25,8 +25,8 @@
 
 package com.maltaisn.mazegen.generator
 
-import com.maltaisn.mazegen.ParameterException
 import com.maltaisn.mazegen.maze.Maze
+import com.maltaisn.mazegen.paramError
 import kotlin.random.Random
 
 
@@ -82,7 +82,7 @@ class GrowingTreeGenerator : Generator() {
 
     private fun computeWeightSum() {
         if (randomWeight < 0 || newestWeight < 0 || oldestWeight < 0) {
-            throw ParameterException("Weights for the growing tree generator must be positive.")
+            paramError("Weights for the growing tree generator must be positive.")
         }
         weightSum = randomWeight + newestWeight + oldestWeight
     }

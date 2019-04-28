@@ -26,8 +26,8 @@
 package com.maltaisn.mazegen.maze
 
 import com.maltaisn.mazegen.Configuration
-import com.maltaisn.mazegen.ParameterException
 import com.maltaisn.mazegen.maze.WeaveOrthogonalCell.Side
+import com.maltaisn.mazegen.paramError
 import com.maltaisn.mazegen.render.Canvas
 import com.maltaisn.mazegen.render.Point
 import java.awt.Color
@@ -50,7 +50,7 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
 
     init {
         if (maxWeave < 0) {
-            throw ParameterException("Max weave setting must be positive.")
+            paramError("Max weave setting must be positive.")
         }
     }
 
@@ -63,27 +63,27 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
     }
 
     /**
-     * Overridden since a single cell can have two color map distances:
+     * Overridden since a single cell can have two distance map distances:
      * one for the tunnel and one for the bridge.
      * @param startPos Starting position (distance of zero), can be `null` for a random cell.
      * If the starting cell has a tunnel, the algorithm will always start on on the bridge.
      */
-    override fun generateColorMap(startPos: Position?) {
+    override fun generateDistanceMap(startPos: Position?) {
         val inf = Int.MAX_VALUE - 1
         forEachCell {
             it as WeaveOrthogonalCell
             it.visited = false
-            it.colorMapDistance = inf
-            it.colorMapDistanceTunnel = inf
+            it.distanceMapValue = inf
+            it.distanceMapTunnelValue = inf
         }
 
         val startCell = if (startPos == null) {
             getRandomCell()
         } else {
-            getOpeningCell(startPos) ?: throw ParameterException(
-                    "Color map start position describes no cell in the maze.")
+            getOpeningCell(startPos) ?: paramError(
+                    "Distance map start position describes no cell in the maze.")
         }
-        startCell.colorMapDistance = 0
+        startCell.distanceMapValue = 0
 
         val cellList = getAllCells()
         while (cellList.isNotEmpty()) {
@@ -91,7 +91,7 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
             var minIndex = 0
             for (i in 1 until cellList.size) {
                 val cell = cellList[i]
-                if (cell.colorMapDistance < cellList[minIndex].colorMapDistance) {
+                if (cell.distanceMapValue < cellList[minIndex].distanceMapValue) {
                     minIndex = i
                 }
             }
@@ -99,13 +99,13 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
             val minCell = cellList.removeAt(minIndex)
             minCell.visited = true
 
-            if (minCell.colorMapDistance == inf) {
+            if (minCell.distanceMapValue == inf) {
                 // This means the only cells left are inaccessible from the start cell.
-                // The color map can't be generated completely.
-                error("Could not generate color map, maze has inaccessible cells.")
+                // The distance map can't be generated completely.
+                error("Could not generate distance map, maze has inaccessible cells.")
             }
 
-            val distance = minCell.colorMapDistance
+            val distance = minCell.distanceMapValue
             for (neighbor in minCell.findAccessibleNeighbors()) {
                 if (!neighbor.visited) {
                     // If there are cells between the cell and its neighbor, then the passage
@@ -119,21 +119,21 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
                         for (i in 1 until diff) {
                             x += dx.sign
                             y += dy.sign
-                            grid[x][y].colorMapDistanceTunnel = distance + i
+                            grid[x][y].distanceMapTunnelValue = distance + i
                         }
                     }
 
                     // Compare neighbor distance calculated from this cell with
                     // its current distance. If new distance is smaller, update it.
                     val newDistance = distance + diff
-                    if (newDistance < neighbor.colorMapDistance) {
-                        neighbor.colorMapDistance = newDistance
+                    if (newDistance < neighbor.distanceMapValue) {
+                        neighbor.distanceMapValue = newDistance
                     }
                 }
             }
         }
 
-        hasColorMap = true
+        hasDistanceMap = true
     }
 
 
@@ -153,9 +153,9 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
         val offset = style.stroke.lineWidth / 2.0
         canvas.translate = Point(offset, offset)
 
-        // Draw the color map
-        if (hasColorMap) {
-            val colorMapColors = style.generateColorMapColors(this)
+        // Draw the distance map
+        if (hasDistanceMap) {
+            val distMapColors = style.generateDistanceMapColors(this)
             for (x in 0 until width) {
                 val cx = (x + 0.5) * csize
                 for (y in 0 until height) {
@@ -164,7 +164,7 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
 
                     // Draw the tunnel color with a rectangle, either vertical or horizontal.
                     if (cell.hasTunnel) {
-                        canvas.color = colorMapColors[cell.colorMapDistanceTunnel]
+                        canvas.color = distMapColors[cell.distanceMapTunnelValue]
                         if (cell.hasSide(Side.NORTH)) {
                             canvas.drawRect(cx - inSize, cy - csize / 2, 2 * inSize, csize, true)
                         } else {
@@ -201,7 +201,7 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
                             }
                         }
                     }
-                    canvas.color = colorMapColors[cell.colorMapDistance]
+                    canvas.color = distMapColors[cell.distanceMapValue]
                     canvas.drawPolygon(vertices, true)
                 }
             }

@@ -61,7 +61,7 @@ object ConfigurationParser {
                 names.add(name)
             }
         } else {
-            throw ParameterException("No mazes to generate.")
+            paramError("No mazes to generate.")
         }
 
         // Parse output settings
@@ -82,7 +82,7 @@ object ConfigurationParser {
         val count = if (from.has(KEY_MAZE_COUNT))
             from.getInt(KEY_MAZE_COUNT) else DEFAULT_MAZE_COUNT
         if (count < 1) {
-            throw ParameterException("At least one maze must be generated for maze with name '$name'.")
+            paramError("At least one maze must be generated for maze with name '$name'.")
         }
 
         // Generator
@@ -110,7 +110,7 @@ object ConfigurationParser {
             "rd", "recursive-division" -> RecursiveDivisionGenerator()
             "sw", "sidewinder" -> SidewinderGenerator()
             "wi", "wilson" -> WilsonGenerator()
-            else -> throw ParameterException("Invalid algorithm '$algorithm'.")
+            else -> paramError("Invalid algorithm '$algorithm'.")
         }
 
         // Generactor-specific settings
@@ -123,7 +123,7 @@ object ConfigurationParser {
                         "nw" -> BinaryTreeGenerator.Bias.NORTH_WEST
                         "se" -> BinaryTreeGenerator.Bias.SOUTH_EAST
                         "sw" -> BinaryTreeGenerator.Bias.SOUTH_WEST
-                        else -> throw ParameterException("Invalid binary tree algorithm bias '$biasStr'")
+                        else -> paramError("Invalid binary tree algorithm bias '$biasStr'")
                     }
                 }
                 is EllerGenerator -> if (algorithmJson.has(KEY_MAZE_ALGORITHM_BIAS)) {
@@ -163,7 +163,7 @@ object ConfigurationParser {
                 "triangle" -> BaseShapedMaze.Shape.TRIANGLE
                 "hexagon" -> BaseShapedMaze.Shape.HEXAGON
                 "rhombus" -> BaseShapedMaze.Shape.RHOMBUS
-                else -> throw ParameterException("Invalid maze shape '$arrStr'.")
+                else -> paramError("Invalid maze shape '$arrStr'.")
             }
         } else {
             DEFAULT_MAZE_SHAPE
@@ -173,7 +173,7 @@ object ConfigurationParser {
         val sizeJson = if (from.has(KEY_MAZE_SIZE)) {
             from.get(KEY_MAZE_SIZE)
         } else {
-            throw ParameterException("A size must be specified for the maze.")
+            paramError("A size must be specified for the maze.")
         }
 
         // Creator (type + parameters)
@@ -203,7 +203,7 @@ object ConfigurationParser {
 
                     if (type == MAZE_UNICURSAL_ORTHOGONAL) {
                         if (width % 2 != 0 || height % 2 != 0) {
-                            throw ParameterException("Dimensions of unicursal orthogonal maze must be even.")
+                            paramError("Dimensions of unicursal orthogonal maze must be even.")
                         }
                         width /= 2
                         height /= 2
@@ -228,7 +228,7 @@ object ConfigurationParser {
                     } else {
                         if (shape == BaseShapedMaze.Shape.HEXAGON
                                 || shape == BaseShapedMaze.Shape.TRIANGLE) {
-                            throw ParameterException("For hexagon and triangle shaped " +
+                            paramError("For hexagon and triangle shaped " +
                                     "delta and sigma mazes, size must be an integer.")
                         }
                         sizeJson as JSONObject
@@ -294,7 +294,7 @@ object ConfigurationParser {
                     WeaveOrthogonalMaze(width, height, maxWeave)
                 }
             }
-            else -> throw ParameterException("Invalid maze type '$type'.")
+            else -> paramError("Invalid maze type '$type'.")
         }
 
         // Openings
@@ -311,27 +311,27 @@ object ConfigurationParser {
         val solve = if (from.has(KEY_MAZE_SOLVE))
             from.getBoolean(KEY_MAZE_SOLVE) else DEFAULT_MAZE_SOLVE
         if (solve && openings.size < 2) {
-            throw ParameterException("There must be at least two openings defined to solve the maze.")
+            paramError("There must be at least two openings defined to solve the maze.")
         }
 
-        // Color map
-        val colorMap = if (from.has(KEY_MAZE_COLOR_MAP))
-            from.getBoolean(KEY_MAZE_COLOR_MAP) else DEFAULT_MAZE_COLOR_MAP
+        // Distance map
+        val distanceMap = if (from.has(KEY_MAZE_DIST_MAP))
+            from.getBoolean(KEY_MAZE_DIST_MAP) else DEFAULT_MAZE_DIST_MAP
 
-        val colorMapStart = if (from.has(KEY_MAZE_CM_START)) {
-            val value = from.get(KEY_MAZE_CM_START)
+        val distMapStart = if (from.has(KEY_MAZE_DM_START)) {
+            val value = from.get(KEY_MAZE_DM_START)
             if (value is String && value == "random") {
                 null
             } else {
-                val pos = parsePosition(from.getJSONArray(KEY_MAZE_CM_START))
+                val pos = parsePosition(from.getJSONArray(KEY_MAZE_DM_START))
                 Position2D(pos[0], pos[1])
             }
         } else {
-            DEFAULT_MAZE_CM_START
+            DEFAULT_MAZE_DM_START
         }
 
         return MazeSet(name, count, creator, generator, braiding,
-                openings, solve, colorMap, colorMapStart)
+                openings, solve, distanceMap, distMapStart)
     }
 
     private fun parseOutput(from: JSONObject?): Configuration.Output {
@@ -345,7 +345,7 @@ object ConfigurationParser {
             }
             path.mkdirs()
             if (!path.canWrite()) {
-                throw ParameterException("Cannot write to output path: ${path.absolutePath}")
+                paramError("Cannot write to output path: ${path.absolutePath}")
             }
 
             if (from.has(KEY_OUTPUT_FORMAT)) {
@@ -356,7 +356,7 @@ object ConfigurationParser {
                     "bmp" -> OutputFormat.BMP
                     "gif" -> OutputFormat.GIF
                     "svg" -> OutputFormat.SVG
-                    else -> throw ParameterException("Invalid output format '$formatStr'.")
+                    else -> paramError("Invalid output format '$formatStr'.")
                 }
             }
 
@@ -383,8 +383,8 @@ object ConfigurationParser {
         var solutionColor = DEFAULT_STYLE_SOLUTION_COLOR
         var solutionStrokeWidth = DEFAULT_STYLE_SOLUTION_STROKE_WIDTH
         var strokeCap = DEFAULT_STYLE_STROKE_CAP
-        var colorMapRange = DEFAULT_STYLE_CM_RANGE
-        var colorMapColors = DEFAULT_STYLE_CM_COLORS
+        var distMapRange = DEFAULT_STYLE_DM_RANGE
+        var distMapColors = DEFAULT_STYLE_DM_COLORS
         var antialiasing = DEFAULT_STYLE_ANTIALIASING
 
         if (from != null) {
@@ -412,23 +412,23 @@ object ConfigurationParser {
                     "butt" -> BasicStroke.CAP_BUTT
                     "round" -> BasicStroke.CAP_ROUND
                     "square" -> BasicStroke.CAP_SQUARE
-                    else -> throw ParameterException("Invalid stroke cap '$capStr'.")
+                    else -> paramError("Invalid stroke cap '$capStr'.")
                 }
             }
             if (from.has(KEY_STYLE_SOLUTION_COLOR)) {
                 solutionColor = parseColor(from.getString(KEY_STYLE_SOLUTION_COLOR))
             }
-            if (from.has(KEY_STYLE_CM_RANGE)) {
-                val value = from.get(KEY_STYLE_CM_RANGE)
-                colorMapRange = if (value is String && value == "auto") {
-                    Configuration.Style.COLOR_MAP_RANGE_AUTO
+            if (from.has(KEY_STYLE_DM_RANGE)) {
+                val value = from.get(KEY_STYLE_DM_RANGE)
+                distMapRange = if (value is String && value == "auto") {
+                    Configuration.Style.DISTANCE_MAP_RANGE_AUTO
                 } else {
-                    from.getInt(KEY_STYLE_CM_RANGE)
+                    from.getInt(KEY_STYLE_DM_RANGE)
                 }
             }
-            if (from.has(KEY_STYLE_CM_COLORS)) {
-                val colors = from.getJSONArray(KEY_STYLE_CM_COLORS)
-                colorMapColors = List(colors.length()) { parseColor(colors[it] as String) }
+            if (from.has(KEY_STYLE_DM_COLORS)) {
+                val colors = from.getJSONArray(KEY_STYLE_DM_COLORS)
+                distMapColors = List(colors.length()) { parseColor(colors[it] as String) }
             }
             if (from.has(KEY_STYLE_ANTIALIASING)) {
                 antialiasing = from.getBoolean(KEY_STYLE_ANTIALIASING)
@@ -444,7 +444,7 @@ object ConfigurationParser {
         val solutionStroke = BasicStroke(solutionStrokeWidth, strokeCap, BasicStroke.JOIN_ROUND)
 
         return Configuration.Style(cellSize, backgroundColor, color, stroke, solutionColor,
-                solutionStroke, colorMapRange, colorMapColors, antialiasing)
+                solutionStroke, distMapRange, distMapColors, antialiasing)
     }
 
     /**
@@ -459,10 +459,10 @@ object ConfigurationParser {
                     KEY_MAZE_OPENING_START -> Maze.OPENING_POS_START
                     KEY_MAZE_OPENING_CENTER -> Maze.OPENING_POS_CENTER
                     KEY_MAZE_OPENING_END -> Maze.OPENING_POS_END
-                    else -> throw ParameterException("Invalid opening position character '$pos'.")
+                    else -> paramError("Invalid opening position character '$pos'.")
                 }
                 is Int -> pos
-                else -> throw ParameterException("Invalid opening position argument '$pos'.")
+                else -> paramError("Invalid opening position argument '$pos'.")
             }
         }
         return position
@@ -475,7 +475,7 @@ object ConfigurationParser {
         if (value.endsWith('%')) {
             return value.substring(0, value.length - 1).toDouble() / 100
         }
-        throw ParameterException("Percentage value expected, got '$value'")
+        paramError("Percentage value expected, got '$value'")
     }
 
     /**
@@ -490,7 +490,7 @@ object ConfigurationParser {
                 return Color(value, true)
             }
         }
-        throw ParameterException("Invalid color string '$color'.")
+        paramError("Invalid color string '$color'.")
     }
 
     private const val MAZE_ORTHOGONAL = "orthogonal"
@@ -510,8 +510,8 @@ object ConfigurationParser {
     private const val KEY_MAZE_SHAPE = "shape"
     private const val KEY_MAZE_BRAID = "braid"
     private const val KEY_MAZE_SOLVE = "solve"
-    private const val KEY_MAZE_COLOR_MAP = "colorMap"
-    private const val KEY_MAZE_CM_START = "colorMapStart"
+    private const val KEY_MAZE_DIST_MAP = "distanceMap"
+    private const val KEY_MAZE_DM_START = "distanceMapStart"
 
     private const val KEY_MAZE_OPENINGS = "openings"
     private const val KEY_MAZE_OPENING_START = 'S'
@@ -541,8 +541,8 @@ object ConfigurationParser {
     private const val DEFAULT_MAZE_SIZE_SUBDIVISION = 1.5
     private const val DEFAULT_MAZE_SIZE_MAX_WEAVE = 1
     private const val DEFAULT_MAZE_SOLVE = false
-    private const val DEFAULT_MAZE_COLOR_MAP = false
-    private val DEFAULT_MAZE_CM_START: Position? = null
+    private const val DEFAULT_MAZE_DIST_MAP = false
+    private val DEFAULT_MAZE_DM_START: Position? = null
 
     // Output keys and defaults
     private const val KEY_OUTPUT = "output"
@@ -565,8 +565,8 @@ object ConfigurationParser {
     private const val KEY_STYLE_SOLUTION_COLOR = "solutionColor"
     private const val KEY_STYLE_SOLUTION_STROKE_WIDTH = "solutionStrokeWidth"
     private const val KEY_STYLE_STROKE_CAP = "strokeCap"
-    private const val KEY_STYLE_CM_RANGE = "colorMapRange"
-    private const val KEY_STYLE_CM_COLORS = "colorMapColors"
+    private const val KEY_STYLE_DM_RANGE = "distanceMapRange"
+    private const val KEY_STYLE_DM_COLORS = "distanceMapColors"
     private const val KEY_STYLE_ANTIALIASING = "antialiasing"
 
     private const val DEFAULT_STYLE_CELL_SIZE = 30.0
@@ -576,8 +576,8 @@ object ConfigurationParser {
     private val DEFAULT_STYLE_SOLUTION_COLOR: Color = Color.BLUE
     private const val DEFAULT_STYLE_SOLUTION_STROKE_WIDTH = 3f
     private const val DEFAULT_STYLE_STROKE_CAP = BasicStroke.CAP_ROUND
-    private const val DEFAULT_STYLE_CM_RANGE = Configuration.Style.COLOR_MAP_RANGE_AUTO
-    private val DEFAULT_STYLE_CM_COLORS = listOf(Color.WHITE, Color.BLACK)
+    private const val DEFAULT_STYLE_DM_RANGE = Configuration.Style.DISTANCE_MAP_RANGE_AUTO
+    private val DEFAULT_STYLE_DM_COLORS = listOf(Color.WHITE, Color.BLACK)
     private const val DEFAULT_STYLE_ANTIALIASING = true
 
 }

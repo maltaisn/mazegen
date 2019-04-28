@@ -8,8 +8,8 @@
         "maxWeave": 5
       },
       "algorithm": "rb",
-      "colorMap": true,
-      "colorMapStart": ["S", "S"]
+      "distanceMap": true,
+      "distanceMapStart": ["S", "S"]
     }
   ],
   "output": {
@@ -17,6 +17,6 @@
     "path": "testMazes/"
   },
   "style": {
-    "colorMapRange": "auto"
+    "distanceMapRange": "auto"
   }
 }

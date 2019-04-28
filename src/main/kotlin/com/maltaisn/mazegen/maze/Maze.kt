@@ -26,7 +26,7 @@
 package com.maltaisn.mazegen.maze
 
 import com.maltaisn.mazegen.Configuration
-import com.maltaisn.mazegen.ParameterException
+import com.maltaisn.mazegen.paramError
 import com.maltaisn.mazegen.render.Canvas
 import java.util.*
 import kotlin.math.min
@@ -52,9 +52,9 @@ abstract class Maze {
         private set
 
     /**
-     * Whether a color map has been generated or not.
+     * Whether a distance map has been generated or not.
      */
-    var hasColorMap = false
+    var hasDistanceMap = false
         protected set
 
     /**
@@ -83,26 +83,26 @@ abstract class Maze {
     abstract fun forEachCell(action: (Cell) -> Unit)
 
     /**
-     * Clears all sides of all cells in the maze, resets all visited and color map flags.
+     * Clears all sides of all cells in the maze, resets all visited and distance map flags.
      */
     fun resetAll() {
         forEachCell {
             it.value = 0
             it.visited = false
-            it.colorMapDistance = -1
+            it.distanceMapValue = -1
         }
         solution = null
         openings.clear()
     }
 
     /**
-     * Sets all sides of all cells in the maze, resets all visited and color map flags.
+     * Sets all sides of all cells in the maze, resets all visited and distance map flags.
      */
     fun fillAll() {
         forEachCell {
             it.value = it.allSidesValue
             it.visited = false
-            it.colorMapDistance = -1
+            it.distanceMapValue = -1
         }
         solution = null
         openings.clear()
@@ -116,7 +116,7 @@ abstract class Maze {
         val cell = getOpeningCell(opening)
         if (cell != null) {
             if (openings.contains(cell)) {
-                throw ParameterException("Duplicate opening for position ${cell.position}.")
+                paramError("Duplicate opening for position ${cell.position}.")
             }
 
             for (side in cell.allSides) {
@@ -128,7 +128,7 @@ abstract class Maze {
 
             openings.add(cell)
         } else {
-            throw ParameterException("Opening describes no cell in the maze.")
+            paramError("Opening describes no cell in the maze.")
         }
     }
 
@@ -221,10 +221,10 @@ abstract class Maze {
 
     /**
      * Open a number of deadends set by the braiding [setting].
-     * Color map is removed and will need to be regenerated after braiding.
+     * Distance map is removed and will need to be regenerated after braiding.
      */
     fun braid(setting: Braiding) {
-        hasColorMap = false
+        hasDistanceMap = false
 
         val deadends = mutableListOf<Cell>()
         forEachCell {
@@ -232,7 +232,7 @@ abstract class Maze {
                 // A cell is a deadend if it has only one side opened.
                 deadends.add(it)
             }
-            it.colorMapDistance = -1
+            it.distanceMapValue = -1
         }
 
         val count = setting.getNumberOfDeadendsToRemove(deadends.size)
@@ -271,7 +271,7 @@ abstract class Maze {
          */
         constructor(count: Int) {
             if (count < 0) {
-                throw ParameterException("Braiding parameter must be a positive number.")
+                paramError("Braiding parameter must be a positive number.")
             }
 
             value = count
@@ -283,7 +283,7 @@ abstract class Maze {
          */
         constructor(percent: Double) {
             if (percent < 0 || percent > 1) {
-                throw ParameterException("Braiding percentage must be between 0 and 1 inclusive.")
+                paramError("Braiding percentage must be between 0 and 1 inclusive.")
             }
 
             value = percent
@@ -308,7 +308,7 @@ abstract class Maze {
     }
 
     /**
-     * Generate the color map on this maze, using Dijkstra's algorithm to find
+     * Generate the distance map on this maze, using Dijkstra's algorithm to find
      * the shortest distance to every cell in the map, starting from [startPos].
      * See [this page](https://en.wikipedia.org/wiki/Dijkstra's_algorithm) for the algorithm.
      *
@@ -324,20 +324,20 @@ abstract class Maze {
      *
      * @param startPos Starting position (distance of zero), can be `null` for a random cell.
      */
-    open fun generateColorMap(startPos: Position? = null) {
+    open fun generateDistanceMap(startPos: Position? = null) {
         val inf = Int.MAX_VALUE - 1
         forEachCell {
             it.visited = false
-            it.colorMapDistance = inf
+            it.distanceMapValue = inf
         }
 
         val startCell = if (startPos == null) {
             getRandomCell()
         } else {
-            getOpeningCell(startPos) ?: throw ParameterException(
-                    "Color map start position describes no cell in the maze.")
+            getOpeningCell(startPos) ?: paramError(
+                    "Distance map start position describes no cell in the maze.")
         }
-        startCell.colorMapDistance = 0
+        startCell.distanceMapValue = 0
 
         val cellList = getAllCells()
         while (cellList.isNotEmpty()) {
@@ -345,7 +345,7 @@ abstract class Maze {
             var minIndex = 0
             for (i in 1 until cellList.size) {
                 val cell = cellList[i]
-                if (cell.colorMapDistance < cellList[minIndex].colorMapDistance) {
+                if (cell.distanceMapValue < cellList[minIndex].distanceMapValue) {
                     minIndex = i
                 }
             }
@@ -353,25 +353,25 @@ abstract class Maze {
             val minCell = cellList.removeAt(minIndex)
             minCell.visited = true
 
-            if (minCell.colorMapDistance == inf) {
+            if (minCell.distanceMapValue == inf) {
                 // This means the only cells left are inaccessible from the start cell.
-                // The color map can't be generated completely.
-                error("Could not generate color map, maze has inaccessible cells.")
+                // The distance map can't be generated completely.
+                error("Could not generate distance map, maze has inaccessible cells.")
             }
 
             // Compare unvisited accessible neighbors distance calculated from this cell with
             // their current distance. If new distance is smaller, update it.
             for (neighbor in minCell.findAccessibleNeighbors()) {
                 if (!neighbor.visited) {
-                    val newDistance = minCell.colorMapDistance + 1
-                    if (newDistance < neighbor.colorMapDistance) {
-                        neighbor.colorMapDistance = newDistance
+                    val newDistance = minCell.distanceMapValue + 1
+                    if (newDistance < neighbor.distanceMapValue) {
+                        neighbor.distanceMapValue = newDistance
                     }
                 }
             }
         }
 
-        hasColorMap = true
+        hasDistanceMap = true
     }
 
     /**

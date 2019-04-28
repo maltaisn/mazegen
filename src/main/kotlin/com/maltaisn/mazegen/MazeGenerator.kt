@@ -75,13 +75,13 @@ class MazeGenerator(private val config: Configuration) {
                     println(indent2 + "Solved in $duration ms")
                 }
 
-                // Color map
-                if (mazeSet.colorMap) {
-                    print("Generating color map...\r")
+                // Distance map
+                if (mazeSet.distanceMap) {
+                    print("Generating distance map...\r")
                     duration = measureTimeMillis {
-                        maze.generateColorMap(mazeSet.colorMapStart)
+                        maze.generateDistanceMap(mazeSet.distanceMapStart)
                     }
-                    println(indent2 + "Color map generated in $duration ms")
+                    println(indent2 + "Distance map generated in $duration ms")
                 }
 
                 // Export

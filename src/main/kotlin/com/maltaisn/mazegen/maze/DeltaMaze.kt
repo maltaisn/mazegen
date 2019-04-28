@@ -125,11 +125,11 @@ class DeltaMaze(width: Int, height: Int, shape: Shape) :
         val offset = style.stroke.lineWidth / 2.0
         canvas.translate = Point(offset, offset)
 
-        // Draw the color map
-        if (hasColorMap) {
-            val colorMapColors = style.generateColorMapColors(this)
+        // Draw the distance map
+        if (hasDistanceMap) {
+            val distMapColors = style.generateDistanceMapColors(this)
             drawForEachCell { cell, x, y, flatTopped ->
-                canvas.color = colorMapColors[cell.colorMapDistance]
+                canvas.color = distMapColors[cell.distanceMapValue]
                 val vertices = if (flatTopped) {
                     listOf(Point(x * csive / 2, y * cheight),
                             Point((x + 2) * csive / 2, y * cheight),

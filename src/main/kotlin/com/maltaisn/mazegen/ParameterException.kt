@@ -30,3 +30,6 @@ package com.maltaisn.mazegen
  * An exception class for configuration file errors.
  */
 class ParameterException(message: String) : IllegalArgumentException(message)
+
+
+fun paramError(message: Any): Nothing = throw ParameterException(message.toString())

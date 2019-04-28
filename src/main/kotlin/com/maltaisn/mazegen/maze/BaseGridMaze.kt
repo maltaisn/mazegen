@@ -25,7 +25,7 @@
 
 package com.maltaisn.mazegen.maze
 
-import com.maltaisn.mazegen.ParameterException
+import com.maltaisn.mazegen.paramError
 import kotlin.random.Random
 
 
@@ -40,7 +40,7 @@ abstract class BaseGridMaze<T : Cell>(val width: Int, val height: Int) : Maze() 
 
     init {
         if (width < 1 || height < 1) {
-            throw ParameterException("Dimensions must be at least 1.")
+            paramError("Dimensions must be at least 1.")
         }
     }
 

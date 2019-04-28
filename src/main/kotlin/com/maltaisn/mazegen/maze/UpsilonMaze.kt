@@ -66,13 +66,13 @@ class UpsilonMaze(width: Int, height: Int) :
         val offset = style.stroke.lineWidth / 2.0
         canvas.translate = Point(offset, offset)
 
-        // Draw the color map
-        if (hasColorMap) {
-            val colorMapColors = style.generateColorMapColors(this)
+        // Draw the distance map
+        if (hasDistanceMap) {
+            val distMapColors = style.generateDistanceMapColors(this)
             for (x in 0 until width) {
                 val px = x * centerDistance + dsize
                 for (y in 0 until height) {
-                    canvas.color = colorMapColors[grid[x][y].colorMapDistance]
+                    canvas.color = distMapColors[grid[x][y].distanceMapValue]
 
                     val py = y * centerDistance + dsize
                     if ((x + y) % 2 != 0) {

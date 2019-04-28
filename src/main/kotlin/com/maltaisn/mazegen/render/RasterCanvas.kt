@@ -125,7 +125,7 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
         val polygon = Polygon2D(vertices)
         if (filled) {
             if (antialiasing) {
-                // To avoid gaps in color maps, outline and fill must be drawn
+                // To avoid gaps in distance maps, outline and fill must be drawn
                 graphics.stroke = BasicStroke(1.5f)
                 graphics.draw(polygon)
                 graphics.stroke = stroke
