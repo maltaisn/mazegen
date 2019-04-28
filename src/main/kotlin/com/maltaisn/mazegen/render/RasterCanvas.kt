@@ -72,7 +72,7 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
             if (this::graphics.isInitialized) {
                 graphics.transform = transform
                 if (value != null) {
-                    graphics.translate(value.x.toDouble(), value.y.toDouble())
+                    graphics.translate(value.x, value.y)
                 }
             }
         }

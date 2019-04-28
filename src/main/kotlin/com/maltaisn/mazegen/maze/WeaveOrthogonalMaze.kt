@@ -27,9 +27,11 @@ package com.maltaisn.mazegen.maze
 
 import com.maltaisn.mazegen.Configuration
 import com.maltaisn.mazegen.ParameterException
+import com.maltaisn.mazegen.maze.WeaveOrthogonalCell.Side
 import com.maltaisn.mazegen.render.Canvas
 import com.maltaisn.mazegen.render.Point
 import java.awt.Color
+import java.util.*
 import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.sign
@@ -60,12 +62,87 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
         }
     }
 
+    /**
+     * Overridden since a single cell can have two color map distances:
+     * one for the tunnel and one for the bridge.
+     * @param startPos Starting position (distance of zero), can be `null` for a random cell.
+     * If the starting cell has a tunnel, the algorithm will always start on on the bridge.
+     */
+    override fun generateColorMap(startPos: Position?) {
+        val inf = Int.MAX_VALUE - 1
+        forEachCell {
+            it as WeaveOrthogonalCell
+            it.visited = false
+            it.colorMapDistance = inf
+            it.colorMapDistanceTunnel = inf
+        }
+
+        val startCell = if (startPos == null) {
+            getRandomCell()
+        } else {
+            getOpeningCell(startPos) ?: throw ParameterException(
+                    "Color map start position describes no cell in the maze.")
+        }
+        startCell.colorMapDistance = 0
+
+        val cellList = getAllCells()
+        while (cellList.isNotEmpty()) {
+            // Get and remove the cell with the lowest distance
+            var minIndex = 0
+            for (i in 1 until cellList.size) {
+                val cell = cellList[i]
+                if (cell.colorMapDistance < cellList[minIndex].colorMapDistance) {
+                    minIndex = i
+                }
+            }
+
+            val minCell = cellList.removeAt(minIndex)
+            minCell.visited = true
+
+            if (minCell.colorMapDistance == inf) {
+                // This means the only cells left are inaccessible from the start cell.
+                // The color map can't be generated completely.
+                error("Could not generate color map, maze has inaccessible cells.")
+            }
+
+            val distance = minCell.colorMapDistance
+            for (neighbor in minCell.findAccessibleNeighbors()) {
+                if (!neighbor.visited) {
+                    // If there are cells between the cell and its neighbor, then the passage
+                    // goes through a tunnel. Set tunnel distances on tunnel cells.
+                    var x = minCell.position.x
+                    var y = minCell.position.y
+                    val dx = neighbor.position.x - x
+                    val dy = neighbor.position.y - y
+                    val diff = max(dx.absoluteValue, dy.absoluteValue)
+                    if (diff > 1) {
+                        for (i in 1 until diff) {
+                            x += dx.sign
+                            y += dy.sign
+                            grid[x][y].colorMapDistanceTunnel = distance + i
+                        }
+                    }
+
+                    // Compare neighbor distance calculated from this cell with
+                    // its current distance. If new distance is smaller, update it.
+                    val newDistance = distance + diff
+                    if (newDistance < neighbor.colorMapDistance) {
+                        neighbor.colorMapDistance = newDistance
+                    }
+                }
+            }
+        }
+
+        hasColorMap = true
+    }
+
+
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
-        val csive = style.cellSize
-        val outSize = csive * INSET_SIZE_RATIO
-        val inSize = csive / 2 - outSize
-        canvas.init(width * csive + style.stroke.lineWidth,
-                height * csive + style.stroke.lineWidth)
+        val csize = style.cellSize
+        val outSize = csize * INSET_SIZE_RATIO
+        val inSize = csize / 2 - outSize
+        canvas.init(width * csize + style.stroke.lineWidth,
+                height * csize + style.stroke.lineWidth)
 
         // Draw the background
         if (style.backgroundColor != null) {
@@ -76,7 +153,63 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
         val offset = style.stroke.lineWidth / 2.0
         canvas.translate = Point(offset, offset)
 
+        // Draw the color map
+        if (hasColorMap) {
+            val colorMapColors = style.generateColorMapColors(this)
+            for (x in 0 until width) {
+                val cx = (x + 0.5) * csize
+                for (y in 0 until height) {
+                    val cy = (y + 0.5) * csize
+                    val cell = cellAt(x, y)!!
+
+                    // Draw the tunnel color with a rectangle, either vertical or horizontal.
+                    if (cell.hasTunnel) {
+                        canvas.color = colorMapColors[cell.colorMapDistanceTunnel]
+                        if (cell.hasSide(Side.NORTH)) {
+                            canvas.drawRect(cx - inSize, cy - csize / 2, 2 * inSize, csize, true)
+                        } else {
+                            canvas.drawRect(cx - csize / 2, cy - inSize, csize, 2 * inSize, true)
+                        }
+                    }
+
+                    // Draw the bridge color with a polygon
+                    // Vertices must be added in clockwise order to the polygon
+                    // that's why north and east are differenciated from the other two.
+                    val vertices = LinkedList<Point>()
+                    for (side in cell.allSides) {
+                        val pos = side.relativePos
+                        val positive = side == Side.NORTH || side == Side.EAST
+                        val ex = 1 - pos.x.absoluteValue
+                        val ey = 1 - pos.y.absoluteValue
+
+                        vertices += if (positive) {
+                            Point(cx + (pos.x - ex) * inSize, cy + (pos.y - ey) * inSize)
+                        } else {
+                            Point(cx + (pos.x + ex) * inSize, cy + (pos.y + ey) * inSize)
+                        }
+                        if (!cell.hasSide(side)) {
+                            val p1 = Point(cx + (pos.x - ex) * (inSize + ey * outSize),
+                                    cy + (pos.y - ey) * (inSize + ex * outSize))
+                            val p2 = Point(cx + (pos.x + ex) * (inSize + ey * outSize),
+                                    cy + (pos.y + ey) * (inSize + ex * outSize))
+                            if (positive) {
+                                vertices += p1
+                                vertices += p2
+                            } else {
+                                vertices += p2
+                                vertices += p1
+                            }
+                        }
+                    }
+                    canvas.color = colorMapColors[cell.colorMapDistance]
+                    canvas.drawPolygon(vertices, true)
+                }
+            }
+        }
+
         // Draw the solution
+        // The solution is drawn first because it can go under some passages and drawing it
+        // after the maze would show awkward line endings.
         if (solution != null) {
             canvas.color = style.solutionColor
             canvas.stroke = style.solutionStroke
@@ -88,8 +221,8 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
 
                 val cell = solution[i]
                 val pos = cell.position as Position2D
-                val cx = (pos.x + 0.5) * csive
-                val cy = (pos.y + 0.5) * csive
+                val cx = (pos.x + 0.5) * csize
+                val cy = (pos.y + 0.5) * csize
                 if (prevPoint != null) {
                     canvas.drawLine(prevPoint.x, prevPoint.y, cx, cy)
                 }
@@ -99,7 +232,7 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
                     val nextPos = nextCell.position as Position2D
                     val dx = nextPos.x - pos.x
                     val dy = nextPos.y - pos.y
-                    var nextPoint = Point(cx + dx.sign * csive / 2, cy + dy.sign * csive / 2)
+                    var nextPoint = Point(cx + dx.sign * csize / 2, cy + dy.sign * csize / 2)
                     canvas.drawLine(cx, cy, nextPoint.x, nextPoint.y)
                     prevPoint = nextPoint
 
@@ -110,9 +243,9 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
                         for (j in 0 until max(dx.absoluteValue, dy.absoluteValue) - 1) {
                             canvas.drawLine(prevPoint!!.x, prevPoint.y,
                                     prevPoint.x + dxs * outSize, prevPoint.y + dys * outSize)
-                            nextPoint = Point(prevPoint.x + dxs * csive, prevPoint.y + dys * csive)
-                            canvas.drawLine(prevPoint.x + dxs * (csive - outSize),
-                                    prevPoint.y + dys * (csive - outSize),
+                            nextPoint = Point(prevPoint.x + dxs * csize, prevPoint.y + dys * csize)
+                            canvas.drawLine(prevPoint.x + dxs * (csize - outSize),
+                                    prevPoint.y + dys * (csize - outSize),
                                     nextPoint.x, nextPoint.y)
                             prevPoint = nextPoint
                         }
@@ -125,9 +258,9 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
         canvas.color = style.color
         canvas.stroke = style.stroke
         for (x in 0 until width) {
-            val cx = (x + 0.5) * csive
+            val cx = (x + 0.5) * csize
             for (y in 0 until height) {
-                val cy = (y + 0.5) * csive
+                val cy = (y + 0.5) * csize
                 val cell = cellAt(x, y)!!
                 for (side in cell.allSides) {
                     val hasSide = cell.hasSide(side)

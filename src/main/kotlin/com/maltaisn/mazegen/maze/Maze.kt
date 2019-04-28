@@ -55,7 +55,7 @@ abstract class Maze {
      * Whether a color map has been generated or not.
      */
     var hasColorMap = false
-        private set
+        protected set
 
     /**
      * Get the total number of cells in this maze.
@@ -324,7 +324,7 @@ abstract class Maze {
      *
      * @param startPos Starting position (distance of zero), can be `null` for a random cell.
      */
-    fun generateColorMap(startPos: Position? = null) {
+    open fun generateColorMap(startPos: Position? = null) {
         val inf = Int.MAX_VALUE - 1
         forEachCell {
             it.visited = false
@@ -356,7 +356,7 @@ abstract class Maze {
             if (minCell.colorMapDistance == inf) {
                 // This means the only cells left are inaccessible from the start cell.
                 // The color map can't be generated completely.
-                error { "Could not generate color map, maze has inaccessible cells." }
+                error("Could not generate color map, maze has inaccessible cells.")
             }
 
             // Compare unvisited accessible neighbors distance calculated from this cell with

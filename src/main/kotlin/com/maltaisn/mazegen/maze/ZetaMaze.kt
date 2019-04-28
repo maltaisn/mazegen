@@ -52,12 +52,12 @@ class ZetaMaze(width: Int, height: Int) :
     }
 
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
-        val sideSize = style.cellSize  // Size of an octogon wall
-        val diagSize = sqrt(2.0) / 2 * sideSize  // Diagonal wall size
-        val cellSize = 2 * diagSize + sideSize  // Full cell size
+        val ssize = style.cellSize  // Size of an octogon wall (side)
+        val dsize = sqrt(2.0) / 2 * ssize  // Diagonal wall size
+        val csize = 2 * dsize + ssize  // Full cell size
 
-        canvas.init(width * cellSize + style.stroke.lineWidth,
-                height * cellSize + style.stroke.lineWidth)
+        canvas.init(width * csize + style.stroke.lineWidth,
+                height * csize + style.stroke.lineWidth)
 
         // Draw the background
         if (style.backgroundColor != null) {
@@ -65,19 +65,89 @@ class ZetaMaze(width: Int, height: Int) :
             canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
 
+        val offset = style.stroke.lineWidth / 2.0
+        canvas.translate = Point(offset, offset)
+
+        // Draw the color map
+        if (hasColorMap) {
+            val colorMapColors = style.generateColorMapColors(this)
+            for (x in 0 until width) {
+                val px = x * csize
+                val cx = px + csize / 2
+                for (y in 0 until height) {
+                    val py = y * csize
+                    val cy = py + csize / 2
+                    val hdsize = dsize / 2
+                    val cell = cellAt(x, y)!!
+
+                    // Create a polygon for the cell
+                    // For each diagonal side, there are 3 cases resulting in different vertices
+                    // for that corner. Vertices must be added in clockwise order to the polygon
+                    // that's why northeast and southwest are differenciated from the other two.
+                    val vertices = LinkedList<Point>()
+                    for (side in cell.allSides) {
+                        if (side.isDiagonal) {
+                            val pos = side.relativePos
+                            val positive = side == Side.NORTHEAST || side == Side.SOUTHWEST
+                            when {
+                                cell.hasDiagonalPassageOnSide(side) -> {
+                                    // Case 1: there's a diagonal passage on this side.
+                                    // Add 2 vertices for an octogon-like diagonal side.
+                                    val p1 = Point(cx + pos.x * ssize / 2, cy + pos.y * csize / 2)
+                                    val p2 = Point(cx + pos.x * csize / 2, cy + pos.y * ssize / 2)
+                                    if (positive) {
+                                        vertices += p1
+                                        vertices += p2
+                                    } else {
+                                        vertices += p2
+                                        vertices += p1
+                                    }
+                                }
+                                !cell.hasSide(side) -> {
+                                    // Case 2: the diagonal side opens on a diagonal passage.
+                                    // Add 4 vertices forming an outgrown spanning half the passage.
+                                    val p1 = Point(cx + pos.x * ssize / 2, cy + pos.y * csize / 2)
+                                    val p2 = Point(cx + pos.x * (ssize / 2 + hdsize), cy + pos.y * (csize / 2 + hdsize))
+                                    val p3 = Point(cx + pos.x * (csize / 2 + hdsize), cy + pos.y * (ssize / 2 + hdsize))
+                                    val p4 = Point(cx + pos.x * csize / 2, cy + pos.y * ssize / 2)
+                                    if (positive) {
+                                        vertices += p1
+                                        vertices += p2
+                                        vertices += p3
+                                        vertices += p4
+                                    } else {
+                                        vertices += p4
+                                        vertices += p3
+                                        vertices += p2
+                                        vertices += p1
+                                    }
+
+                                }
+                                else -> {
+                                    // Case 3: there's a square corner, add a single corner vertex.
+                                    vertices += Point(cx + pos.x * csize / 2, cy + pos.y * csize / 2)
+                                }
+                            }
+                        }
+                    }
+
+                    canvas.color = colorMapColors[cell.colorMapDistance]
+                    canvas.drawPolygon(vertices, true)
+                }
+            }
+        }
+
         // Draw the maze
         // For each cell, draw west and north walls, as well as all 45 degrees lines.
         // On the last row and column, the east and south walls are also drawn.
-        val offset = style.stroke.lineWidth / 2.0
-        canvas.translate = Point(offset, offset)
         canvas.color = style.color
         canvas.stroke = style.stroke
         for (x in 0 until width) {
-            val px = x * cellSize
-            val cx = px + cellSize / 2
+            val px = x * csize
+            val cx = px + csize / 2
             for (y in 0 until height) {
-                val py = y * cellSize
-                val cy = py + cellSize / 2
+                val py = y * csize
+                val cy = py + csize / 2
                 val cell = cellAt(x, y)!!
 
                 val sides = HashMap<Side, Boolean>()
@@ -93,8 +163,8 @@ class ZetaMaze(width: Int, height: Int) :
                             // Draw a diagonal line if there's a diagonal passage on this side
                             // of the cell and this cell has also a wall.
                             val pos = side.relativePos
-                            canvas.drawLine(cx + pos.x * sideSize / 2, cy + pos.y * cellSize / 2,
-                                    cx + pos.x * cellSize / 2, cy + pos.y * sideSize / 2)
+                            canvas.drawLine(cx + pos.x * ssize / 2, cy + pos.y * csize / 2,
+                                    cx + pos.x * csize / 2, cy + pos.y * ssize / 2)
                         }
                     }
                 }
@@ -103,25 +173,25 @@ class ZetaMaze(width: Int, height: Int) :
                 // They must take account of the presence of diagonal passages.
                 if (cell.hasSide(Side.WEST)) {
                     val start = if (!sides[Side.NORTHWEST]!!
-                            || passages[Side.NORTHWEST]!!) diagSize else 0.0
-                    val end = cellSize - if (!sides[Side.SOUTHWEST]!!
-                            || passages[Side.SOUTHWEST]!!) diagSize else 0.0
+                            || passages[Side.NORTHWEST]!!) dsize else 0.0
+                    val end = csize - if (!sides[Side.SOUTHWEST]!!
+                            || passages[Side.SOUTHWEST]!!) dsize else 0.0
                     canvas.drawLine(px, py + start, px, py + end)
                 }
                 if (cell.hasSide(Side.NORTH)) {
                     val start = if (!sides[Side.NORTHWEST]!!
-                            || passages[Side.NORTHWEST]!!) diagSize else 0.0
-                    val end = cellSize - if (!sides[Side.NORTHEAST]!!
-                            || passages[Side.NORTHEAST]!!) diagSize else 0.0
+                            || passages[Side.NORTHWEST]!!) dsize else 0.0
+                    val end = csize - if (!sides[Side.NORTHEAST]!!
+                            || passages[Side.NORTHEAST]!!) dsize else 0.0
                     canvas.drawLine(px + start, py, px + end, py)
                 }
 
                 // On the last row and column, also draw east and north walls
                 if (x == width - 1 && cell.hasSide(Side.EAST)) {
-                    canvas.drawLine(px + cellSize, py, px + cellSize, py + cellSize)
+                    canvas.drawLine(px + csize, py, px + csize, py + csize)
                 }
                 if (y == height - 1 && cell.hasSide(Side.SOUTH)) {
-                    canvas.drawLine(px, py + cellSize, px + cellSize, py + cellSize)
+                    canvas.drawLine(px, py + csize, px + csize, py + csize)
                 }
             }
         }
@@ -134,8 +204,8 @@ class ZetaMaze(width: Int, height: Int) :
             val points = LinkedList<Point>()
             for (cell in solution!!) {
                 val pos = cell.position as Position2D
-                val px = (pos.x + 0.5) * cellSize
-                val py = (pos.y + 0.5) * cellSize
+                val px = (pos.x + 0.5) * csize
+                val py = (pos.y + 0.5) * csize
                 points.add(Point(px, py))
             }
             canvas.drawPolyline(points)

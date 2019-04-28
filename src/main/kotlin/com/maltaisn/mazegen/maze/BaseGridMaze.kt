@@ -54,7 +54,7 @@ abstract class BaseGridMaze<T : Cell>(val width: Int, val height: Int) : Maze() 
 
     override fun getRandomCell() = grid[Random.nextInt(grid.size)][Random.nextInt(grid[0].size)]
 
-    override fun getAllCells(): MutableList<out Cell> {
+    override fun getAllCells(): MutableList<T> {
         val list = mutableListOf<T>()
         for (x in 0 until grid.size) {
             for (y in 0 until grid[x].size) {

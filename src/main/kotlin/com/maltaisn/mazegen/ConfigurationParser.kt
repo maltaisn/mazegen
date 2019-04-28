@@ -310,6 +310,9 @@ object ConfigurationParser {
         // Solve
         val solve = if (from.has(KEY_MAZE_SOLVE))
             from.getBoolean(KEY_MAZE_SOLVE) else DEFAULT_MAZE_SOLVE
+        if (solve && openings.size < 2) {
+            throw ParameterException("There must be at least two openings defined to solve the maze.")
+        }
 
         // Color map
         val colorMap = if (from.has(KEY_MAZE_COLOR_MAP))

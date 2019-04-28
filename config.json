@@ -1,12 +1,15 @@
 {
   "mazes": [
     {
-      "name": "upsilon_rb_cm",
-      "type": "upsilon",
-      "size": 20,
+      "name": "weave_orthogonal_rb_cm",
+      "type": "weaveOrthogonal",
+      "size": {
+        "size": 100,
+        "maxWeave": 5
+      },
       "algorithm": "rb",
       "colorMap": true,
-      "colorMapStart": "random"
+      "colorMapStart": ["S", "S"]
     }
   ],
   "output": {

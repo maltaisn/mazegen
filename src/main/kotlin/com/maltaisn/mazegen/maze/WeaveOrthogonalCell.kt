@@ -35,7 +35,17 @@ import kotlin.math.absoluteValue
 class WeaveOrthogonalCell(override val maze: WeaveOrthogonalMaze,
                           override val position: Position2D) : Cell(maze, position) {
 
-    override val neighbors = mutableListOf<Cell>()
+    /**
+     * If a color map was generated, the minimum distance of this cell from
+     * the starting cell for the tunnel on this cell if it has one.
+     */
+    var colorMapDistanceTunnel = -1
+
+    /**
+     * Returns a list of immediate neighbors as well as neighbors connectable with a tunnel.
+     * All neighbors returned can make a valid connection with the cell.
+     */
+    override val neighbors = mutableListOf<WeaveOrthogonalCell>()
         get() {
             // If weaving is disabled, neighbors are always the same.
             if (maze.maxWeave == 0 && field.isNotEmpty()) return field
@@ -50,7 +60,7 @@ class WeaveOrthogonalCell(override val maze: WeaveOrthogonalMaze,
                     if (cell != null) {
                         if (i == 0 || !cell.hasTunnel) {
                             field.add(cell)
-                            if (cell.hasPassagePerpendicularTo(side)) {
+                            if (cell.isPassageParallelTo(side)) {
                                 continue
                             }
                         }
@@ -115,10 +125,10 @@ class WeaveOrthogonalCell(override val maze: WeaveOrthogonalMaze,
     }
 
     /**
-     * Returns true if this cell is a straight passage,
-     * meaning it only has two parallel sides set.
+     * Returns true if this cell is a straight passage parallel to a [side],
+     * meaning it only has two sides set, both parallel to [side].
      */
-    private fun hasPassagePerpendicularTo(side: Side): Boolean = when (side) {
+    private fun isPassageParallelTo(side: Side): Boolean = when (side) {
         Side.NORTH, Side.SOUTH -> value == Side.HORIZONTAL_PASSAGE_VALUE
         Side.WEST, Side.EAST -> value == Side.VERTICAL_PASSAGE_VALUE
     }
@@ -166,7 +176,7 @@ class WeaveOrthogonalCell(override val maze: WeaveOrthogonalMaze,
              */
             const val TUNNEL = 16
 
-            val ALL = listOf(NORTH, SOUTH, EAST, WEST)
+            val ALL = listOf(NORTH, EAST, SOUTH, WEST)
             const val ALL_VALUE = 15
 
             val VERTICAL_PASSAGE_VALUE = WEST.value or EAST.value

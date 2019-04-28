@@ -47,8 +47,7 @@ abstract class Cell(open val maze: Maze, open val position: Position) {
     open var value = 0
 
     /**
-     * If a color map was generated, the minimum
-     * distance of this cell from the starting cell.
+     * If a color map was generated, the minimum distance of this cell from the starting cell.
      */
     var colorMapDistance = -1
 

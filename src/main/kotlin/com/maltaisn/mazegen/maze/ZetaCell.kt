@@ -110,7 +110,8 @@ class ZetaCell(override val maze: ZetaMaze,
             }
 
         companion object {
-            val ALL = listOf(NORTH, SOUTH, EAST, WEST, NORTHEAST, SOUTHWEST, SOUTHEAST, NORTHWEST)
+            // Must be in clockwise order!
+            val ALL = listOf(NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST)
             const val ALL_VALUE = 255
         }
     }
