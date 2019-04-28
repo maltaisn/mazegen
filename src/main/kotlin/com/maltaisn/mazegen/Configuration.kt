@@ -58,7 +58,8 @@ class Configuration(val mazeSets: List<MazeSet>,
                   val openings: List<Position>,
                   val solve: Boolean,
                   val distanceMap: Boolean,
-                  val distanceMapStart: Position?)
+                  val distanceMapStart: Position?,
+                  val separateExport: Boolean)
 
     /**
      * Output settings.

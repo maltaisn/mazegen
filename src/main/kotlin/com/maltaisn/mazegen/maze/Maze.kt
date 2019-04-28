@@ -203,6 +203,14 @@ abstract class Maze {
         return false
     }
 
+    /**
+     * If maze was previously solved, clear the solution.
+     */
+    fun clearSolution() {
+        solution = null
+    }
+
+
     private data class Node(val parent: Node?, val cell: Cell,
                             val costFromStart: Int, val costToEnd: Int) : Comparable<Node> {
 
@@ -221,10 +229,10 @@ abstract class Maze {
 
     /**
      * Open a number of deadends set by the braiding [setting].
-     * Distance map is removed and will need to be regenerated after braiding.
+     * Distance map is cleared and will need to be regenerated after braiding.
      */
     fun braid(setting: Braiding) {
-        hasDistanceMap = false
+        clearDistanceMap()
 
         val deadends = mutableListOf<Cell>()
         forEachCell {
@@ -232,7 +240,6 @@ abstract class Maze {
                 // A cell is a deadend if it has only one side opened.
                 deadends.add(it)
             }
-            it.distanceMapValue = -1
         }
 
         val count = setting.getNumberOfDeadendsToRemove(deadends.size)
@@ -372,6 +379,18 @@ abstract class Maze {
         }
 
         hasDistanceMap = true
+    }
+
+    /**
+     * Clear the distance map values on all cells.
+     */
+    open fun clearDistanceMap() {
+        if (hasDistanceMap) {
+            forEachCell {
+                it.distanceMapValue = -1
+            }
+            hasDistanceMap = false
+        }
     }
 
     /**

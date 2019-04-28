@@ -136,6 +136,17 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
         hasDistanceMap = true
     }
 
+    override fun clearDistanceMap() {
+        if (hasDistanceMap) {
+            forEachCell {
+                it as WeaveOrthogonalCell
+                it.distanceMapValue = -1
+                it.distanceMapTunnelValue = -1
+            }
+            hasDistanceMap = false
+        }
+    }
+
 
     override fun drawTo(canvas: Canvas, style: Configuration.Style) {
         val csize = style.cellSize

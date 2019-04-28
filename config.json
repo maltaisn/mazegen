@@ -1,15 +1,15 @@
 {
   "mazes": [
     {
-      "name": "weave_orthogonal_rb_cm",
-      "type": "weaveOrthogonal",
-      "size": {
-        "size": 100,
-        "maxWeave": 5
-      },
-      "algorithm": "rb",
+      "name": "test",
+      "type": "sigma",
+      "size": 10,
+      "algorithm": "pr",
+      "openings": [["S", "S"], ["E", "E"]],
       "distanceMap": true,
-      "distanceMapStart": ["S", "S"]
+      "distanceMapStart": ["S", "S"],
+      "solve": true,
+      "separateExport": true
     }
   ],
   "output": {

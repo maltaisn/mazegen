@@ -330,8 +330,15 @@ object ConfigurationParser {
             DEFAULT_MAZE_DM_START
         }
 
+        // Separate export
+        val separateExport = if (from.has(KEY_MAZE_SEPARATE_EXPORT)) {
+            from.getBoolean(KEY_MAZE_SEPARATE_EXPORT) && (distanceMap || solve)
+        } else {
+            DEFAULT_MAZE_SEPARATE_EXPORT
+        }
+
         return MazeSet(name, count, creator, generator, braiding,
-                openings, solve, distanceMap, distMapStart)
+                openings, solve, distanceMap, distMapStart, separateExport)
     }
 
     private fun parseOutput(from: JSONObject?): Configuration.Output {
@@ -512,6 +519,7 @@ object ConfigurationParser {
     private const val KEY_MAZE_SOLVE = "solve"
     private const val KEY_MAZE_DIST_MAP = "distanceMap"
     private const val KEY_MAZE_DM_START = "distanceMapStart"
+    private const val KEY_MAZE_SEPARATE_EXPORT = "separateExport"
 
     private const val KEY_MAZE_OPENINGS = "openings"
     private const val KEY_MAZE_OPENING_START = 'S'
@@ -543,6 +551,7 @@ object ConfigurationParser {
     private const val DEFAULT_MAZE_SOLVE = false
     private const val DEFAULT_MAZE_DIST_MAP = false
     private val DEFAULT_MAZE_DM_START: Position? = null
+    private const val DEFAULT_MAZE_SEPARATE_EXPORT = false
 
     // Output keys and defaults
     private const val KEY_OUTPUT = "output"

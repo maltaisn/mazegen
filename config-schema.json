@@ -217,6 +217,11 @@
             ],
             "default": "random"
           },
+          "separateExport": {
+            "type": "boolean",
+            "description": "If true, maze, solved maze and distance mapped maze will be exported separatedly.",
+            "default": false
+          },
           "_comment": {"$ref": "#/definitions/comment"}
         },
         "additionalProperties": false

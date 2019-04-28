@@ -61,7 +61,8 @@ Here's another more complete example:
       "openings": [["S", "S"], ["E", "E"]],
       "solve": true,
       "distanceMap": true,
-      "distanceMapStart": ["S", "S"]
+      "distanceMapStart": ["S", "S"],
+      "separateExport": false
     }
   ],
   "output": {
@@ -116,6 +117,7 @@ More examples of configuration file are available at [`/mazes/config/`](mazes/co
     - `solve`: whether to solve the maze or not, a boolean. Default is `false`. Solving requires at least two openings, and if more are present, only the solution for the two first openings is displayed.
     - `distanceMap`: whether to generate a color ma por not, a boolean. Default is `false`.
     - `distanceMapStart`: the starting cell for the distance map (for Dijkstra's). Can either be in the same format as an opening in `openings`, or `random` for a random position. Default is `random`.
+    - `separateExport`: If true, the maze, the solved maze and the distance mapped maze are exported as separate files instead of combined.
 <br><br>
 - **`output`**: Output settings, with the following attributes:
     - `format`: output format, one of `png`, `jpg`, `bmp`, `gif`, `svg`. Default is `png`.

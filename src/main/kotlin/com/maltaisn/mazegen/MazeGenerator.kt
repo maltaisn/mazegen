@@ -66,30 +66,51 @@ class MazeGenerator(private val config: Configuration) {
                 }
                 println(indent2 + "Generated in $duration ms")
 
+                if (mazeSet.separateExport) {
+                    print(indent2 + "Exporting maze...\r")
+                    duration = exportMaze(maze, filename)
+                    println(indent2 + "Exported maze in $duration ms")
+                }
+
                 // Solve
                 if (mazeSet.solve) {
                     print(indent2 + "Solving...\r")
-                    duration = measureTimeMillis {
-                        maze.solve()
-                    }
+                    duration = measureTimeMillis { maze.solve() }
                     println(indent2 + "Solved in $duration ms")
+
+                    if (mazeSet.separateExport) {
+                        print(indent2 + "Exporting solved maze...\r")
+                        duration = exportMaze(maze, "${filename}_solution")
+                        println(indent2 + "Exported solved maze in $duration ms")
+                    }
                 }
 
                 // Distance map
                 if (mazeSet.distanceMap) {
+                    if (mazeSet.separateExport && mazeSet.solve) {
+                        maze.clearSolution()
+                    }
+
                     print("Generating distance map...\r")
                     duration = measureTimeMillis {
                         maze.generateDistanceMap(mazeSet.distanceMapStart)
                     }
                     println(indent2 + "Distance map generated in $duration ms")
+
+                    if (mazeSet.separateExport) {
+                        print(indent2 + "Exporting distance mapped maze...\r")
+                        duration = exportMaze(maze, "${filename}_distance_map")
+                        println(indent2 + "Exported distance mapped maze in $duration ms")
+                    }
                 }
 
-                // Export
-                print(indent2 + "Exporting...\r")
-                duration = measureTimeMillis {
-                    exportMaze(maze, filename)
+
+
+                if (!mazeSet.separateExport) {
+                    print(indent2 + "Exporting...\r")
+                    duration = exportMaze(maze, filename)
+                    println(indent2 + "Exported in $duration ms")
                 }
-                println(indent2 + "Exported in $duration ms")
             }
 
             println()
@@ -124,7 +145,7 @@ class MazeGenerator(private val config: Configuration) {
     /**
      * Write a [maze] to a file named [filename] (without the extension).
      */
-    private fun exportMaze(maze: Maze, filename: String) {
+    private fun exportMaze(maze: Maze, filename: String) = measureTimeMillis {
         val output = config.output
         val style = config.style
         val format = output.format
