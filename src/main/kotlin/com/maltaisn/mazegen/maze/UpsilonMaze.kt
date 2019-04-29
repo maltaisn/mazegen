@@ -80,7 +80,7 @@ class UpsilonMaze(width: Int, height: Int) :
                         canvas.drawRect(px, py, csize, csize, true)
                     } else {
                         // Octogon cell
-                        canvas.drawPolygon(listOf(
+                        canvas.drawPath(listOf(
                                 Point(px, py - dsize),
                                 Point(px + csize, py - dsize),
                                 Point(px + csize + dsize, py),
@@ -150,7 +150,7 @@ class UpsilonMaze(width: Int, height: Int) :
                 val py = pos.y * centerDistance + dsize + csize / 2
                 points.add(Point(px, py))
             }
-            canvas.drawPolyline(points)
+            canvas.drawPath(points)
         }
     }
 

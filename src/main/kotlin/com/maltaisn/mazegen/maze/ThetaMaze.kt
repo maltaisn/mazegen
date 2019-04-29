@@ -28,6 +28,7 @@ package com.maltaisn.mazegen.maze
 import com.maltaisn.mazegen.Configuration
 import com.maltaisn.mazegen.maze.ThetaCell.Side
 import com.maltaisn.mazegen.paramError
+import com.maltaisn.mazegen.render.ArcPoint
 import com.maltaisn.mazegen.render.Canvas
 import com.maltaisn.mazegen.render.Point
 import kotlin.math.*
@@ -180,11 +181,37 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
             canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
 
+        val offset = style.stroke.lineWidth / 2.0
+        canvas.translate = Point(offset, offset)
+
+        // Draw the distance map
+        if (hasDistanceMap) {
+            val distMapColors = style.generateDistanceMapColors(this)
+
+            // Draw center circle cell
+            canvas.color = distMapColors[cellAt(0, 0)!!.distanceMapValue]
+            canvas.drawEllipse(center, center, centerRadius * csize, centerRadius * csize, true)
+
+            // Draw other cells
+            for (r in 1 until radius) {
+                val startRadius = (r + centerRadius - 1) * csize
+                val endRadius = startRadius + csize
+                val width = grid[min(grid.size - 1, r)].size
+                for (x in 0 until width) {
+                    val extent = 1.0 / width * TAU
+                    val startAngle = x * extent
+                    canvas.color = distMapColors[cellAt(x, r)!!.distanceMapValue]
+                    canvas.drawPath(listOf(
+                            ArcPoint(center, center, startRadius, startRadius, startAngle, extent),
+                            ArcPoint(center, center, endRadius, endRadius, startAngle + extent, -extent)
+                    ), true)
+                }
+            }
+        }
+
         // Draw the maze
         // For each cell, only the inward and clockwise sides are drawn if they are set,
         // except for the last row where the outward side is also drawn.
-        val offset = style.stroke.lineWidth / 2.0
-        canvas.translate = Point(offset, offset)
         canvas.color = style.color
         canvas.stroke = style.stroke
         for (r in 1..radius) {

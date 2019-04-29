@@ -1,20 +1,18 @@
 {
   "mazes": [
     {
-      "name": "test",
-      "type": "sigma",
+      "name": "test2_op0",
+      "type": "orthogonal",
       "size": 10,
-      "algorithm": "pr",
-      "openings": [["S", "S"], ["E", "E"]],
+      "algorithm": "rb",
       "distanceMap": true,
-      "distanceMapStart": ["S", "S"],
-      "solve": true,
-      "separateExport": true
+      "distanceMapStart": ["S", "S"]
     }
   ],
   "output": {
-    "format": "png",
-    "path": "testMazes/"
+    "format": "svg",
+    "path": "testMazes/",
+    "svgOptimization": 0
   },
   "style": {
     "distanceMapRange": "auto"

@@ -71,7 +71,7 @@ open class OrthogonalMaze(width: Int, height: Int) :
                     val px = x * csive
                     val py = y * csive
                     canvas.color = distMapColors[grid[x][y].distanceMapValue]
-                    canvas.drawRect(px, py, px + csive, py + csive, true)
+                    canvas.drawRect(px, py, csive, csive, true)
                 }
             }
         }
@@ -110,7 +110,7 @@ open class OrthogonalMaze(width: Int, height: Int) :
                 val py = (pos.y + 0.5) * csive
                 points.add(Point(px, py))
             }
-            canvas.drawPolyline(points)
+            canvas.drawPath(points)
         }
     }
 

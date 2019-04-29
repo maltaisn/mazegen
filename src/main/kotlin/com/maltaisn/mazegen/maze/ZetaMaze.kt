@@ -132,7 +132,7 @@ class ZetaMaze(width: Int, height: Int) :
                     }
 
                     canvas.color = distMapColors[cell.distanceMapValue]
-                    canvas.drawPolygon(vertices, true)
+                    canvas.drawPath(vertices, true)
                 }
             }
         }
@@ -208,7 +208,7 @@ class ZetaMaze(width: Int, height: Int) :
                 val py = (pos.y + 0.5) * csize
                 points.add(Point(px, py))
             }
-            canvas.drawPolyline(points)
+            canvas.drawPath(points)
         }
     }
 

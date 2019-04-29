@@ -72,16 +72,15 @@ class Configuration(val mazeSets: List<MazeSet>,
     /**
      * Output settings for the SVG format.
      */
-    class SvgOutput(path: File, private val optimize: Boolean,
+    class SvgOutput(path: File, private val optimization: Int,
                     private val precision: Int) : Output(OutputFormat.SVG, path) {
 
         override fun createCanvas(): Canvas {
             val canvas = SvgCanvas()
-            canvas.optimize = optimize
+            canvas.optimization = optimization
             canvas.precision = precision
             return canvas
         }
-
     }
 
     /**
@@ -115,7 +114,7 @@ class Configuration(val mazeSets: List<MazeSet>,
 
             val colorCount = distanceMapColors.size
             val range = if (distanceMapRange == DISTANCE_MAP_RANGE_AUTO) {
-                maxDistance + 1
+                maxDistance
             } else {
                 max(distanceMapRange, colorCount - 1)
             }
@@ -147,7 +146,6 @@ class Configuration(val mazeSets: List<MazeSet>,
              */
             const val DISTANCE_MAP_RANGE_AUTO = 0
         }
-
     }
 
 }

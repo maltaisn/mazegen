@@ -33,7 +33,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 
-class GeneratorTest {
+internal class GeneratorTest {
 
     private var mazesGenerated = 0
 

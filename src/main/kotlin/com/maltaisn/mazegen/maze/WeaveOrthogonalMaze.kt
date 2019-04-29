@@ -213,7 +213,7 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
                         }
                     }
                     canvas.color = distMapColors[cell.distanceMapValue]
-                    canvas.drawPolygon(vertices, true)
+                    canvas.drawPath(vertices, true)
                 }
             }
         }

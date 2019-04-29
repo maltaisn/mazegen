@@ -29,6 +29,7 @@ import com.maltaisn.mazegen.Configuration.MazeSet
 import com.maltaisn.mazegen.generator.*
 import com.maltaisn.mazegen.maze.*
 import com.maltaisn.mazegen.render.OutputFormat
+import com.maltaisn.mazegen.render.SvgCanvas
 import org.json.JSONArray
 import org.json.JSONObject
 import java.awt.BasicStroke
@@ -344,7 +345,7 @@ object ConfigurationParser {
     private fun parseOutput(from: JSONObject?): Configuration.Output {
         var path = DEFAULT_OUTPUT_PATH
         var format = DEFAULT_OUTPUT_FORMAT
-        var svgOptimize = DEFAULT_OUTPUT_SVG_OPTIMIZE
+        var svgOptimization = DEFAULT_OUTPUT_SVG_OPTIMIZATION
         var svgPrecision = DEFAULT_OUTPUT_SVG_PRECISION
         if (from != null) {
             if (from.has(KEY_OUTPUT_PATH)) {
@@ -368,15 +369,15 @@ object ConfigurationParser {
             }
 
             // SVG format settings
-            if (from.has(KEY_OUTPUT_SVG_OPTIMIZE)) {
-                svgOptimize = from.getBoolean(KEY_OUTPUT_SVG_OPTIMIZE)
+            if (from.has(KEY_OUTPUT_SVG_OPTIMIZATION)) {
+                svgOptimization = from.getInt(KEY_OUTPUT_SVG_OPTIMIZATION)
             }
             if (from.has(KEY_OUTPUT_SVG_PRECISION)) {
                 svgPrecision = from.getInt(KEY_OUTPUT_SVG_PRECISION)
             }
         }
         return if (format == OutputFormat.SVG) {
-            Configuration.SvgOutput(path, svgOptimize, svgPrecision)
+            Configuration.SvgOutput(path, svgOptimization, svgPrecision)
         } else {
             Configuration.Output(format, path)
         }
@@ -557,12 +558,12 @@ object ConfigurationParser {
     private const val KEY_OUTPUT = "output"
     private const val KEY_OUTPUT_PATH = "path"
     private const val KEY_OUTPUT_FORMAT = "format"
-    private const val KEY_OUTPUT_SVG_OPTIMIZE = "svgOptimize"
+    private const val KEY_OUTPUT_SVG_OPTIMIZATION = "svgOptimization"
     private const val KEY_OUTPUT_SVG_PRECISION = "svgPrecision"
 
     private val DEFAULT_OUTPUT_FORMAT = OutputFormat.PNG
     private val DEFAULT_OUTPUT_PATH = File(System.getProperty("user.dir"))
-    private const val DEFAULT_OUTPUT_SVG_OPTIMIZE = false
+    private const val DEFAULT_OUTPUT_SVG_OPTIMIZATION = SvgCanvas.OPTIMIZATION_STYLES
     private const val DEFAULT_OUTPUT_SVG_PRECISION = 2
 
     // Style keys and defaults

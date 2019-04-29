@@ -139,7 +139,7 @@ class DeltaMaze(width: Int, height: Int, shape: Shape) :
                             Point((x + 2) * csive / 2, (y + 1) * cheight),
                             Point((x + 1) * csive / 2, y * cheight))
                 }
-                canvas.drawPolygon(vertices, true)
+                canvas.drawPath(vertices, true)
             }
         }
 
@@ -189,7 +189,7 @@ class DeltaMaze(width: Int, height: Int, shape: Shape) :
                 val py = (pos.y + (if (flatTopped) 1 else 2) / 3.0) * cheight
                 points.add(Point(px, py))
             }
-            canvas.drawPolyline(points)
+            canvas.drawPath(points)
         }
     }
 

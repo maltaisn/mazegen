@@ -65,17 +65,15 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
     /** Default transform saved to reset it when needed */
     private lateinit var transform: AffineTransform
 
-    override var translate: Point? = null
+    override var translate: Point
         set(value) {
             super.translate = value
-            field = super.translate
             if (this::graphics.isInitialized) {
                 graphics.transform = transform
-                if (value != null) {
-                    graphics.translate(value.x, value.y)
-                }
+                graphics.translate(value.x, value.y)
             }
         }
+        get() = super.translate
 
     override var antialiasing = true
         set(value) {
@@ -110,52 +108,10 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
         graphics.draw(Line2D.Double(x1, y1, x2, y2))
     }
 
-    override fun drawPolyline(points: List<Point>) {
-        val xPoints = IntArray(points.size)
-        val yPoints = IntArray(points.size)
-        for (i in 0 until points.size) {
-            val point = points[i]
-            xPoints[i] = point.x.toInt()
-            yPoints[i] = point.y.toInt()
-        }
-        graphics.drawPolyline(xPoints, yPoints, points.size)
-    }
-
-    override fun drawPolygon(vertices: List<Point>, filled: Boolean) {
-        val polygon = Polygon2D(vertices)
-        if (filled) {
-            if (antialiasing) {
-                // To avoid gaps in distance maps, outline and fill must be drawn
-                graphics.stroke = BasicStroke(1.5f)
-                graphics.draw(polygon)
-                graphics.stroke = stroke
-            }
-            graphics.fill(polygon)
-        } else {
-            graphics.draw(polygon)
-        }
-    }
-
-    /**
-     * There's no [java.awt.Polygon] equivalent that takes double values,
-     * unlike other shapes, so here it is.
-     */
-    private class Polygon2D(vertices: List<Point>) : Path2D.Double() {
-        init {
-            var point = vertices.first()
-            moveTo(point.x, point.y)
-            for (i in 1 until vertices.size) {
-                point = vertices[i]
-                lineTo(point.x, point.y)
-            }
-            closePath()
-        }
-    }
-
-    override fun drawArc(x: Double, y: Double, rx: Double, ry: Double,
-                         start: Double, extent: Double) {
-        graphics.draw(Arc2D.Double(x - rx, y - ry, 2 * rx, 2 * ry,
-                Math.toDegrees(start), Math.toDegrees(extent), Arc2D.OPEN))
+    override fun drawArc(cx: Double, cy: Double, rx: Double, ry: Double,
+                         startAngle: Double, extent: Double) {
+        graphics.draw(Arc2D.Double(cx - rx, cy - ry, 2 * rx, 2 * ry,
+                Math.toDegrees(startAngle), Math.toDegrees(extent), Arc2D.OPEN))
     }
 
     override fun drawRect(x: Double, y: Double, width: Double, height: Double, filled: Boolean) {
@@ -167,6 +123,48 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
         }
     }
 
+    override fun drawEllipse(cx: Double, cy: Double, rx: Double, ry: Double, filled: Boolean) {
+        val ellipse = Ellipse2D.Double(cx - rx, cy - ry, 2 * rx, 2 * ry)
+        if (filled) {
+            graphics.fill(ellipse)
+        } else {
+            graphics.draw(ellipse)
+        }
+    }
+
+    override fun drawPath(points: List<Point>, filled: Boolean) {
+        val path = Path2D.Double()
+        var started = false
+        for (point in points) {
+            if (point is ArcPoint) {
+                val arc = Arc2D.Double(point.x - point.rx, point.y - point.ry, 2 * point.rx, 2 * point.ry,
+                        Math.toDegrees(point.start), Math.toDegrees(point.extent), Arc2D.OPEN)
+                path.append(arc, true)
+                started = true
+            } else {
+                if (started) {
+                    path.lineTo(point.x, point.y)
+                    started = true
+                } else {
+                    path.moveTo(point.x, point.y)
+                }
+            }
+        }
+
+        if (filled) {
+            path.closePath()
+            if (antialiasing) {
+                // To avoid gaps in distance maps, outline and fill must be drawn
+                graphics.stroke = BasicStroke(1.5f)
+                graphics.draw(path)
+                graphics.stroke = stroke
+            }
+            graphics.fill(path)
+        } else {
+            graphics.draw(path)
+        }
+    }
+
     override fun drawText(text: String, x: Double, y: Double) {
         val bounds = graphics.fontMetrics.getStringBounds(text, graphics)
         graphics.drawString(text, (x - bounds.centerX).toFloat(), (y - bounds.centerY).toFloat())
@@ -175,6 +173,5 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
     override fun exportTo(file: File) {
         ImageIO.write(buffImage, format.extension, file)
     }
-
 
 }

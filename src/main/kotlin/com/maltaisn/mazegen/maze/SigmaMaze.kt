@@ -116,7 +116,7 @@ class SigmaMaze(width: Int, height: Int, shape: Shape) :
             val distMapColors = style.generateDistanceMapColors(this)
             drawForEachCell(style, minTop) { cell, cx, cy ->
                 canvas.color = distMapColors[cell.distanceMapValue]
-                canvas.drawPolygon(listOf(
+                canvas.drawPath(listOf(
                         Point(cx + csize / 2, cy - cheight / 2),
                         Point(cx - csize / 2, cy - cheight / 2),
                         Point(cx - csize, cy),
@@ -177,7 +177,7 @@ class SigmaMaze(width: Int, height: Int, shape: Shape) :
                 val py = (pos.y - minTop + (grid.size - pos.x - 1) / 2.0 + 0.5) * cheight
                 points.add(Point(px, py))
             }
-            canvas.drawPolyline(points)
+            canvas.drawPath(points)
         }
     }
 

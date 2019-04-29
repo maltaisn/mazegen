@@ -25,7 +25,6 @@
 
 package com.maltaisn.mazegen.render
 
-import com.maltaisn.mazegen.paramError
 import java.awt.BasicStroke
 import java.awt.Color
 import java.io.File
@@ -53,17 +52,10 @@ abstract class Canvas(val format: OutputFormat) {
     abstract var color: Color
 
     /**
-     * The translation applied to this canvas.
-     * Null if no translation is applied.
+     * The translation applied to this canvas, `null` if no translation is applied.
      */
-    open var translate: Point? = null
-        set(value) {
-            field = if (value != null && value.x == 0.0 && value.y == 0.0) {
-                null
-            } else {
-                value
-            }
-        }
+    open var translate = Point(0.0, 0.0)
+
 
     abstract var antialiasing: Boolean
 
@@ -73,7 +65,7 @@ abstract class Canvas(val format: OutputFormat) {
      */
     open fun init(width: Double, height: Double) {
         if (width == SIZE_UNSET) {
-            paramError("This canvas was already initialized.")
+            error("This canvas was already initialized.")
         }
 
         this.width = width
@@ -86,30 +78,33 @@ abstract class Canvas(val format: OutputFormat) {
     abstract fun drawLine(x1: Double, y1: Double, x2: Double, y2: Double)
 
     /**
-     * Draw a polyline with [points], a list of points.
-     */
-    abstract fun drawPolyline(points: List<Point>)
-
-    /**
-     * Draw a polygon with [vertices], a list of vertex points.
-     * @param filled whether to draw filled polygon or just the outline.
-     */
-    abstract fun drawPolygon(vertices: List<Point>, filled: Boolean)
-
-    /**
-     * Draw an arc centered at ([x]; [y]) of an ellipse with x-radius [rx] and y-radius [ry].
-     * The arc starts at angle [start] and ends [extent] radians after, at `start + extent`.
+     * Draw an arc centered at ([cx]; [cy]) of an ellipse with x-radius [rx] and y-radius [ry].
+     * The arc starts at angle [startAngle] and ends [extent] radians after, at `start + extent`.
      * Angle are in radians, angle of 0 is at a 3 o'clock position.
      * The arc is drawn counter-clockwise.
      */
-    abstract fun drawArc(x: Double, y: Double, rx: Double, ry: Double,
-                         start: Double, extent: Double)
+    abstract fun drawArc(cx: Double, cy: Double, rx: Double, ry: Double,
+                         startAngle: Double, extent: Double)
 
     /**
      * Draw a rectangle with its top left corner at ([x]; [y]) and with size [width] x [height].
-     * @param filled whether to draw a filled rect or just the outline.
+     * @param filled whether to draw a filled rectangle or just the outline.
      */
-    abstract fun drawRect(x: Double, y: Double, width: Double, height: Double, filled: Boolean)
+    abstract fun drawRect(x: Double, y: Double, width: Double, height: Double,
+                          filled: Boolean = false)
+
+    /**
+     * Draw an ellipse centered at ([cx]; [cy]), with radii of [rx] and [ry].
+     * @param filled whether to draw a filled ellipse or just the outline.
+     */
+    abstract fun drawEllipse(cx: Double, cy: Double, rx: Double, ry: Double,
+                             filled: Boolean = false)
+
+    /**
+     * Draw a path with [points], a list of points. Can contain [ArcPoint].
+     * If [filled], path will be closed first.
+     */
+    abstract fun drawPath(points: List<Point>, filled: Boolean = false)
 
     /**
      * Draw [text] centered at ([x]; [y]), for debug purposes only.

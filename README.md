@@ -68,7 +68,7 @@ Here's another more complete example:
   "output": {
     "format": "svg",
     "path": "mazes/",
-    "svgOptimize": true,
+    "svgOptimization": 3,
     "svgPrecision": 2
   },
   "style": {
@@ -85,7 +85,7 @@ Here's another more complete example:
   }
 }
 ```
-This will generate a 10x10 orthogonal maze with Aldous-Broder's algorithm, export it to `mazes/labyrinth.svg` in optimized SVG format. 
+This will generate a 10x10 orthogonal maze with Aldous-Broder's algorithm, export it to `mazes/labyrinth.svg` in the most optimized SVG format. 
 Maze will be solved for the top-left to the bottom-right corners. Half deadends will be removed (braid).
 A distance map will be generated starting from the top-left cell.
 Custom styling settings are used, but in this case they all match default ones.
@@ -122,8 +122,8 @@ More examples of configuration file are available at [`/mazes/config/`](mazes/co
 - **`output`**: Output settings, with the following attributes:
     - `format`: output format, one of `png`, `jpg`, `bmp`, `gif`, `svg`. Default is `png`.
     - `path`: output destination path. Default is the current folder.
-    - `svgOptimize`: if format is SVG, whether to optimize the path data or not. Default is `false`.
-    - `svgPrecision`: if format is SVG, the precision used for all numbers. Default is `2`.
+    - `svgOptimization`: the optimization level of SVG output from 0 to 3. Default is `1`. A higher level results in more optimized file size but takes longer to export.
+    - `svgPrecision`: the precision used for all numbers in SVG output. Default is `2`.
 <br><br>
 - **`style`**: Styling settings, with the following attributes:
     - `cellSize`: the size of a cell, in pixels. Default is `30`.

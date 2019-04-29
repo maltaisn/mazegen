@@ -243,10 +243,12 @@
           "enum": ["png", "jpg", "bmp", "gif", "svg"],
           "default": "png"
         },
-        "svgOptimize": {
-          "type": "boolean",
-          "description": "Whether to optimize the output if format is SVG",
-          "default": false
+        "svgOptimization": {
+          "type": "integer",
+          "description": "The optimization level on SVG output.",
+          "minimum": 0,
+          "maximum": 3,
+          "default": 1
         },
         "svgPrecision": {
           "type": "integer",
