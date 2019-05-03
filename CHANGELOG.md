@@ -1,3 +1,9 @@
+## v1.1.0
+- Added Dijkstra's distance maps for all maze types.
+- Added ability to export maze, solved maze and distance mapped maze as separate files.
+- Added optimization levels to SVG output from 0 to 4, levels above 1 are experimental.
+- Fixed background color not drawn in raster output formats.
+
 ## v1.0.0
 - Initial release
 - JSON configuration with schema
