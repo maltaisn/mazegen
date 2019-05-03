@@ -115,21 +115,11 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
     }
 
     override fun drawRect(x: Double, y: Double, width: Double, height: Double, filled: Boolean) {
-        val rect = Rectangle2D.Double(x, y, width, height)
-        if (filled) {
-            graphics.fill(rect)
-        } else {
-            graphics.draw(rect)
-        }
+        drawShape(Rectangle2D.Double(x, y, width, height), filled)
     }
 
     override fun drawEllipse(cx: Double, cy: Double, rx: Double, ry: Double, filled: Boolean) {
-        val ellipse = Ellipse2D.Double(cx - rx, cy - ry, 2 * rx, 2 * ry)
-        if (filled) {
-            graphics.fill(ellipse)
-        } else {
-            graphics.draw(ellipse)
-        }
+        drawShape(Ellipse2D.Double(cx - rx, cy - ry, 2 * rx, 2 * ry), filled)
     }
 
     override fun drawPath(points: List<Point>, filled: Boolean) {
@@ -150,18 +140,20 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
                 }
             }
         }
+        drawShape(path, filled)
+    }
 
+    private fun drawShape(shape: Shape, filled: Boolean) {
         if (filled) {
-            path.closePath()
             if (antialiasing) {
                 // To avoid gaps in distance maps, outline and fill must be drawn
                 graphics.stroke = BasicStroke(1.5f)
-                graphics.draw(path)
+                graphics.draw(shape)
                 graphics.stroke = stroke
             }
-            graphics.fill(path)
+            graphics.fill(shape)
         } else {
-            graphics.draw(path)
+            graphics.draw(shape)
         }
     }
 
