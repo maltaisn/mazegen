@@ -37,11 +37,8 @@ open class Point(val x: Double, val y: Double) {
 
     operator fun minus(point: Point) = Point(x - point.x, y - point.y)
 
-    override fun equals(other: Any?): Boolean {
-        if (other === this) return true
-        if (other !is Point) return false
-        return x == other.x && y == other.y
-    }
+    override fun equals(other: Any?) = other === this ||
+            other is Point && x == other.x && y == other.y
 
     /**
      * Hash function taken from [javafx.geometry.Point2D].

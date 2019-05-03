@@ -32,9 +32,9 @@ import java.io.PrintWriter
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.text.NumberFormat
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
+import java.util.*
+import kotlin.collections.HashMap
+import kotlin.math.*
 
 
 /**
@@ -130,7 +130,7 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
                              rx: Double, ry: Double, filled: Boolean) {
         this.filled = filled
         paths += Path(currentStyle, mutableListOf(
-                PathElement.Start(cx - rx + + translate.x, cy + translate.y),
+                PathElement.Start(cx - rx + +translate.x, cy + translate.y),
                 PathElement.Arc(rx * 2, 0.0, rx, ry, 0.0,
                         largeArc = true, sweepArc = false, relative = true),
                 PathElement.Arc(-rx * 2, 0.0, rx, ry, 0.0,
@@ -174,9 +174,10 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
 
 
     override fun exportTo(file: File) {
-        optimize()
-
         val nbFmt = SvgNumberFormat(precision)
+
+        // Optimize
+        optimize(nbFmt)
 
         // Create SVG text
         val svg = StringBuilder(8192)
@@ -196,26 +197,21 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
         currentStyle = Style(stroke, color, filled, antialiasing)
     }
 
-    private fun optimize() {
-        if (optimization >= OPTIMIZATION_STYLES) {
-            optimizeStyles()
-            if (optimization >= OPTIMIZATION_PATHS) {
-                // NOT WORKING
-                //optimizePaths()
-
-                if (optimization >= OPTIMIZATION_RELATIVE) {
-                    optimizeRelative()
-                }
-            }
-        }
+    private fun optimize(nbFmt: NumberFormat) {
+        optimizeStyles()
+        optimizePolypoints()
+        optimizeColinear()
+        optimizeRelative(nbFmt)
     }
 
     /**
      * Each element (line, rectangle, polygon, etc) is represented by a different
      * path element in SVG by default. Group elements that share the same style.
-     * This optimization can result in 50-80% decreased size.
+     * This optimization can result in up to 90% decreased size.
      */
     private fun optimizeStyles() {
+        if (optimization < OPTIMIZATION_STYLES) return
+
         val pathsMap = paths.groupBy { it.style }
         paths.clear()
 
@@ -228,37 +224,55 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
 
     /**
      * Optimize path data by removing unneeded points. This involves:
-     * - Removing duplicate subsequent points
-     *   (ex: `M0,0 L0,0 L10,0` becomes `M0,0 L20,0`)
-     * - Connecting segments that share a point into a polypoint.
-     *   (ex: `M0,0 L20,0 M20,0 L20,20` becomes `M0,0 L20,0 L20,20`)
-     * - Converting colinear and touching lines into a single one.
-     *   (ex: `M0,0 L10,0 L20,0 L30,0` becomes `M0,0 L30,0`)
-     * - Converting touching arcs with the same center and radius into a single one.
+     * - Removing duplicate subsequent points,
+     *   e.g.: `M0,0 L0,0 L10,0` becomes `M0,0 L10,0`.
+     * - Connecting segments that share a point into a polypoint,
+     *   e.g.: `M0,0 L20,0 M20,0 L20,20` becomes `M0,0 L20,0 L20,20`.
+     * This optimization can result in up to 20% decreased size.
      */
-    private fun optimizePaths() {
+    private fun optimizePolypoints() {
+        if (optimization < OPTIMIZATION_POLYPOINTS) return
+
         for (path in paths) {
+            val elements = path.elements
+
+            // Make every path point absolute
+            var lastPoint: PathElement.Point? = null
+            for (element in elements) {
+                if (element is PathElement.Point) {
+                    if (lastPoint != null && element.relative) {
+                        element.x += lastPoint.x
+                        element.y += lastPoint.y
+                        element.relative = false
+                    }
+                    lastPoint = element
+                }
+            }
+
             // Create a list with every polypoint (an open path) in the path.
             // Also remove the polypoints from the elements, leaving only closed paths.
             // Remove duplicate subsequent points from all polypoints.
             val polypoints = mutableListOf<Polypoint>()
             var endIndex = -1
-            for (i in path.elements.lastIndex downTo 0) {
-                val element = path.elements[i]
+            for (i in elements.lastIndex downTo 0) {
+                val element = elements[i]
                 if (element is PathElement.Start) {
                     if (endIndex == -1) {
-                        val polypoint = Polypoint()
-                        var point: PathElement
-                        do {
-                            point = path.elements[i]
-                            if (point != polypoint.points.lastOrNull()) {
+                        val points = LinkedList<PathElement.Point>()
+                        points += elements.removeAt(i) as PathElement.Point
+                        val polypoint = Polypoint(points)
+                        while (i < elements.size) {
+                            val point = elements[i]
+                            if (point is PathElement.Start) {
+                                break
+                            } else if (point != points.lastOrNull()) {
                                 // Only add the point if the last point isn't at the same coordinates.
                                 // A point at the same coordinates as the last is always useless.
-                                polypoint.points += point as PathElement.Point
-                                path.elements.removeAt(i)
+                                points += point as PathElement.Point
                             }
-                        } while (point !is PathElement.Start)
-                        if (polypoint.points.size > 1) {
+                            elements.removeAt(i)
+                        }
+                        if (points.size > 1) {
                             polypoints += polypoint
                         }
                     }
@@ -268,154 +282,246 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
                 }
             }
 
-            /*
-            val heads = HashMap<Point, PathElement.Point>()
-            val tails = HashMap<Point, PathElement.Point>()
+            // FIXME not working for many mazes
+            //   - Theta: arcs are reversed half of the time
+            //   - Weave orthogonal: missing parts of the maze
 
-            // Optimize lines
-            var start = element.start
-            var end = element.end
+            // Do as many passes as needed, usually 2.
+            val endpoints = HashMap<PathElement.Point, Polypoint>()
+            do {
+                val initialCount = polypoints.size
+                for (polypoint in polypoints) {
+                    val head = polypoint.head
+                    val tail = polypoint.tail
 
-            // Check if one of the polylines head is the same as one of the points.
-            var polypoint = heads[start]
-            if (polypoint == null) {
-                polypoint = heads[end]
-                if (polypoint != null) {
-                    val temp = start
-                    start = end
-                    end = temp
+                    if (connectPolypoint(endpoints, polypoint, head)) continue
+                    if (connectPolypoint(endpoints, polypoint, tail)) continue
+
+                    endpoints[tail] = polypoint
+                    endpoints[head] = polypoint
                 }
+
+                polypoints.clear()
+                polypoints += endpoints.mapNotNull {
+                    if (it.key is PathElement.Start) it.value else null
+                }
+                endpoints.clear()
+            } while (polypoints.size != initialCount)
+
+            elements += polypoints.flatMap { it.points }
+        }
+    }
+
+    /**
+     * Connects a [polypoint] to an existing polypoint in the map of [endpoints]
+     * if one shares an [endpoint]. Returns true if a connection was made.
+     */
+    private fun connectPolypoint(endpoints: HashMap<PathElement.Point, Polypoint>,
+                                 polypoint: Polypoint, endpoint: PathElement.Point): Boolean {
+        val other = endpoints[endpoint]
+        if (other != null && other !== polypoint) {
+            endpoints -= endpoint
+
+            // Check if the polypoint is in the right direction
+            val pointIsStart = endpoint is PathElement.Start
+            val otherIsStart = other.head == endpoint
+            if (pointIsStart == otherIsStart) {
+                polypoint.switchHead()
             }
-            if (polypoint != null) {
-                // Found a polyline with a head at p2.
-                polypoint.extendWith(end, true)
-                heads.remove(start)
 
-                // Check if there's already a polyline with a head or a tail at p2.
-                var headFound = true
-                var prev = heads[end]
-                if (prev == null) {
-                    prev = tails[end]
-                    headFound = false
-                }
-                if (prev != null) {
-                    // Found another polyline adjacent to this one, connect them.
-                    heads.remove(prev.points.first)
-                    tails.remove(prev.points.last)
-                    prev.removeAtEnd(headFound)
-                    polypoint.extendWith(prev.removeAtEnd(headFound), true)
-                    for (point in (if (headFound) prev.points.iterator() else prev.points.descendingIterator())) {
-                        polypoint.points.addFirst(point)
-                    }
-                }
-                heads[polypoint.points.first] = polypoint
-
+            // Append the new polypoint to the existing one.
+            val newEndpoint: PathElement.Point
+            if (otherIsStart) {
+                // Append before the start
+                other.points.removeFirst()
+                other.points.addAll(0, polypoint.points)
+                newEndpoint = other.head
             } else {
-                // Check if one of the point is the same as a polyline tail.
-                polypoint = tails[start]
-                if (polypoint == null) {
-                    polypoint = tails[end]
-                    if (polypoint != null) {
-                        val temp = start
-                        start = end
-                        end = temp
-                    }
-                }
-                if (polypoint != null) {
-                    // Found a polyline with a tail at p2.
-                    polypoint.extendWith(end, false)
-                    tails.remove(start)
+                // Append after the end
+                polypoint.points.removeFirst()
+                other.points += polypoint.points
+                newEndpoint = other.tail
+            }
 
-                    // Check if there's already a polyline with a head or a tail at p2.
-                    var headFound = false
-                    var prev = tails[end]
-                    if (prev == null) {
-                        prev = heads[end]
-                        headFound = true
-                    }
-                    if (prev != null) {
-                        // Found another polyline adjacent to this one, connect them.
-                        heads.remove(prev.points.first)
-                        tails.remove(prev.points.last)
-                        prev.removeAtEnd(headFound)
-                        polypoint.extendWith(prev.removeAtEnd(headFound), false)
-                        for (point in (if (headFound) prev.points.iterator() else prev.points.descendingIterator())) {
-                            polypoint.points.addLast(point)
+            // Update the "other" polypoint's endpoint since it changed.
+            if (newEndpoint in endpoints) {
+                // The new endpoint already exist. Connect "other" with the existing endpoint owner,
+                // except if head equals tail meaning the "other" polypoint forms a loop.
+                val head = other.head
+                val tail = other.tail
+                if (head != tail) {
+                    endpoints -= if (newEndpoint === tail) head else tail
+                    connectPolypoint(endpoints, other, newEndpoint)
+                }
+            } else {
+                endpoints[newEndpoint] = other
+            }
+
+            return true
+        }
+        return false
+    }
+
+    /**
+     * Merge connected segments with the same slope (colinear) into a single segment.
+     * This optimization can result in up to 40% decreased size.
+     */
+    private fun optimizeColinear() {
+        if (optimization < OPTIMIZATION_COLINEAR) return
+
+        for (path in paths) {
+            val elements = path.elements
+
+            var lastSlope = Double.NaN
+            var lastX = 0.0
+            var lastY = 0.0
+
+            var i = 0
+            while (i < elements.size) {
+                val element = elements[i]
+
+                if (element is PathElement.Point) {
+                    when (element) {
+                        is PathElement.Start -> lastSlope = Double.NaN
+                        is PathElement.Line -> {
+                            val slope = (element.y - lastY) / (element.x - lastX)
+                            if (slope == lastSlope) {
+                                val lastElement = elements[i - 1] as PathElement.Line
+                                lastElement.x = element.x
+                                lastElement.y = element.y
+                                elements.removeAt(i)
+                                i--
+                            }
+                            lastSlope = slope
+                        }
+                        is PathElement.Arc -> {
+                            lastSlope = Double.NaN
+                            // Connected arcs with the same center and radii could be
+                            // optimized into a single arc but it's much more complicated.
                         }
                     }
-                    tails[polypoint.points.last] = polypoint
-
+                    lastX = element.x
+                    lastY = element.y
                 } else {
-                    // No polyline head or tail matches one of the points: create a new polyline.
-                    polypoint = SvgCanvasOld.Path.Element.Polyline()
-                    polypoint.points.add(start)
-                    polypoint.points.add(end)
-                    heads[start] = polypoint
-                    tails[end] = polypoint
+                    lastSlope = Double.NaN
                 }
+                i++
             }
-            */
         }
     }
 
     /**
      * Optimize path data by using relative commands instead of absolute ones whenever possible.
-     * This will most of the time result in a smaller size but not always.
+     * This optimization can result in up to 70% decreased size.
      */
-    private fun optimizeRelative() {
+    private fun optimizeRelative(nbFmt: NumberFormat) {
+        if (optimization < OPTIMIZATION_RELATIVE) return
 
-    }
+        val minDiff = 10.0.pow(-precision)
+        val reprBuffer = StringBuilder()
 
-    private class Polypoint(val points: MutableList<PathElement.Point> = mutableListOf()) {
-        /*
-        fun removeAtEnd(head: Boolean): SvgPoint = if (head) {
-            points.removeFirst()
-        } else {
-            points.removeLast()
-        }
+        for (path in paths) {
+            val elements = path.elements
+            val first = elements.first() as PathElement.Start
 
-        /**
-         * Optimize polylines to connect colinear segments together.
-         */
-        fun optimize() {
-            val oldPoints = LinkedList(points)
-            points.clear()
-            for (point in oldPoints) {
-                extendWith(point, false)
-            }
-        }
+            // Keep track of last point absolute coordinates but also of the actual
+            // last point coordinates (taking path data precision into account).
+            // Since relative commands are repeatedly added to the last absolute coordinate
+            // the rounding error accumulates. So an absolute point is needed once in a while.
+            var last = PrecisionPoint(first.x, first.y,
+                    first.x.roundToPrecision(), first.y.roundToPrecision())
 
-        /**
-         * If [first] is true, add [with] point to the start of the polyline, otherwise to the end.
-         * If new point creates a segment that extends last segment, merge them into one segment.
-         */
-        fun extendWith(with: SvgPoint, first: Boolean) {
-            val lastIndex = if (first) 0 else points.size - 1
-            val last = points.getOrNull(lastIndex)
+            var start = last.copy()
 
-            // Extending with point: slope between the last and before last point
-            // must be the same as the slope between the last and the new point.
-            if (last != null) {
-                val beforeLast = points.getOrNull(if (first) 1 else points.size - 2)
-                if (beforeLast != null) {
-                    val lastSlope = (last.y - beforeLast.y) / (last.x - beforeLast.x)
-                    val newSlope = (with.y - last.y) / (with.x - last.x)
-                    if ((lastSlope - newSlope).absoluteValue < 0.001) {
-                        // New point extends the last segment in the polyline, merge them.
-                        points[lastIndex] = with
-                        return
+            for (i in 1 until elements.size) {
+                val element = elements[i]
+                if (element is PathElement.Point) {
+                    assert(!element.relative)  // A prior optimization step is supposed to have made every point absolute
+
+                    val newX = element.x - last.x
+                    val newY = element.y - last.y
+                    last.x = element.x
+                    last.y = element.y
+                    last.actualX += newX.roundToPrecision()
+                    last.actualY += newY.roundToPrecision()
+
+                    if (last.roundingError <= minDiff) {
+                        element.appendTo(reprBuffer, nbFmt)
+                        val absoluteLength = reprBuffer.length
+                        reprBuffer.clear()
+
+                        // Make point relative
+                        element.x = newX
+                        element.y = newY
+                        element.relative = true
+
+                        element.appendTo(reprBuffer, nbFmt)
+                        val relativeLength = reprBuffer.length
+                        reprBuffer.clear()
+
+                        if (relativeLength >= absoluteLength) {
+                            // Relative point representation is not shorter, use absolute.
+                            element.x = last.x
+                            element.y = last.y
+                            element.relative = false
+                        }
                     }
+
+                    if (!element.relative) {
+                        // Kept absolute coordinates, either because it's shorter or rounding error became too great
+                        last.actualX = element.x.roundToPrecision()
+                        last.actualY = element.y.roundToPrecision()
+                    }
+
+                    if (element is PathElement.Start) {
+                        start = last.copy()
+                    }
+                } else if (element is PathElement.End) {
+                    last = start
                 }
             }
-
-            // Can't extend, just add the new point.
-            if (first) {
-                points.addFirst(with)
-            } else {
-                points.addLast(with)
-            }
         }
-        */
+    }
+
+    private data class PrecisionPoint(var x: Double, var y: Double,
+                                      var actualX: Double, var actualY: Double) {
+
+        val roundingError: Double
+            get() = max((x - actualX).absoluteValue, (y - actualY).absoluteValue)
+    }
+
+    private fun Double.roundToPrecision(): Double {
+        val power = 10.0.pow(precision)
+        return (this * power).roundToInt() / power
+    }
+
+    private class Polypoint(val points: LinkedList<PathElement.Point> = LinkedList()) {
+
+        val head: PathElement.Start
+            get() = points.first() as PathElement.Start
+
+        val tail: PathElement.Point
+            get() = points.last()
+
+        /** Switch the polypoint start element position. */
+        fun switchHead() {
+            val first = points.removeFirst()
+            points.reverse()
+            points.addFirst(first)
+
+            val firstX = first.x
+            val firstY = first.y
+            for (i in 0 until points.size - 1) {
+                val curr = points[i]
+                val next = points[i + 1]
+                curr.x = next.x
+                curr.y = next.y
+            }
+            tail.x = firstX
+            tail.y = firstY
+        }
+
+        override fun toString() = points.joinToString(" ")
     }
 
     /**
@@ -442,12 +548,15 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
     }
 
     private sealed class PathElement(private val symbol: Char,
-                                     val relative: Boolean,
-                                     val params: List<Double>?) {
+                                     var relative: Boolean) {
 
-        fun appendTo(svg: StringBuilder, nbFmt: NumberFormat) {
+        open fun createParamsList(): List<Double> = emptyList()
+
+        open fun appendTo(svg: StringBuilder, nbFmt: NumberFormat) {
             svg.append(if (relative) symbol.toLowerCase() else symbol.toUpperCase())
-            if (params?.isNotEmpty() == true) {
+
+            val params = createParamsList()
+            if (params.isNotEmpty()) {
                 for (param in params) {
                     svg.append(nbFmt.format(param))
                     svg.append(',')
@@ -463,17 +572,28 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
         }
 
         /** Base class for an element with a point coordinate. */
-        abstract class Point(val x: Double, val y: Double,
-                             symbol: Char, relative: Boolean, params: List<Double>?):
-                PathElement(symbol, relative, params) {
+        abstract class Point(x: Double, y: Double,
+                             symbol: Char, relative: Boolean) :
+                PathElement(symbol, relative) {
+
+            var x = x
+                set(value) {
+                    field = value
+                    hash = 0
+                }
+
+            var y = y
+                set(value) {
+                    field = value
+                    hash = 0
+                }
 
             private var hash = 0
 
-            override fun equals(other: Any?): Boolean {
-                if (other === this) return true
-                if (other !is Point) return false
-                return x == other.x && y == other.y
-            }
+            override fun createParamsList() = listOf(x, y)
+
+            override fun equals(other: Any?) = other === this ||
+                    other is Point && x == other.x && y == other.y
 
             /** Hash function taken from [javafx.geometry.Point2D]. */
             override fun hashCode(): Int {
@@ -488,12 +608,30 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
         }
 
         /** Move to element, at ([x]; [y]). */
-        class Start(x: Double, y: Double, relative: Boolean = false) :
-                Point(x, y, 'M', relative, listOf(x, y))
+        class Start(x: Double, y: Double, relative: Boolean = false) : Point(x, y, 'M', relative)
 
         /** Line to element, from last point to ([x]; [y]). */
-        class Line(x: Double, y: Double, relative: Boolean = false) :
-                Point(x, y, 'L', relative, listOf(x, y))
+        class Line(x: Double, y: Double, relative: Boolean = false) : Point(x, y, 'L', relative) {
+
+            override fun appendTo(svg: StringBuilder, nbFmt: NumberFormat) {
+                if (relative) {
+                    if (x == 0.0) {
+                        svg.append('v')
+                        svg.append(nbFmt.format(y))
+                        return
+                    } else if (y == 0.0) {
+                        svg.append('h')
+                        svg.append(nbFmt.format(x))
+                        return
+                    }
+                }
+
+                svg.append(if (relative) 'l' else 'L')
+                svg.append(nbFmt.format(x))
+                svg.append(',')
+                svg.append(nbFmt.format(y))
+            }
+        }
 
         /**
          * Arc element from current point to ([x]; [y]). The ellipse has radii of [rx] and [ry],
@@ -502,8 +640,7 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
          */
         class Arc(x: Double, y: Double, val rx: Double, val ry: Double, val rotation: Double,
                   val largeArc: Boolean, val sweepArc: Boolean, relative: Boolean = false) :
-                Point(x, y, 'A', relative, listOf(rx, ry, rotation,
-                        if (largeArc) 1.0 else 0.0, if (sweepArc) 1.0 else 0.0, x, y)) {
+                Point(x, y, 'A', relative) {
 
             /**
              * Arc of an ellipse centered at ([x]; [y]) with radii of `rx` and `ry`.
@@ -513,11 +650,13 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
                         startAngle: Double, extent: Double, relative: Boolean = false) : this(
                     cx + rx * cos(startAngle + extent), cy - ry * sin(startAngle + extent),
                     rx, ry, 0.0, extent >= PI, extent < 0, relative)
+
+            override fun createParamsList() = listOf(rx, ry, rotation,
+                    if (largeArc) 1.0 else 0.0, if (sweepArc) 1.0 else 0.0, x, y)
         }
 
         /** Close path element. */
-        object End : PathElement('Z', false, null)
-
+        object End : PathElement('Z', false)
     }
 
     private data class Style(val stroke: BasicStroke,
@@ -532,7 +671,6 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
             val colorStr = '#' + Integer.toHexString(color.rgb and 0xFFFFFF)
                     .toUpperCase().padStart(6, '0')
             if (filled) {
-                svg.append("stroke:none;")
                 svg.append("fill:")
                 svg.append(colorStr)
                 svg.append(';')
@@ -589,11 +727,14 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
         /** Merge all paths with the same style into one. */
         const val OPTIMIZATION_STYLES = 1
 
-        /** Merge touching lines and arcs into longer segments. */
-        const val OPTIMIZATION_PATHS = 2
+        /** Merge touching lines and arcs into polypoints. */
+        const val OPTIMIZATION_POLYPOINTS = 2
 
-        /** Convert all path commands to their relative equivalent. */
-        const val OPTIMIZATION_RELATIVE = 3
+        /** Merge colinear lines into a single line, same radius and center arcs into single arc. */
+        const val OPTIMIZATION_COLINEAR = 3
+
+        /** Use only relative commands. */
+        const val OPTIMIZATION_RELATIVE = 4
     }
 
 }

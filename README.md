@@ -122,7 +122,7 @@ More examples of configuration file are available at [`/mazes/config/`](mazes/co
 - **`output`**: Output settings, with the following attributes:
     - `format`: output format, one of `png`, `jpg`, `bmp`, `gif`, `svg`. Default is `png`.
     - `path`: output destination path. Default is the current folder.
-    - `svgOptimization`: the optimization level of SVG output from 0 to 3. Default is `1`. A higher level results in more optimized file size but takes longer to export.
+    - `svgOptimization`: the optimization level of SVG output from 0 to 4. Default is `1`. A higher level results in more optimized file size but takes longer to export. This feature is experimental and values above `1` may not work for some maze types like theta and weave orthogonal.
     - `svgPrecision`: the precision used for all numbers in SVG output. Default is `2`.
 <br><br>
 - **`style`**: Styling settings, with the following attributes:

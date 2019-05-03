@@ -35,12 +35,20 @@ internal class SvgCanvasTest {
     fun arc() {
         val canvas = SvgCanvas()
         canvas.init(100.0, 100.0)
-        canvas.optimization = SvgCanvas.OPTIMIZATION_PATHS
+        canvas.optimization = SvgCanvas.OPTIMIZATION_POLYPOINTS
 
-        canvas.drawLine(0.0, 0.0, 10.0, 0.0)
-        canvas.drawLine(10.0, 0.0, 20.0, 0.0)
-        canvas.drawLine(100.0, 0.0, 100.0, 0.0)
-        canvas.drawLine(200.0, 0.0, 210.0, 0.0)
+//        canvas.drawLine(10.0, 0.0, 20.0, 0.0)
+//        canvas.drawLine(0.0, 0.0, 10.0, 0.0)
+//        canvas.drawLine(20.0, 0.0, 30.0, 0.0)
+
+//        canvas.drawLine(20.0, 0.0, 10.0, 0.0)
+//        canvas.drawLine(0.0, 0.0, 10.0, 0.0)
+//        canvas.drawLine(20.0, 0.0, 30.0, 0.0)
+
+//        canvas.drawLine(0.0, 0.0, 1.0, 0.0)
+//        canvas.drawLine(1.0, 0.0, 1.0, 1.0)
+//        canvas.drawLine(1.0, 1.0, 0.0, 1.0)
+//        canvas.drawLine(0.0, 1.0, 0.0, 0.0)
 
         canvas.exportTo(File("testMazes/testSvg.svg"))
     }

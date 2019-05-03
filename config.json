@@ -1,20 +1,16 @@
 {
   "mazes": [
     {
-      "name": "test2_op0",
+      "name": "maze",
       "type": "orthogonal",
-      "size": 10,
-      "algorithm": "rb",
-      "distanceMap": true,
-      "distanceMapStart": ["S", "S"]
+      "size": 20,
+      "algorithm": "rb"
     }
   ],
   "output": {
     "format": "svg",
     "path": "testMazes/",
-    "svgOptimization": 0
+    "svgOptimization": 4
   },
-  "style": {
-    "distanceMapRange": "auto"
-  }
+  "style": {}
 }
