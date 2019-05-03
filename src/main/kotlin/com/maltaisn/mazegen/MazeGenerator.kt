@@ -41,7 +41,9 @@ class MazeGenerator(private val config: Configuration) {
      * Generate, solve and export all mazes described by [config].
      */
     fun generate() {
-        val totalTime = measureTimeMillis {
+        val nbFmt = NumberFormat.getInstance()
+
+        val totalDuration = measureTimeMillis {
             for (i in 0 until config.mazeSets.size) {
                 val mazeSet = config.mazeSets[i]
 
@@ -66,24 +68,24 @@ class MazeGenerator(private val config: Configuration) {
                     var duration = measureTimeMillis {
                         maze = generateMaze(maze, mazeSet)
                     }
-                    println(indent2 + "Generated in $duration ms")
+                    println(indent2 + "Generated in ${nbFmt.format(duration)} ms")
 
                     if (mazeSet.separateExport) {
                         print(indent2 + "Exporting maze...\r")
                         duration = exportMaze(maze, filename)
-                        println(indent2 + "Exported maze in $duration ms")
+                        println(indent2 + "Exported maze in ${nbFmt.format(duration)} ms")
                     }
 
                     // Solve
                     if (mazeSet.solve) {
                         print(indent2 + "Solving...\r")
                         duration = measureTimeMillis { maze.solve() }
-                        println(indent2 + "Solved in $duration ms")
+                        println(indent2 + "Solved in ${nbFmt.format(duration)} ms")
 
                         if (mazeSet.separateExport) {
                             print(indent2 + "Exporting solved maze...\r")
                             duration = exportMaze(maze, "${filename}_solution")
-                            println(indent2 + "Exported solved maze in $duration ms")
+                            println(indent2 + "Exported solved maze in ${nbFmt.format(duration)} ms")
                         }
                     }
 
@@ -97,12 +99,12 @@ class MazeGenerator(private val config: Configuration) {
                         duration = measureTimeMillis {
                             maze.generateDistanceMap(mazeSet.distanceMapStart)
                         }
-                        println(indent2 + "Distance map generated in $duration ms")
+                        println(indent2 + "Distance map generated in ${nbFmt.format(duration)} ms")
 
                         if (mazeSet.separateExport) {
                             print(indent2 + "Exporting distance mapped maze...\r")
                             duration = exportMaze(maze, "${filename}_distance_map")
-                            println(indent2 + "Exported distance mapped maze in $duration ms")
+                            println(indent2 + "Exported distance mapped maze in ${nbFmt.format(duration)} ms")
                         }
                     }
 
@@ -111,14 +113,15 @@ class MazeGenerator(private val config: Configuration) {
                     if (!mazeSet.separateExport) {
                         print(indent2 + "Exporting...\r")
                         duration = exportMaze(maze, filename)
-                        println(indent2 + "Exported in $duration ms")
+                        println(indent2 + "Exported in ${nbFmt.format(duration)} ms")
                     }
                 }
 
                 println()
             }
         }
-        println("Done in ${NumberFormat.getInstance().format(totalTime / 1000.0)} s.")
+
+        println("Done in ${nbFmt.format(totalDuration)} ms.")
     }
 
     /**

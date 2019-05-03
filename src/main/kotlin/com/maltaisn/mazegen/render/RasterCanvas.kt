@@ -134,11 +134,14 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
             } else {
                 if (started) {
                     path.lineTo(point.x, point.y)
-                    started = true
                 } else {
                     path.moveTo(point.x, point.y)
+                    started = true
                 }
             }
+        }
+        if (filled) {
+            path.closePath()
         }
         drawShape(path, filled)
     }
