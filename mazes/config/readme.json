@@ -2,6 +2,122 @@
   "_comment": "The configuration file to generate all mazes seen in the readme",
   "mazes": [
     {
+      "name": "weaveOrthogonal_rb",
+      "type": "weaveOrthogonal",
+      "algorithm": "rb",
+      "size": 16
+    },
+    {
+      "name": "weaveOrthogonal_ab",
+      "type": "weaveOrthogonal",
+      "algorithm": "ab",
+      "size": 16
+    },
+    {
+      "name": "unicursalOrthogonal_kr",
+      "type": "unicursalOrthogonal",
+      "algorithm": "kr",
+      "size": 16
+    },
+    {
+      "name": "unicursalOrthogonal_hk",
+      "type": "unicursalOrthogonal",
+      "algorithm": "hk",
+      "size": 16
+    },
+    {
+      "name": "zeta_rb",
+      "type": "zeta",
+      "algorithm": "rb",
+      "size": 10
+    },
+    {
+      "name": "zeta_pr",
+      "type": "zeta",
+      "algorithm": "pr",
+      "size": 10
+    },
+    {
+      "name": "upsilon_rb",
+      "type": "upsilon",
+      "algorithm": "rb",
+      "size": 11
+    },
+    {
+      "name": "upsilon_wi",
+      "type": "upsilon",
+      "algorithm": "wi",
+      "size": 11
+    },
+    {
+      "name": "delta_rectangle_rb",
+      "type": "delta",
+      "shape": "rectangle",
+      "algorithm": "rb",
+      "size": 16
+    },
+    {
+      "name": "delta_triangle_rb",
+      "type": "delta",
+      "shape": "triangle",
+      "algorithm": "rb",
+      "size": 16
+    },
+    {
+      "name": "delta_hexagon_rb",
+      "type": "delta",
+      "shape": "hexagon",
+      "algorithm": "rb",
+      "size": 8
+    },
+    {
+      "name": "delta_rhombus_rb",
+      "type": "delta",
+      "shape": "rhombus",
+      "algorithm": "rb",
+      "size": 12
+    },
+    {
+      "name": "sigma_rectangle_rb",
+      "type": "sigma",
+      "shape": "rectangle",
+      "algorithm": "rb",
+      "size": 10
+    },
+    {
+      "name": "sigma_triangle_rb",
+      "type": "sigma",
+      "shape": "triangle",
+      "algorithm": "rb",
+      "size": 10
+    },
+    {
+      "name": "sigma_hexagon_rb",
+      "type": "sigma",
+      "shape": "hexagon",
+      "algorithm": "rb",
+      "size": 6
+    },
+    {
+      "name": "sigma_rhombus_rb",
+      "type": "sigma",
+      "shape": "rhombus",
+      "algorithm": "rb",
+      "size": 8
+    },
+    {
+      "name": "theta_rb",
+      "type": "theta",
+      "algorithm": "rb",
+      "size": 10
+    },
+    {
+      "name": "theta_ab",
+      "type": "theta",
+      "algorithm": "ab",
+      "size": 10
+    },
+    {
       "name": "orthogonal_ab",
       "type": "orthogonal",
       "algorithm": "ab",
@@ -112,6 +228,6 @@
   ],
   "output": {
     "format": "png",
-    "path": "testMazes/"
+    "path": "mazes/"
   }
 }

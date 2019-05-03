@@ -28,6 +28,7 @@ package com.maltaisn.mazegen
 import com.maltaisn.mazegen.maze.Maze
 import com.maltaisn.mazegen.maze.UnicursalOrthogonalMaze
 import java.io.File
+import java.text.NumberFormat
 import kotlin.system.measureTimeMillis
 
 
@@ -40,81 +41,84 @@ class MazeGenerator(private val config: Configuration) {
      * Generate, solve and export all mazes described by [config].
      */
     fun generate() {
-        for (i in 0 until config.mazeSets.size) {
-            val mazeSet = config.mazeSets[i]
+        val totalTime = measureTimeMillis {
+            for (i in 0 until config.mazeSets.size) {
+                val mazeSet = config.mazeSets[i]
 
-            var indent1 = ""
-            if (config.mazeSets.size > 1) {
-                println("Generating maze set '${mazeSet.name}' (${i + 1} / ${config.mazeSets.size})")
-                indent1 += "  "
-            }
-
-            for (j in 1..mazeSet.count) {
-                var filename = mazeSet.name
-                var indent2 = indent1
-                if (mazeSet.count > 1) {
-                    println(indent1 + "Generating maze $j / ${mazeSet.count}")
-                    indent2 += "  "
-                    filename += "-$j"
+                var indent1 = ""
+                if (config.mazeSets.size > 1) {
+                    println("Generating maze set '${mazeSet.name}' (${i + 1} / ${config.mazeSets.size})")
+                    indent1 += "  "
                 }
 
-                // Generate
-                print(indent2 + "Generating...\r")
-                var maze = mazeSet.creator()
-                var duration = measureTimeMillis {
-                    maze = generateMaze(maze, mazeSet)
-                }
-                println(indent2 + "Generated in $duration ms")
+                for (j in 1..mazeSet.count) {
+                    var filename = mazeSet.name
+                    var indent2 = indent1
+                    if (mazeSet.count > 1) {
+                        println(indent1 + "Generating maze $j / ${mazeSet.count}")
+                        indent2 += "  "
+                        filename += "-$j"
+                    }
 
-                if (mazeSet.separateExport) {
-                    print(indent2 + "Exporting maze...\r")
-                    duration = exportMaze(maze, filename)
-                    println(indent2 + "Exported maze in $duration ms")
-                }
-
-                // Solve
-                if (mazeSet.solve) {
-                    print(indent2 + "Solving...\r")
-                    duration = measureTimeMillis { maze.solve() }
-                    println(indent2 + "Solved in $duration ms")
+                    // Generate
+                    print(indent2 + "Generating...\r")
+                    var maze = mazeSet.creator()
+                    var duration = measureTimeMillis {
+                        maze = generateMaze(maze, mazeSet)
+                    }
+                    println(indent2 + "Generated in $duration ms")
 
                     if (mazeSet.separateExport) {
-                        print(indent2 + "Exporting solved maze...\r")
-                        duration = exportMaze(maze, "${filename}_solution")
-                        println(indent2 + "Exported solved maze in $duration ms")
+                        print(indent2 + "Exporting maze...\r")
+                        duration = exportMaze(maze, filename)
+                        println(indent2 + "Exported maze in $duration ms")
+                    }
+
+                    // Solve
+                    if (mazeSet.solve) {
+                        print(indent2 + "Solving...\r")
+                        duration = measureTimeMillis { maze.solve() }
+                        println(indent2 + "Solved in $duration ms")
+
+                        if (mazeSet.separateExport) {
+                            print(indent2 + "Exporting solved maze...\r")
+                            duration = exportMaze(maze, "${filename}_solution")
+                            println(indent2 + "Exported solved maze in $duration ms")
+                        }
+                    }
+
+                    // Distance map
+                    if (mazeSet.distanceMap) {
+                        if (mazeSet.separateExport && mazeSet.solve) {
+                            maze.clearSolution()
+                        }
+
+                        print("Generating distance map...\r")
+                        duration = measureTimeMillis {
+                            maze.generateDistanceMap(mazeSet.distanceMapStart)
+                        }
+                        println(indent2 + "Distance map generated in $duration ms")
+
+                        if (mazeSet.separateExport) {
+                            print(indent2 + "Exporting distance mapped maze...\r")
+                            duration = exportMaze(maze, "${filename}_distance_map")
+                            println(indent2 + "Exported distance mapped maze in $duration ms")
+                        }
+                    }
+
+
+
+                    if (!mazeSet.separateExport) {
+                        print(indent2 + "Exporting...\r")
+                        duration = exportMaze(maze, filename)
+                        println(indent2 + "Exported in $duration ms")
                     }
                 }
 
-                // Distance map
-                if (mazeSet.distanceMap) {
-                    if (mazeSet.separateExport && mazeSet.solve) {
-                        maze.clearSolution()
-                    }
-
-                    print("Generating distance map...\r")
-                    duration = measureTimeMillis {
-                        maze.generateDistanceMap(mazeSet.distanceMapStart)
-                    }
-                    println(indent2 + "Distance map generated in $duration ms")
-
-                    if (mazeSet.separateExport) {
-                        print(indent2 + "Exporting distance mapped maze...\r")
-                        duration = exportMaze(maze, "${filename}_distance_map")
-                        println(indent2 + "Exported distance mapped maze in $duration ms")
-                    }
-                }
-
-
-
-                if (!mazeSet.separateExport) {
-                    print(indent2 + "Exporting...\r")
-                    duration = exportMaze(maze, filename)
-                    println(indent2 + "Exported in $duration ms")
-                }
+                println()
             }
-
-            println()
         }
+        println("Done in ${NumberFormat.getInstance().format(totalTime / 1000.0)} s.")
     }
 
     /**
