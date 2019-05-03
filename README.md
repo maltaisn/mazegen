@@ -16,14 +16,14 @@ See [releases](https://github.com/maltaisn/mazegen/releases).
 ## Maze types
  Name | Geometry | Description | Examples |
  :--: | :------: | :---------: | :------: |
-**Orthogonal** | Orthogonal | Square cells on an orthogonal grid. | <img src="mazes\orthogonal_rb.png" height="120px"/> <img src="mazes\orthogonal_pr.png" height="120px"/>
-**Weave orthogonal** | Orthogonal | Orthogonal maze variation that allows passages to go over and under others. | <img src="mazes\weaveOrthogonal_rb.png" height="120px"/> <img src="mazes\weaveOrthogonal_ab.png" height="120px"/>
-**Unicursal orthogonal** | Orthogonal | Orthogonal maze variation with a single path spanning the entire maze, also called a labyrinth. | <img src="mazes\unicursalOrthogonal_kr.png" height="120px"/> <img src="mazes\unicursalOrthogonal_hk.png" height="120px"/>
-**Zeta** | Orthogonal | Orthogonal maze variation that allows diagonal passages. | <img src="mazes\zeta_rb.png" height="120px"/> <img src="mazes\zeta_pr.png" height="120px"/>
-**Upsilon** | Orthogonal | Octogon and square cells on an orthogonal grid. | <img src="mazes\upsilon_rb.png" height="120px"/> <img src="mazes\upsilon_wi.png" height="120px"/>
-**Delta** | Triangular | Triangle cells, the maze can be shaped like a rectangle, a triangle, a hexagon or a rhombus. | <img src="mazes\delta_rectangle_rb.png" height="120px"/> <img src="mazes\delta_triangle_rb.png" height="120px"/> <img src="mazes\delta_hexagon_rb.png" height="120px"/> <img src="mazes\delta_rhombus_rb.png" height="120px"/>
-**Sigma** | Hexagonal | Hexagon cells, the maze can be shaped like a rectangle, a triangle, a hexagon or a rhombus. | <img src="mazes\sigma_rectangle_rb.png" height="120px"/> <img src="mazes\sigma_triangle_rb.png" height="120px"/> <img src="mazes\sigma_hexagon_rb.png" height="120px"/> <img src="mazes\sigma_rhombus_rb.png" height="120px"/>
-**Theta** | Polar | Circle maze with adjustable center radius and cell subdivision parameter. | <img src="mazes\theta_rb.png" height="120px"/> <img src="mazes\theta_ab.png" height="120px"/>
+**Orthogonal** | Orthogonal | Square cells on an orthogonal grid. | <img src="mazes\orthogonal_rb.png" width="120px"/> <img src="mazes\orthogonal_pr.png" width="120px"/>
+**Weave orthogonal** | Orthogonal | Orthogonal maze variation that allows passages to go over and under others. | <img src="mazes\weaveOrthogonal_rb.png" width="120px"/> <img src="mazes\weaveOrthogonal_ab.png" width="120px"/>
+**Unicursal orthogonal** | Orthogonal | Orthogonal maze variation with a single path spanning the entire maze, also called a labyrinth. | <img src="mazes\unicursalOrthogonal_kr.png" width="120px"/> <img src="mazes\unicursalOrthogonal_hk.png" width="120px"/>
+**Zeta** | Orthogonal | Orthogonal maze variation that allows diagonal passages. | <img src="mazes\zeta_rb.png" width="120px"/> <img src="mazes\zeta_pr.png" width="120px"/>
+**Upsilon** | Orthogonal | Octogon and square cells on an orthogonal grid. | <img src="mazes\upsilon_rb.png" width="120px"/> <img src="mazes\upsilon_wi.png" width="120px"/>
+**Delta** | Triangular | Triangle cells, the maze can be shaped like a rectangle, a triangle, a hexagon or a rhombus. | <img src="mazes\delta_rectangle_rb.png" width="120px"/> <img src="mazes\delta_triangle_rb.png" width="120px"/> <img src="mazes\delta_hexagon_rb.png" width="120px"/> <img src="mazes\delta_rhombus_rb.png" width="120px"/>
+**Sigma** | Hexagonal | Hexagon cells, the maze can be shaped like a rectangle, a triangle, a hexagon or a rhombus. | <img src="mazes\sigma_rectangle_rb.png" width="120px"/> <img src="mazes\sigma_triangle_rb.png" width="120px"/> <img src="mazes\sigma_hexagon_rb.png" width="120px"/> <img src="mazes\sigma_rhombus_rb.png" width="120px"/>
+**Theta** | Polar | Circle maze with adjustable center radius and cell subdivision parameter. | <img src="mazes\theta_rb.png" width="120px"/> <img src="mazes\theta_ab.png" width="120px"/>
 
 ## Generators
  Name | Supported maze types | Definition | Example | Distance map |
