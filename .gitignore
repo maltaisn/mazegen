@@ -2,8 +2,6 @@ todo.txt
 testMazes/
 
 build/
+releases/
 .idea/
 .gradle/
-
-META-INF/
-launch4j-config.xml

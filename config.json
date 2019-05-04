@@ -1,9 +1,9 @@
 {
   "mazes": [
     {
-      "name": "zeta_big",
-      "type": "zeta",
-      "size": 60,
+      "name": "orthogonal",
+      "type": "orthogonal",
+      "size": 30,
       "distanceMap": true,
       "distanceMapStart": ["S", "S"]
     }
@@ -11,10 +11,5 @@
   "output": {
     "format": "png",
     "path": "testMazes/"
-  },
-  "style": {
-    "cellSize": 10,
-    "strokeWidth": 2,
-    "distanceMapColors": ["#ffffe0","#ffd298","#ffa574","#f67863","#e04c54","#bd1f38","#8b0000"]
   }
 }

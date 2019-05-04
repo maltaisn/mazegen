@@ -2,6 +2,7 @@ buildscript {
     ext {
         kotlinVersion = "1.3.31"
         junitVersion = "5.4.2"
+        mazegenVersion = "1.1.0"
     }
     repositories {
         mavenCentral()
@@ -13,11 +14,28 @@ buildscript {
 }
 
 apply plugin: "kotlin"
+apply plugin: "idea"
 
 repositories {
     mavenCentral()
     jcenter()
     maven { url { "https://oss.sonatype.org/content/repositories/snapshots/"}}
+}
+
+idea {
+    module {
+        outputDir file("build/classes/main")
+        testOutputDir file("build/classes/test")
+    }
+}
+
+sourceSets.main.java.srcDirs = ["src/main/kotlin"]
+sourceSets.test.java.srcDirs = ["src/test/kotlin"]
+project.buildDir = "build/"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_6
+    targetCompatibility = JavaVersion.VERSION_1_6
 }
 
 dependencies {
@@ -30,11 +48,26 @@ dependencies {
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
 }
 
-sourceSets.main.java.srcDirs = ["src/main/kotlin"]
-sourceSets.test.java.srcDirs = ["src/test/kotlin"]
-buildDir = "build/"
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_6
-    targetCompatibility = JavaVersion.VERSION_1_6
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'com.maltaisn.mazegen.MainKt'
+    }
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+task releaseZip(type: Zip) {
+    dependsOn fatJar
+    from(project.rootDir) {
+        include "mazegen.bat"
+        include "README.md"
+        include "CHANGELOG.md"
+        include "LICENSE"
+    }
+    from("build/libs/") {
+        include "mazegen.jar"
+    }
+    archiveName "releases/mazegen-${mazegenVersion}.zip"
+    destinationDirectory = project.rootDir
 }
