@@ -46,11 +46,11 @@ Distance maps can be used to reveal the "texture" of mazes created by each algor
 All maze types support distance maps. 
 
 The algorithm uses Dijkstra's and the current implementation runs in O(n²)
-so it might get very slow for mazes with over 100 000 cells. 
+so it might get very slow for mazes with over 100&nbsp;000 cells. 
 
-You can use the tool at [http://gka.github.io/palettes] for nice color gradients.
+<img src="mazes/zeta_big_distance_map.png" align="center" width="600px"/>
 
-<img src="mazes/zeta_big_distance_map.png" width="400px"/>
+You can use the tool at http://gka.github.io/palettes for nice color gradients.
 
 ## Configuration
 The generator is configured with a JSON file. There are many attributes but most of them are optional. 
@@ -128,7 +128,7 @@ More examples of configuration file are available at [`/mazes/config/`](mazes/co
     - `braid`: braiding setting, either an integer or a percent string, for example `50%`. Braiding removes a certain number of deadends from the maze by connecting them with neighbouring cells. Default is `0`.
     - `openings`: array of openings to carve in the maze. An opening is described by a position, which is another array. For example `["S", "S"]` describes a position at the horizontal and vertical start of the maze. Valid letters are `S` for start, `C` for center and `E` for end. Absolute position can also be described with coordinates, for example `[0, 0]`, which is the top-left corner in an orthogonal maze but also is the center cell in a theta maze. Openings position must be unique and valid.
     - `solve`: whether to solve the maze or not, a boolean. Default is `false`. Solving requires at least two openings, and if more are present, only the solution for the two first openings is displayed.
-    - `distanceMap`: whether to generate a color ma por not, a boolean. Default is `false`.
+    - `distanceMap`: whether to generate a distance map or not, a boolean. Default is `false`.
     - `distanceMapStart`: the starting cell for the distance map (for Dijkstra's). Can either be in the same format as an opening in `openings`, or `random` for a random position. Default is `random`.
     - `separateExport`: If true, the maze, the solved maze and the distance mapped maze are exported as separate files instead of combined.
 <br><br>
