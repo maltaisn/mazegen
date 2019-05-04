@@ -46,11 +46,11 @@ Distance maps can be used to reveal the "texture" of mazes created by each algor
 All maze types support distance maps. 
 
 The algorithm uses Dijkstra's and the current implementation runs in O(n²)
-so it might get very slow for mazes with over 100 000 cells. 
+so it might get very slow for mazes with over 100&nbsp;000 cells. 
 
-You can use the tool at [http://gka.github.io/palettes] for nice color gradients.
+You can use [this tool](http://gka.github.io/palettes) for nice color gradients.
 
-<img src="mazes/zeta_big_distance_map.png" width="400px"/>
+<img src="mazes/zeta_big_distance_map.png" width="600px"/>
 
 ## Configuration
 The generator is configured with a JSON file. There are many attributes but most of them are optional. 
