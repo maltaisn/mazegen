@@ -40,6 +40,18 @@ See [releases](https://github.com/maltaisn/mazegen/releases).
 **Sidewinder** | Orthogonal | For each cell in each row, randomly carve passage east or north | <img src="mazes\orthogonal_sw.png" width="300px"/> | <img src="mazes\orthogonal_sw_distance_map.png" width="300px"/>
 **Wilson's** | All but zeta and weave orthogonal | Similar to Aldous-Broder's. Performs a random walk until a visited cell is found. Carve the path used to get there and mark the cells as visited. Start walking again from a random cell. | <img src="mazes\orthogonal_wi.png" width="300px"/> | <img src="mazes\orthogonal_wi_distance_map.png" width="300px"/>
 
+## Distance maps
+Distance maps are color maps where each color represent the minimum distance from the cell from a starting cell.
+Distance maps can be used to reveal the "texture" of mazes created by each algorithm (see table above).
+All maze types support distance maps. 
+
+The algorithm uses Dijkstra's and the current implementation runs in O(n²)
+so it might get very slow for mazes with over 100 000 cells. 
+
+You can use the tool at [http://gka.github.io/palettes] for nice color gradients.
+
+<img src="mazes/zeta_big_distance_map.png" width="400px"/>
+
 ## Configuration
 The generator is configured with a JSON file. There are many attributes but most of them are optional. 
 In fact, here's the minimal configuration file:

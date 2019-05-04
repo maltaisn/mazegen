@@ -1,0 +1,65 @@
+{
+  "_comment": "Configuration file to output a distance map for all maze types.",
+  "mazes": [
+    {
+      "name": "orthogonal",
+      "type": "orthogonal",
+      "size": 50,
+      "distanceMap": true,
+      "distanceMapStart": ["S", "S"]
+    },
+    {
+      "name": "weaveOrthogonal",
+      "type": "weaveOrthogonal",
+      "size": 50,
+      "distanceMap": true,
+      "distanceMapStart": ["S", "S"]
+    },
+    {
+      "name": "unicursalOrthogonal",
+      "type": "unicursalOrthogonal",
+      "size": 50,
+      "distanceMap": true,
+      "distanceMapStart": ["S", "S"]
+    },
+    {
+      "name": "zeta",
+      "type": "zeta",
+      "size": 50,
+      "distanceMap": true,
+      "distanceMapStart": ["S", "S"]
+    },
+    {
+      "name": "upsilon",
+      "type": "upsilon",
+      "size": 50,
+      "distanceMap": true,
+      "distanceMapStart": ["S", "S"]
+    },
+    {
+      "name": "delta",
+      "type": "delta",
+      "size": 30,
+      "distanceMap": true,
+      "distanceMapStart": ["S", "S"]
+    },
+    {
+      "name": "sigma",
+      "type": "sigma",
+      "size": 30,
+      "distanceMap": true,
+      "distanceMapStart": ["S", "S"]
+    },
+    {
+      "name": "theta",
+      "type": "theta",
+      "size": 30,
+      "distanceMap": true,
+      "distanceMapStart": ["S", "S"]
+    }
+  ],
+  "style": {
+    "distanceMapRange": "auto",
+    "distanceMapColors": ["#ffffff", "#000000"]
+  }
+}

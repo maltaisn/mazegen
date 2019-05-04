@@ -11,7 +11,10 @@
       },
       "braid": "50%",
       "openings": [["S", "S"], ["E", "E"]],
-      "solve": true
+      "solve": true,
+      "distanceMap": true,
+      "distanceMapStart": "random",
+      "separateExport": true
     },
     {
       "name": "delta_gt",
@@ -39,8 +42,8 @@
   ],
   "output": {
     "format": "svg",
-    "path": "mazes/config",
-    "svgOptimize": true,
+    "path": "mazes/",
+    "svgOptimization": 4,
     "svgPrecision": 3
   },
   "style": {
@@ -51,6 +54,8 @@
     "solutionColor": "#55FF55",
     "solutionStrokeWidth": 1,
     "strokeCap": "square",
+    "distanceMapRange": "auto",
+    "distanceMapColors": ["#ff0000", "#ffff00", "#00ff00", "#00ffff", "#0000ff", "#ff00ff"],
     "antialiasing": false
   }
 }

@@ -1,17 +1,20 @@
 {
   "mazes": [
     {
-      "name": "test",
-      "type": "weaveOrthogonal",
-      "size": 30,
-      "algorithm": "rb",
+      "name": "zeta_big",
+      "type": "zeta",
+      "size": 60,
       "distanceMap": true,
       "distanceMapStart": ["S", "S"]
     }
   ],
   "output": {
-    "format": "svg",
+    "format": "png",
     "path": "testMazes/"
   },
-  "style": {}
+  "style": {
+    "cellSize": 10,
+    "strokeWidth": 2,
+    "distanceMapColors": ["#ffffe0","#ffd298","#ffa574","#f67863","#e04c54","#bd1f38","#8b0000"]
+  }
 }
