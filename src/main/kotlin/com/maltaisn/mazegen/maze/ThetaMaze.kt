@@ -177,6 +177,7 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
 
         // Draw the background
         if (style.backgroundColor != null) {
+            canvas.zIndex = 0
             canvas.color = style.backgroundColor
             canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
@@ -186,6 +187,8 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
 
         // Draw the distance map
         if (hasDistanceMap) {
+            canvas.zIndex = 10
+
             val distMapColors = style.generateDistanceMapColors(this)
 
             // Draw center circle cell
@@ -212,6 +215,7 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
         // Draw the maze
         // For each cell, only the inward and clockwise sides are drawn if they are set,
         // except for the last row where the outward side is also drawn.
+        canvas.zIndex = 20
         canvas.color = style.color
         canvas.stroke = style.stroke
         for (r in 1..radius) {
@@ -237,6 +241,7 @@ class ThetaMaze(private val radius: Int, private val centerRadius: Double = 1.0,
 
         // Draw the solution
         if (solution != null) {
+            canvas.zIndex = 30
             canvas.color = style.solutionColor
             canvas.stroke = style.solutionStroke
 

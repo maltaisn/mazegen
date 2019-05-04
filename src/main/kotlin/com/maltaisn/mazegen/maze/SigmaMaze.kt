@@ -104,6 +104,7 @@ class SigmaMaze(width: Int, height: Int, shape: Shape) :
 
         // Draw the background
         if (style.backgroundColor != null) {
+            canvas.zIndex = 0
             canvas.color = style.backgroundColor
             canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
@@ -113,6 +114,8 @@ class SigmaMaze(width: Int, height: Int, shape: Shape) :
 
         // Draw the distance map
         if (hasDistanceMap) {
+            canvas.zIndex = 10
+
             val distMapColors = style.generateDistanceMapColors(this)
             drawForEachCell(style, minTop) { cell, cx, cy ->
                 canvas.color = distMapColors[cell.distanceMapValue]
@@ -130,6 +133,7 @@ class SigmaMaze(width: Int, height: Int, shape: Shape) :
         // Draw the maze
         // Without going into details, only half the sides are drawn
         // for each cell except the bottommost and rightmost cells.
+        canvas.zIndex = 20
         canvas.color = style.color
         canvas.stroke = style.stroke
         drawForEachCell(style, minTop) { cell, cx, cy ->
@@ -167,6 +171,7 @@ class SigmaMaze(width: Int, height: Int, shape: Shape) :
 
         // Draw the solution
         if (solution != null) {
+            canvas.zIndex = 30
             canvas.color = style.solutionColor
             canvas.stroke = style.solutionStroke
 

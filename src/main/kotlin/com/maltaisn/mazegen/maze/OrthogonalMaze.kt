@@ -56,6 +56,7 @@ open class OrthogonalMaze(width: Int, height: Int) :
 
         // Draw the background
         if (style.backgroundColor != null) {
+            canvas.zIndex = 0
             canvas.color = style.backgroundColor
             canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
@@ -65,6 +66,8 @@ open class OrthogonalMaze(width: Int, height: Int) :
 
         // Draw the distance map
         if (hasDistanceMap) {
+            canvas.zIndex = 10
+
             val distMapColors = style.generateDistanceMapColors(this)
             for (x in 0 until w) {
                 for (y in 0 until h) {
@@ -79,6 +82,7 @@ open class OrthogonalMaze(width: Int, height: Int) :
         // Draw the maze
         // For each cell, only the north and west walls are drawn if they are set,
         // except for the last row and column where to south and east walls are also drawn.
+        canvas.zIndex = 20
         canvas.color = style.color
         canvas.stroke = style.stroke
         for (x in 0..w) {
@@ -100,6 +104,7 @@ open class OrthogonalMaze(width: Int, height: Int) :
 
         // Draw the solution
         if (solution != null) {
+            canvas.zIndex = 30
             canvas.color = style.solutionColor
             canvas.stroke = style.solutionStroke
 

@@ -118,6 +118,7 @@ class DeltaMaze(width: Int, height: Int, shape: Shape) :
 
         // Draw the background
         if (style.backgroundColor != null) {
+            canvas.zIndex = 0
             canvas.color = style.backgroundColor
             canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
@@ -127,6 +128,8 @@ class DeltaMaze(width: Int, height: Int, shape: Shape) :
 
         // Draw the distance map
         if (hasDistanceMap) {
+            canvas.zIndex = 10
+
             val distMapColors = style.generateDistanceMapColors(this)
             drawForEachCell { cell, x, y, flatTopped ->
                 canvas.color = distMapColors[cell.distanceMapValue]
@@ -144,6 +147,7 @@ class DeltaMaze(width: Int, height: Int, shape: Shape) :
         }
 
         // Draw the maze
+        canvas.zIndex = 20
         canvas.color = style.color
         canvas.stroke = style.stroke
         drawForEachCell { cell, x, y, flatTopped ->
@@ -178,6 +182,7 @@ class DeltaMaze(width: Int, height: Int, shape: Shape) :
 
         // Draw the solution
         if (solution != null) {
+            canvas.zIndex = 30
             canvas.color = style.solutionColor
             canvas.stroke = style.solutionStroke
 

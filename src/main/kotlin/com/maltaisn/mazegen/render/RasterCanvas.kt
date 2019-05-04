@@ -41,9 +41,10 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
     private lateinit var graphics: Graphics2D
     private lateinit var buffImage: BufferedImage
 
-    override var color: Color = Color.BLACK
+    override var color
+        get() = super.color
         set(value) {
-            field = if (format != OutputFormat.PNG && value.alpha != 255) {
+            super.color = if (format != OutputFormat.PNG && value.alpha != 255) {
                 // If format is not PNG, can't allow colors with an alpha channel
                 Color(value.rgb and 0xFFFFFF)
             } else {
@@ -54,18 +55,17 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
             }
         }
 
-    override var stroke: BasicStroke = BasicStroke(1f)
+    override var stroke
+        get() = super.stroke
         set(value) {
-            field = value
+            super.stroke = value
             if (this::graphics.isInitialized) {
                 graphics.stroke = stroke
             }
         }
 
-    /** Default transform saved to reset it when needed */
-    private lateinit var transform: AffineTransform
-
-    override var translate: Point
+    override var translate
+        get() = super.translate
         set(value) {
             super.translate = value
             if (this::graphics.isInitialized) {
@@ -73,16 +73,20 @@ class RasterCanvas(format: OutputFormat) : Canvas(format) {
                 graphics.translate(value.x, value.y)
             }
         }
-        get() = super.translate
 
-    override var antialiasing = true
+    /** Default transform saved to reset it when needed */
+    private lateinit var transform: AffineTransform
+
+    override var antialiasing
+        get() = super.antialiasing
         set(value) {
-            field = value
+            super.antialiasing = value
             if (this::graphics.isInitialized) {
                 graphics.setRenderingHints(RenderingHints(RenderingHints.KEY_ANTIALIASING,
                         if (value) RenderingHints.VALUE_ANTIALIAS_ON else RenderingHints.VALUE_ANTIALIAS_OFF))
             }
         }
+
 
     override fun init(width: Double, height: Double) {
         super.init(width, height)

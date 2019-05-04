@@ -61,6 +61,7 @@ class ZetaMaze(width: Int, height: Int) :
 
         // Draw the background
         if (style.backgroundColor != null) {
+            canvas.zIndex = 0
             canvas.color = style.backgroundColor
             canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
@@ -70,6 +71,8 @@ class ZetaMaze(width: Int, height: Int) :
 
         // Draw the distance map
         if (hasDistanceMap) {
+            canvas.zIndex = 10
+
             val distMapColors = style.generateDistanceMapColors(this)
             for (x in 0 until width) {
                 val px = x * csize
@@ -140,6 +143,7 @@ class ZetaMaze(width: Int, height: Int) :
         // Draw the maze
         // For each cell, draw west and north walls, as well as all 45 degrees lines.
         // On the last row and column, the east and south walls are also drawn.
+        canvas.zIndex = 20
         canvas.color = style.color
         canvas.stroke = style.stroke
         for (x in 0 until width) {
@@ -198,6 +202,7 @@ class ZetaMaze(width: Int, height: Int) :
 
         // Draw the solution
         if (solution != null) {
+            canvas.zIndex = 30
             canvas.color = style.solutionColor
             canvas.stroke = style.solutionStroke
 

@@ -1,117 +1,17 @@
 {
-  "_comment": "The configuration file to generate all mazes seen in the readme",
   "mazes": [
     {
-      "name": "orthogonal_ab",
-      "type": "orthogonal",
-      "algorithm": "ab",
-      "size": 20,
-      "distanceMap": true,
-      "separateExport": true,
-      "distanceMapStart": ["S", "S"]
-    },
-    {
-      "name": "orthogonal_bt",
-      "type": "orthogonal",
-      "algorithm": {
-        "name": "bt",
-        "bias": "ne"
-      },
-      "size": 20,
-      "distanceMap": true,
-      "separateExport": true,
-      "distanceMapStart": ["S", "S"]
-    },
-    {
-      "name": "orthogonal_el",
-      "type": "orthogonal",
-      "algorithm": {
-        "name": "el",
-        "bias": ["50%", "50%"]
-      },
-      "size": 20,
-      "distanceMap": true,
-      "separateExport": true,
-      "distanceMapStart": ["S", "S"]
-    },
-    {
-      "name": "orthogonal_gt",
-      "type": "orthogonal",
-      "algorithm": {
-        "name": "gt",
-        "weights": [1, 1, 0]
-      },
-      "size": 20,
-      "distanceMap": true,
-      "separateExport": true,
-      "distanceMapStart": ["S", "S"]
-    },
-    {
-      "name": "orthogonal_hk",
-      "type": "orthogonal",
-      "algorithm": "hk",
-      "size": 20,
-      "distanceMap": true,
-      "separateExport": true,
-      "distanceMapStart": ["S", "S"]
-    },
-    {
-      "name": "orthogonal_kr",
-      "type": "orthogonal",
-      "algorithm": "kr",
-      "size": 20,
-      "distanceMap": true,
-      "separateExport": true,
-      "distanceMapStart": ["S", "S"]
-    },
-    {
-      "name": "orthogonal_pr",
-      "type": "orthogonal",
-      "algorithm": "pr",
-      "size": 20,
-      "distanceMap": true,
-      "separateExport": true,
-      "distanceMapStart": ["S", "S"]
-    },
-    {
-      "name": "orthogonal_rb",
-      "type": "orthogonal",
+      "name": "test",
+      "type": "weaveOrthogonal",
+      "size": 30,
       "algorithm": "rb",
-      "size": 20,
       "distanceMap": true,
-      "separateExport": true,
-      "distanceMapStart": ["S", "S"]
-    },
-    {
-      "name": "orthogonal_rd",
-      "type": "orthogonal",
-      "algorithm": "rd",
-      "size": 20,
-      "distanceMap": true,
-      "separateExport": true,
-      "distanceMapStart": ["S", "S"]
-    },
-    {
-      "name": "orthogonal_sw",
-      "type": "orthogonal",
-      "algorithm": "sw",
-      "size": 20,
-      "distanceMap": true,
-      "separateExport": true,
-      "distanceMapStart": ["S", "S"]
-    },
-    {
-      "name": "orthogonal_wi",
-      "type": "orthogonal",
-      "algorithm": "wi",
-      "size": 20,
-      "distanceMap": true,
-      "separateExport": true,
       "distanceMapStart": ["S", "S"]
     }
   ],
   "output": {
-    "format": "png",
+    "format": "svg",
     "path": "testMazes/"
-  }
+  },
+  "style": {}
 }

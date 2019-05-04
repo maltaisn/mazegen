@@ -41,23 +41,20 @@ abstract class Canvas(val format: OutputFormat) {
     var height = SIZE_UNSET
         private set
 
-    /**
-     * The stroke style used by the canvas.
-     */
-    abstract var stroke: BasicStroke
+    /** The stroke style used by the canvas. */
+    open var stroke = BasicStroke(1f)
 
-    /**
-     * The color used for the stroke and fill by the canvas.
-     */
-    abstract var color: Color
+    /** The color used for the stroke and fill by the canvas. */
+    open var color: Color = Color.BLACK
 
-    /**
-     * The translation applied to this canvas, `null` if no translation is applied.
-     */
+    /** The translation applied to this canvas, `null` if no translation is applied. */
     open var translate = Point(0.0, 0.0)
 
+    /** Whether to draw with antialiasing or not. */
+    open var antialiasing = true
 
-    abstract var antialiasing: Boolean
+    /** Only used by [SvgCanvas] to determine the z-index of drawn shapes. */
+    open var zIndex = 0
 
     /**
      * Initialize the canvas with a width and height.

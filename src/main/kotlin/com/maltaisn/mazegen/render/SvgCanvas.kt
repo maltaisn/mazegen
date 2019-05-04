@@ -47,31 +47,43 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
 
     private lateinit var currentStyle: Style
 
-    override var color: Color = Color.BLACK
+    override var color
+        get() = super.color
         set(value) {
-            if (field != value) {
-                field = value
+            if (color != value) {
+                super.color = value
                 updateStyle()
             }
         }
 
-    override var stroke = BasicStroke(1f)
+    override var stroke
+        get() = super.stroke
         set(value) {
-            if (field != value) {
-                field = value
+            if (stroke != value) {
+                super.stroke = value
+                updateStyle()
+            }
+        }
+
+    override var antialiasing
+        get() = super.antialiasing
+        set(value) {
+            if (antialiasing != value) {
+                super.antialiasing = value
+                updateStyle()
+            }
+        }
+
+    override var zIndex
+        get() = super.zIndex
+        set(value) {
+            if (zIndex != value) {
+                super.zIndex = value
                 updateStyle()
             }
         }
 
     private var filled = false
-        set(value) {
-            if (field != value) {
-                field = value
-                updateStyle()
-            }
-        }
-
-    override var antialiasing = true
         set(value) {
             if (field != value) {
                 field = value
@@ -179,6 +191,9 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
         // Optimize
         optimize(nbFmt)
 
+        // Order elements by z-index
+        paths.sortBy { it.style.zIndex }
+
         // Create SVG text
         val svg = StringBuilder(8192)
         svg.append("<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\" ")
@@ -194,7 +209,7 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
     }
 
     private fun updateStyle() {
-        currentStyle = Style(stroke, color, filled, antialiasing)
+        currentStyle = Style(stroke, color, filled, antialiasing, zIndex)
     }
 
     private fun optimize(nbFmt: NumberFormat) {
@@ -662,7 +677,8 @@ class SvgCanvas : Canvas(OutputFormat.SVG) {
     private data class Style(val stroke: BasicStroke,
                              val color: Color,
                              val filled: Boolean,
-                             val antialiasing: Boolean) {
+                             val antialiasing: Boolean,
+                             val zIndex: Int) {
 
         fun appendTo(svg: StringBuilder, nbFmt: NumberFormat) {
             svg.append("style=\"")

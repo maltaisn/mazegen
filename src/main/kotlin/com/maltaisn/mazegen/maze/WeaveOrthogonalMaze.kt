@@ -157,6 +157,7 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
 
         // Draw the background
         if (style.backgroundColor != null) {
+            canvas.zIndex = 0
             canvas.color = style.backgroundColor
             canvas.drawRect(0.0, 0.0, canvas.width, canvas.height, true)
         }
@@ -175,6 +176,7 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
 
                     // Draw the tunnel color with a rectangle, either vertical or horizontal.
                     if (cell.hasTunnel) {
+                        canvas.zIndex = 10
                         canvas.color = distMapColors[cell.distanceMapTunnelValue]
                         if (cell.hasSide(Side.NORTH)) {
                             canvas.drawRect(cx - inSize, cy - csize / 2, 2 * inSize, csize, true)
@@ -212,6 +214,7 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
                             }
                         }
                     }
+                    canvas.zIndex = 11
                     canvas.color = distMapColors[cell.distanceMapValue]
                     canvas.drawPath(vertices, true)
                 }
@@ -222,6 +225,7 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
         // The solution is drawn first because it can go under some passages and drawing it
         // after the maze would show awkward line endings.
         if (solution != null) {
+            canvas.zIndex = 20
             canvas.color = style.solutionColor
             canvas.stroke = style.solutionStroke
 
@@ -266,6 +270,7 @@ class WeaveOrthogonalMaze(width: Int, height: Int, val maxWeave: Int) :
         }
 
         // Draw the maze
+        canvas.zIndex = 30
         canvas.color = style.color
         canvas.stroke = style.stroke
         for (x in 0 until width) {
