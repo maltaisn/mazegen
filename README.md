@@ -4,9 +4,11 @@ configurable in JSON. Mazes can be solved with the A* algorithm, braided,
 distance mapped, and exported to PNG, JPG, BMP, GIF or SVG.
 
 ### Usage
-Just drag-and-drop the configuration file on the executable file or by command line:
+Just drag-and-drop the configuration file on the .bat file or do one of these by command line:
 ```text
 mazegen config-file [additional-config-files...]
+```
+```text
 java -jar mazegen.jar config-file [additional-config-files...]
 ```
 
@@ -163,4 +165,4 @@ View changelog at [`CHANGELOG.md`](CHANGELOG.md).
 - Walter D. Pullen for [information on maze types](http://www.astrolog.org/labyrnth/algrithm.htm).
 
 ## License
-Everything is licensed under the [MIT License](LICENSE.md).
+Everything is licensed under the [MIT License](LICENSE).
